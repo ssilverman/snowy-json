@@ -172,7 +172,6 @@ public final class ValidatorContext {
       } catch (URISyntaxException ex) {
         throw new IllegalArgumentException("Unexpected bad base URI");
       }
-      System.out.println(baseURI);
     }
 
     this.baseURI = baseURI.normalize();
