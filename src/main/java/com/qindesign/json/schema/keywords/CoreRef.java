@@ -64,6 +64,6 @@ public class CoreRef extends Keyword {
       return false;
     }
 
-    return context.apply(e, NAME, instance, "");
+    return context.apply(e, "", instance, "");
   }
 }
