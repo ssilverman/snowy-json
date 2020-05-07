@@ -52,6 +52,7 @@ public class CoreRef extends Keyword {
         e = Validator.followPointer(e, fragment);
       }
     } else {
+      // Plain name
       e = context.find(uri);
     }
 
