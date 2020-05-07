@@ -294,12 +294,22 @@ public final class ValidatorContext {
    * the root.
    * <p>
    * This first tries locally and then tries from a list of known resources.
+   * <p>
+   * If the ID has a fragment then it will be removed prior to searching.
    *
    * @param id the id
    * @return the element having the given ID or {@code null} if there's no
    *         such element.
    */
   public JsonElement findAndSetRoot(URI id) {
+    if (id.getRawFragment() != null) {
+      try {
+        id = new URI(id.getScheme(), id.getRawSchemeSpecificPart(), null);
+      } catch (URISyntaxException ex) {
+        logger.log(Level.SEVERE, "Unexpected bad URI", ex);
+        return null;
+      }
+    }
     JsonElement e = knownIDs.get(new Id(id));
     if (e == null) {
       e = Validator.loadResource(id);
