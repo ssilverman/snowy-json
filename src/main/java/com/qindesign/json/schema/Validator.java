@@ -218,7 +218,7 @@ public class Validator {
                              JsonElement parent, JsonElement e,
                              Map<Id, JsonElement> ids)
       throws MalformedSchemaException {
-    if (e.isJsonPrimitive()) {
+    if (e.isJsonPrimitive() || e.isJsonNull()) {
       return rootID;
     }
 
