@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public abstract class Keyword {
   protected final Logger logger = Logger.getLogger(getClass().getName());
 
-  private String name;
+  private final String name;
 
   /**
    * Subclasses call this with the keyword name. Names must be unique.

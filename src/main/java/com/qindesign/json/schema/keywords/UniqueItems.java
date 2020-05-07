@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,9 +24,19 @@ public class UniqueItems extends Keyword {
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
+    if (!Validator.isBoolean(value)) {
+      context.schemaError("not a Boolean");
+      return false;
+    }
+
+    if (!value.getAsBoolean()) {
+      return true;
+    }
+
     if (!instance.isJsonArray()) {
       return true;
     }
+
     Set<JsonElement> set = new HashSet<>();
     for (JsonElement e : instance.getAsJsonArray()) {
       if (!set.add(e)) {

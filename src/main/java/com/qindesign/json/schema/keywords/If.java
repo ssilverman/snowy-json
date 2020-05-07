@@ -15,8 +15,8 @@ import com.qindesign.json.schema.ValidatorContext;
 public class If extends Keyword {
   public static final String NAME = "if";
 
-  public If(String name) {
-    super(name);
+  public If() {
+    super(NAME);
   }
 
   @Override

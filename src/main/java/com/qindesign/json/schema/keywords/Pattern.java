@@ -40,6 +40,6 @@ public class Pattern extends Keyword {
     if (!Validator.isString(instance)) {
       return true;
     }
-    return p.matches(value.getAsString(), instance.getAsString());
+    return p.matcher(instance.getAsString()).matches();
   }
 }

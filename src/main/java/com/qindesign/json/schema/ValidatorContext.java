@@ -8,9 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -28,7 +26,7 @@ public final class ValidatorContext {
   private static final Class<?> CLASS = ValidatorContext.class;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
-  private static Map<String, Keyword> keywords = new HashMap<>();
+  private static final Map<String, Keyword> keywords = new HashMap<>();
 
   /** These core keywords are processed first, in this order. */
   private static final Set<String> FIRST_KEYWORDS = new LinkedHashSet<>(
@@ -90,7 +88,7 @@ public final class ValidatorContext {
         return super.clone();
       } catch (CloneNotSupportedException ex) {
         logger.log(Level.SEVERE, "Unexpected", ex);
-        return null;
+        throw new RuntimeException("Unexpected", ex);
       }
     }
   }
@@ -106,6 +104,7 @@ public final class ValidatorContext {
   /**
    * Finds all the keyword implementations.
    */
+  @SuppressWarnings("UnstableApiUsage")
   private static void findKeywords() throws IOException {
     ClassPath classPath = ClassPath.from(CLASS.getClassLoader());
     Set<ClassPath.ClassInfo> classes =
@@ -135,18 +134,6 @@ public final class ValidatorContext {
 
   /** Vocabularies in use. */
   private final Map<URI, Boolean> vocabularies = new HashMap<>();
-
-  /** Collected IDs. */
-  private final Map<URI, JsonElement> ids = new HashMap<>();
-
-  /** Collected anchors, in absolute form. */
-  private final Map<URI, JsonElement> anchors = new HashMap<>();
-
-//  /** Current object state. */
-//  private Map<String, Object> props = new HashMap<>();
-//
-//  /** Every nested call saves and restores the current state. */
-//  private Deque<Map<String, Object>> stack = new ArrayDeque<>();
 
   /** Annotations collection, maps element location to its annotations. */
   private final Map<URI, Map<String, Map<URI, Annotation>>> annotations = new HashMap<>();
@@ -186,14 +173,6 @@ public final class ValidatorContext {
   }
 
   /**
-   * Adds an error to the current location.
-   *
-   * @param err the error message
-   */
-  public void addError(String err) {
-  }
-
-  /**
    * Returns the current base URI. This is the base URI of the closest ancestor.
    */
   public URI baseURI() {
@@ -205,9 +184,10 @@ public final class ValidatorContext {
   }
 
   /**
-   * Sets the base URI. This does not change the recursive base URI.
+   * Sets the base URI by normalizing the given URI with the current base URI.
+   * This does not change the recursive base URI.
    *
-   * @param uri the new base URI
+   * @param uri the new relative base URI
    */
   public void setBaseURI(URI uri) {
     state.baseURI = state.baseURI.resolve(uri);
@@ -217,8 +197,6 @@ public final class ValidatorContext {
    * Sets the recursive base URI to the current base URI. This bumps the current
    * recursive base to be the previous recursive base, unless it's {@code null},
    * in which case they will be set to the same thing.
-   *
-   * @param uri the new recursive base URI
    */
   public void setRecursiveBaseURI() {
     if (state.recursiveBaseURI == null) {
@@ -237,40 +215,6 @@ public final class ValidatorContext {
    */
   public boolean setVocabulary(URI id, boolean flag) {
     return vocabularies.putIfAbsent(id, flag) == null;
-  }
-
-  /**
-   * Adds a new known ID and resolves it against the current base URI. This
-   * returns {@code false} if the ID is not unique and {@code true} otherwise.
-   * This is intended to be called from the "$id" keyword.
-   * <p>
-   * This also sets the current base URI to the given ID.
-   * <p>
-   * This will compute the absolute URI if the given URI is relative by using
-   * the current base URI.
-   *
-   * @param id the new ID and base URI
-   * @return whether the ID is unique.
-   */
-  public boolean addID(URI id) {
-    state.baseURI = state.baseURI.resolve(id);
-    return ids.putIfAbsent(id, state.schemaObject) == null;
-  }
-
-  /**
-   * Adds an anchor and resolves it against the current base URI. This returns
-   * {@code false} if the ID is not unique and {@code true} otherwise. This is
-   * intended to be called from the "$anchor" keyword.
-   *
-   * @param name the new name
-   * @return whether the resolved name is unique.
-   * @throws IllegalArgumentException if the name is not a valid anchor.
-   */
-  public boolean addAnchor(String name) {
-    if (name == null) {
-      throw new NullPointerException("name");
-    }
-    return anchors.putIfAbsent(state.baseURI.resolve("#" + name), state.schemaObject) == null;
   }
 
   /**
@@ -303,35 +247,6 @@ public final class ValidatorContext {
     return state.keywordLocation;
   }
 
-//  /**
-//   * Marks the current keyword location as a recursive anchor base.
-//   */
-//  public void setRecursiveAnchorBase() {
-//    state.recursiveAnchorBase = state.keywordParentLocation;
-//  }
-//
-//  /**
-//   * Returns the set of properties for the current object.
-//   */
-//  public Map<String, Object> props() {
-//    return props;
-//  }
-
-//  /**
-//   * Returns the annotations for the current location. It is up to the
-//   * annotators to add and combine values as they wish.
-//   * <p>
-//   * Each annotation name is mapped to a set of annotations. The set of
-//   * annotations is keyed by schema location. This enables callers to use and
-//   * combine annotations in custom ways.
-//   *
-//   * @return a map of annotation names to maps of schema locations
-//   *         to annotations.
-//   */
-//  public Map<String, Map<String, Annotation>> annotations() {
-//    return null;
-//  }
-
   /**
    * Finds the element associated with the given ID. If there is no such element
    * having the ID then this returns {@code null}.
@@ -357,16 +272,8 @@ public final class ValidatorContext {
     a.schemaLocation = state.keywordLocation;
     a.value = value;
 
-    Map<String, Map<URI, Annotation>> aForInstance = annotations.get(state.instanceLocation);
-    if (aForInstance == null) {
-      aForInstance = new HashMap<>();
-      annotations.put(state.instanceLocation, aForInstance);
-    }
-    Map<URI, Annotation> aForName = aForInstance.get(name);
-    if (aForName == null) {
-      aForName = new HashMap<>();
-      aForInstance.put(name, aForName);
-    }
+    var aForInstance = annotations.computeIfAbsent(state.instanceLocation, k -> new HashMap<>());
+    var aForName = aForInstance.computeIfAbsent(name, k -> new HashMap<>());
     aForName.put(state.keywordLocation, a);
   }
 
@@ -501,6 +408,7 @@ public final class ValidatorContext {
 
     State parentState = state;
     state = (State) state.clone();
+    assert state != null;
     state.keywordParentLocation = keywordLocation;
     state.instanceLocation = instanceLocation;
 

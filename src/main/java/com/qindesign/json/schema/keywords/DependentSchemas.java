@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
-import java.util.Map;
 
 /**
  * Implements the "dependentSchemas" applicator.

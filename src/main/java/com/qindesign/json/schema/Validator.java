@@ -192,6 +192,7 @@ public class Validator {
     id.root = baseURI;
     id.rootURI = baseURI;
     ids.put(id, e);
+    // TODO: Use the return value
     scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids);
     return ids;
   }
@@ -226,6 +227,8 @@ public class Validator {
     if (parent == null) {
       newParentID = URI.create("");
     } else {
+      name = name.replace("~", "~0");
+      name = name.replace("/", "~1");
       newParentID = URI.create(parentID.getPath() + "/" + name);
     }
 

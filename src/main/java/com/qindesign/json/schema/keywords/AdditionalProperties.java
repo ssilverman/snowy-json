@@ -3,7 +3,6 @@
  */
 package com.qindesign.json.schema.keywords;
 
-import com.google.common.reflect.TypeParameter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Annotation;

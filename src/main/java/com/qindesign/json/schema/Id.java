@@ -25,11 +25,12 @@ public final class Id {
    * This field is used for all comparisons and hashing. The other fields are
    * just auxiliary.
    */
-  public URI id;
+  public final URI id;
 
   /** The base URI, against which the value was resolved to produce the ID. */
   public URI base;
 
+  /** The JSON pointer to this element. */
   public String path;
 
   /** The root ID, may or may not be the same as the root URI. */

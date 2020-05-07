@@ -50,11 +50,7 @@ public class CoreId extends Keyword {
       }
     }
 
-    context.setBaseURI(context.baseURI().resolve(id));
-//    if (!context.addID(id)) {
-//      context.schemaError("not unique");
-//      return false;
-//    }
+    context.setBaseURI(id);
 
     return true;
   }

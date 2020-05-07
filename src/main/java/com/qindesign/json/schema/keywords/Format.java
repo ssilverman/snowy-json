@@ -209,6 +209,7 @@ public class Format extends Keyword {
     return (exprIndex < 0);
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {

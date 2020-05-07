@@ -7,12 +7,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
@@ -70,7 +68,7 @@ public class PatternProperties extends Keyword {
       }
     }
 
-    context.addAnnotation(NAME, true);
+    context.addAnnotation(NAME, validated);
 
     return true;
   }

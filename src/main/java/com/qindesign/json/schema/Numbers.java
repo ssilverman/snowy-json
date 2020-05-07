@@ -57,10 +57,8 @@ public final class Numbers {
 //      return new BigDecimal(s);
 //    }
 
-    int sLen = s.length();
     int nStart = 0;
     if (s.startsWith("+") || s.startsWith("-")) {
-      sLen--;
       nStart++;
     }
 
