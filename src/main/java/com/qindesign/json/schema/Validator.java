@@ -149,7 +149,7 @@ public class Validator {
     if (path == null) {
       return null;
     }
-    try (InputStream in = Validator.class.getClassLoader().getResourceAsStream(path)) {
+    try (InputStream in = Validator.class.getResourceAsStream(path)) {
       if (in == null) {
         return null;
       }
