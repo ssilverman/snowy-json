@@ -269,7 +269,9 @@ public final class ValidatorContext {
 
   /**
    * Finds the element associated with the given ID. If there is no such element
-   * having the ID then this returns {@code null}.
+   * having the ID then this returns {@code null}. If the returned element was
+   * from a new resource and is a schema then the current state will be set as
+   * the root.
    * <p>
    * This first tries locally and then tries from a list of known resources.
    *
@@ -277,10 +279,13 @@ public final class ValidatorContext {
    * @return the element having the given ID or {@code null} if there's no
    *         such element.
    */
-  public JsonElement find(URI id) {
+  public JsonElement findAndSetRoot(URI id) {
     JsonElement e = knownIDs.get(new Id(id));
     if (e == null) {
       e = Validator.loadResource(id);
+      if (e != null && Validator.isSchema(e)) {
+        state.schemaObject = null;
+      }
     }
     return e;
   }

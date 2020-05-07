@@ -43,7 +43,7 @@ public class CoreRef extends Keyword {
     String fragment = uri.getRawFragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
       try {
-        e = context.find(new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null));
+        e = context.findAndSetRoot(new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null));
       } catch (URISyntaxException ex) {
         context.schemaError("unexpected bad URI");
         return false;
@@ -53,7 +53,7 @@ public class CoreRef extends Keyword {
       }
     } else {
       // Plain name
-      e = context.find(uri);
+      e = context.findAndSetRoot(uri);
     }
 
     if (e == null) {

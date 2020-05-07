@@ -52,7 +52,7 @@ public class CoreRecursiveRef extends Keyword {
 
     // First, look for a $recursiveAnchor
     URI resolved = context.baseURI().resolve(uri);
-    JsonElement e = context.find(resolved);
+    JsonElement e = context.findAndSetRoot(resolved);
     if (e == null) {
       context.schemaError("unknown reference: " + value.getAsString());
       return false;
@@ -74,7 +74,7 @@ public class CoreRecursiveRef extends Keyword {
         // Assume the recursive anchors have already been processed
         // Resolve against the new URI
         resolved = context.recursiveBaseURI().resolve(uri);
-        e = context.find(resolved);
+        e = context.findAndSetRoot(resolved);
         if (e == null) {
           context.schemaError("unknown dynamic reference: " + resolved);
           return false;
