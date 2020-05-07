@@ -5,7 +5,6 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -14,9 +13,11 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -59,56 +60,29 @@ public class Main {
   }
 
   public static void main(String[] args) throws Exception {
-//    try (BufferedReader r = new BufferedReader(new FileReader(args[0], StandardCharsets.UTF_8))) {
-//      JsonElement e = parse(r);
-//      URI id = new File(args[0]).toURI();
-//      System.out.println("Base = " + id);
-//      for (var key : Validator.scanIDs(id, e).keySet()) {
-//        System.out.println(key.id + ": " + key.path);
-//      }
-
-//      System.out.println(Validator.followPointer(e, ""));
-//      System.out.println(Validator.followPointer(e, "/foo"));
-//      System.out.println(Validator.followPointer(e, "/foo/0"));
-//      System.out.println(Validator.followPointer(e, "/"));
-//      System.out.println(Validator.followPointer(e, "/a~1b"));
-//      System.out.println(Validator.followPointer(e, "/c%d"));
-//      System.out.println(Validator.followPointer(e, "/e^f"));
-//      System.out.println(Validator.followPointer(e, "/g|h"));
-//      System.out.println(Validator.followPointer(e, "/i\\j"));
-//      System.out.println(Validator.followPointer(e, "/k\"l"));
-//      System.out.println(Validator.followPointer(e, "/ "));
-//      System.out.println(Validator.followPointer(e, "/m~0n"));
-//    }
-//    System.exit(1);
-
     if (args.length != 2) {
       System.out.println("Usage: " + CLASS.getName() + " <schema> <instance>");
       System.exit(1);
       return;
     }
 
-    JsonObject schema;
+    URI schemaID = new File(args[0]).toURI();
+    JsonElement schema;
     JsonElement instance;
 
-    // Load the schema
+    // Load the schema and instance
     try (BufferedReader r = new BufferedReader(new FileReader(args[0], StandardCharsets.UTF_8))) {
-      JsonElement e = parse(r);
-      if (!Validator.isSchema(e)) {
-        System.out.println("Schema must be an object or Boolean");
-        System.exit(1);
-        return;
-      }
-      schema = (JsonObject) e;
+      schema = parse(r);
     }
-
-    // Load the instance
-    try (BufferedReader r = new BufferedReader(new FileReader(args[1]))) {
+    try (BufferedReader r = new BufferedReader(new FileReader(args[1], StandardCharsets.UTF_8))) {
       instance = parse(r);
     }
+    logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
-    logger.info("Schema:" + schema);
-    logger.info("Instance: " + instance);
+    var knownIDs = Validator.scanIDs(schemaID, schema);
+    ValidatorContext context = new ValidatorContext(schemaID, knownIDs);
+    boolean result = context.apply(schema, "", instance, "");
+    logger.info("Validation result: " + result);
   }
 
   // According to the source, JsonParser sets lenient mode to true, but I don't want this
