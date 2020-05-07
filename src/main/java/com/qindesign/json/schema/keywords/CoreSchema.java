@@ -54,7 +54,7 @@ public class CoreSchema extends Keyword {
     }
 
     // Check if we should validate the schema
-    if (!context.schemaParentLocation().equals(id)) {
+    if (!context.baseURI().equals(id)) {
       JsonElement e = Validator.loadResource(id);
       if (e == null) {
         context.schemaError("unknown schema resource");
