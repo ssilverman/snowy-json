@@ -185,15 +185,18 @@ public class Validator {
     baseURI = baseURI.normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
+    // TODO: Use the return value
+    scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids);
+
+    // Ensure we have at least the base URI, if it's not already there
     Id id = new Id(baseURI);
     id.value = null;
     id.base = null;
     id.path = "";
     id.root = baseURI;
     id.rootURI = baseURI;
-    ids.put(id, e);
-    // TODO: Use the return value
-    scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids);
+    ids.putIfAbsent(id, e);
+
     return ids;
   }
 
