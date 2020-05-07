@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -146,9 +147,12 @@ public final class ValidatorContext {
   /**
    * Creates a new schema context. Given is an absolute URI from where the
    * schema was obtained. The URI will be normalized.
+   * <p>
+   * Only empty fragments are allowed in the base URI, if present.
    *
    * @param baseURI the initial base URI
-   * @throws IllegalArgumentException if the base URI is not absolute.
+   * @throws IllegalArgumentException if the base URI is not absolute or if it
+   *         has a non-empty fragment.
    */
   public ValidatorContext(URI baseURI, Map<Id, JsonElement> knownIDs) {
     Objects.requireNonNull(baseURI, "baseURI");
@@ -156,6 +160,19 @@ public final class ValidatorContext {
 
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
+    }
+    if (baseURI.getRawFragment() != null) {
+      if (!baseURI.getRawFragment().isEmpty()) {
+        throw new IllegalArgumentException("baseURI has a non-empty fragment");
+      }
+    } else {
+      // Ensure there's an empty fragment
+      try {
+        baseURI = new URI(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), "");
+      } catch (URISyntaxException ex) {
+        throw new IllegalArgumentException("Unexpected bad base URI");
+      }
+      System.out.println(baseURI);
     }
 
     this.baseURI = baseURI.normalize();
@@ -235,6 +252,10 @@ public final class ValidatorContext {
   /**
    * Returns the location of the parent of the current keyword. This is the
    * location of the containing object.
+   * <p>
+   * Note that this returns the dynamic path and not a resolved URI. This is
+   * meant for annotations. Callers need to resolve against the base URI if
+   * they need an absolute form.</p>
    */
   public URI schemaParentLocation() {
     return state.keywordParentLocation;
@@ -299,6 +320,11 @@ public final class ValidatorContext {
   /**
    * Merges the path with the base URI. If the given path is empty, this returns
    * the base URI.
+   * <p>
+   * This actually handles two cases, JSON pointer and absolute. A JSON pointer
+   * is assumed if there's no fragment. In this case, the path is just appended
+   * to the base via a '/'. For absolute, the path is appended to the base's
+   * base's fragment.
    *
    * @param base the base URI
    * @param path the possibly empty path to append
@@ -308,10 +334,10 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
-    if (path.equals("/")) {
-      return base.resolve("/");  // Normalize?
+    if (base.getFragment() == null) {
+      return base.resolve(base.getPath() + "/" + path);
     }
-    return base.resolve(base.getPath() + "/" + path);  // Normalize?
+    return base.resolve("#" + base.getRawFragment() + "/" + path);
   }
 
   /**
