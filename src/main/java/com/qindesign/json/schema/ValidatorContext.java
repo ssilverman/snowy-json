@@ -330,7 +330,7 @@ public final class ValidatorContext {
 
   /**
    * Gets the all the annotations attached to the current instance location for
-   * the given name.
+   * the given name. The returned map will be unmodifiable.
    *
    * @param name the annotation name
    * @return a map keyed by schema location
@@ -338,7 +338,7 @@ public final class ValidatorContext {
   public Map<URI, Annotation> getAnnotations(String name) {
     Map<String, Map<URI, Annotation>> m = annotations.getOrDefault(state.instanceLocation,
                                                                    Collections.emptyMap());
-    return m.getOrDefault(name, Collections.emptyMap());
+    return Collections.unmodifiableMap(m.getOrDefault(name, Collections.emptyMap()));
   }
 
   /**
