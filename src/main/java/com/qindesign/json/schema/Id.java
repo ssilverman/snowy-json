@@ -14,7 +14,7 @@ import java.util.Objects;
  * other fields are merely auxiliary.
  */
 public final class Id {
-  /** The value resolved against the base URI. */
+  /** The value resolved against the base URI, may be {@code null}. */
   public String value;
 
   /**
@@ -27,7 +27,10 @@ public final class Id {
    */
   public final URI id;
 
-  /** The base URI, against which the value was resolved to produce the ID. */
+  /**
+   * The base URI, against which the value was resolved to produce the ID, may
+   * be {@code null}.
+   */
   public URI base;
 
   /** The JSON pointer to this element. */
