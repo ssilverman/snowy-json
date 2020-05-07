@@ -48,7 +48,7 @@ public class Validator {
   /**
    * @see <a href="https://www.w3.org/TR/2006/REC-xml-names11-20060816/#NT-NCName">Namespaces in XML 1.1 (Second Edition): NCName</a>
    */
-  private static final java.util.regex.Pattern ANCHOR_PATTERN =
+  public static final java.util.regex.Pattern ANCHOR_PATTERN =
       java.util.regex.Pattern.compile("[A-Z_a-z][-A-Z_a-z.0-9]*");
 
   /**
