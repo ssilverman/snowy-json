@@ -250,13 +250,19 @@ public final class ValidatorContext {
   /**
    * Finds the element associated with the given ID. If there is no such element
    * having the ID then this returns {@code null}.
+   * <p>
+   * This first tries locally and then tries from a list of known resources.
    *
    * @param id the id
    * @return the element having the given ID or {@code null} if there's no
    *         such element.
    */
   public JsonElement find(URI id) {
-    return knownIDs.get(new Id(id));
+    JsonElement e = knownIDs.get(new Id(id));
+    if (e == null) {
+      e = Validator.loadResource(id);
+    }
+    return e;
   }
 
   /**
