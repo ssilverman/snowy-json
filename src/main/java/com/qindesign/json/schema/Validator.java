@@ -10,9 +10,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,7 +25,7 @@ public class Validator {
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
   // https://www.baeldung.com/java-initialize-hashmap
-  private static final Map<URI, String> KNOWN_RESOURCES = Stream.of(new Object[][] {
+  private static final Map<URI, URL> KNOWN_RESOURCES = Stream.of(new Object[][] {
       { "https://json-schema.org/draft/2019-09/schema", "/draft-2019-09/schema.json" },
       { "https://json-schema.org/draft/2019-09/meta/core", "/draft-2019-09/core.json" },
       { "https://json-schema.org/draft/2019-09/meta/applicator", "/draft-2019-09/applicator.json" },
@@ -31,7 +33,17 @@ public class Validator {
       { "https://json-schema.org/draft/2019-09/meta/meta-data", "/draft-2019-09/meta-data.json" },
       { "https://json-schema.org/draft/2019-09/meta/format", "/draft-2019-09/format.json" },
       { "https://json-schema.org/draft/2019-09/meta/content", "/draft-2019-09/content.json" },
-      }).collect(Collectors.toMap(data -> URI.create((String) data[0]), data -> (String) data[1]));
+      }).collect(Collectors.toMap(
+          data -> URI.create((String) data[0]),
+          data -> {
+            URL url = Validator.class.getResource((String) data[1]);
+            if (url == null) {
+              throw new MissingResourceException(
+                  "Can't find resource \"" + data[1] + "\" in " + Validator.class.getName(),
+                  Validator.class.getName(), (String) data[1]);
+            }
+            return url;
+          }));
 
   /**
    * @see <a href="https://www.w3.org/TR/2006/REC-xml-names11-20060816/#NT-NCName">Namespaces in XML 1.1 (Second Edition): NCName</a>
@@ -145,11 +157,11 @@ public class Validator {
    * @return the resource, or {@code null} if the resource could not be found.
    */
   public static JsonElement loadResource(URI uri) {
-    String path = KNOWN_RESOURCES.get(uri);
-    if (path == null) {
+    URL url = KNOWN_RESOURCES.get(uri);
+    if (url == null) {
       return null;
     }
-    try (InputStream in = Validator.class.getResourceAsStream(path)) {
+    try (InputStream in = url.openStream()) {
       if (in == null) {
         return null;
       }
