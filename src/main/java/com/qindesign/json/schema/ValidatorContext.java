@@ -319,25 +319,33 @@ public final class ValidatorContext {
 
   /**
    * Merges the path with the base URI. If the given path is empty, this returns
-   * the base URI.
-   * <p>
-   * This actually handles two cases, JSON pointer and absolute. A JSON pointer
-   * is assumed if there's no fragment. In this case, the path is just appended
-   * to the base via a '/'. For absolute, the path is appended to the base's
-   * base's fragment.
+   * the base URI. It is assumed that the base contains an absolute part and a
+   * a JSON pointer part in the fragment.
    *
    * @param base the base URI
-   * @param path the possibly empty path to append
+   * @param path path to append
    * @return the merged URI.
    */
-  private static URI resolve(URI base, String path) {
+  private static URI resolveAbsolute(URI base, String path) {
     if (path.isEmpty()) {
       return base;
     }
-    if (base.getFragment() == null) {
-      return base.resolve(base.getPath() + "/" + path);
-    }
     return base.resolve("#" + base.getRawFragment() + "/" + path);
+  }
+
+  /**
+   * Merges the path with the base URI. If the given path is empty, this returns
+   * the base URI. It is assumed that the base path is a JSON pointer.
+   *
+   * @param base the base URI
+   * @param path path to append
+   * @return the merged URI.
+   */
+  private static URI resolvePointer(URI base, String path) {
+    if (path.isEmpty()) {
+      return base;
+    }
+    return base.resolve(base.getPath() + "/" + path);
   }
 
   /**
@@ -350,7 +358,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException always.
    */
   public void schemaError(String err, String path) throws MalformedSchemaException {
-    throw new MalformedSchemaException(err, resolve(state.absKeywordLocation, path));
+    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, path));
   }
 
   /**
@@ -386,7 +394,7 @@ public final class ValidatorContext {
   public void checkValidSchema(JsonElement e, String path) throws MalformedSchemaException {
     if (!Validator.isSchema(e)) {
       throw new MalformedSchemaException("not a valid JSON schema",
-                                         resolve(state.absKeywordLocation, path));
+                                         resolveAbsolute(state.absKeywordLocation, path));
     }
   }
 
@@ -423,7 +431,7 @@ public final class ValidatorContext {
       return schema.getAsBoolean();
     }
 
-    URI absKeywordLocation = resolve(state.absKeywordLocation, schemaPath);
+    URI absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
     if (!schema.isJsonObject()) {
       throw new MalformedSchemaException("not a valid JSON schema", absKeywordLocation);
     }
@@ -435,8 +443,8 @@ public final class ValidatorContext {
 
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
-    URI keywordLocation = resolve(state.keywordLocation, schemaPath);
-    URI instanceLocation = resolve(state.instanceLocation, instancePath);
+    URI keywordLocation = resolvePointer(state.keywordLocation, schemaPath);
+    URI instanceLocation = resolvePointer(state.instanceLocation, instancePath);
 
     State parentState = state;
     state = (State) state.clone();
@@ -455,8 +463,8 @@ public final class ValidatorContext {
           continue;
         }
 
-        state.keywordLocation = resolve(keywordLocation, name);
-        state.absKeywordLocation = resolve(absKeywordLocation, name);
+        state.keywordLocation = resolvePointer(keywordLocation, name);
+        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, name);
         if (!k.apply(e, instance, this)) {
           return false;
         }
@@ -471,8 +479,8 @@ public final class ValidatorContext {
           continue;
         }
 
-        state.keywordLocation = resolve(keywordLocation, e.getKey());
-        state.absKeywordLocation = resolve(absKeywordLocation, e.getKey());
+        state.keywordLocation = resolvePointer(keywordLocation, e.getKey());
+        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, e.getKey());
         if (!k.apply(e.getValue(), instance, this)) {
           return false;
         }
