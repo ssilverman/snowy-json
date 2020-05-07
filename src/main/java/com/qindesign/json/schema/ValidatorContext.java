@@ -371,27 +371,27 @@ public final class ValidatorContext {
   }
 
   /**
-   * Applies a schema to the given instance. The {@code schemaName} parameter is
-   * either the member name or the array index. If it is the empty string or
-   * {@code null} then the schema is the same as the current location.
+   * Applies a schema to the given instance. The schema and instance path
+   * parameters are the relative element name, either a name or a number. An
+   * empty string means the current location.
    * <p>
    * This first checks that the schema is valid. A valid schema is either an
    * object or a Boolean.
    *
    * @param schema the schema, an object or a Boolean
-   * @param schemaName the schema name (member name or array index) or an
-   *                   empty string
+   * @param schemaPath the schema path
    * @param instance the instance element
+   * @param instancePath the instance path
    */
-  public boolean apply(JsonElement schema, String schemaName, JsonElement instance,
-                       String instancePath)
+  public boolean apply(JsonElement schema, String schemaPath,
+                       JsonElement instance, String instancePath)
       throws MalformedSchemaException
   {
     if (Validator.isBoolean(schema)) {
       return schema.getAsBoolean();
     }
 
-    URI absKeywordLocation = resolve(state.absKeywordLocation, schemaName);
+    URI absKeywordLocation = resolve(state.absKeywordLocation, schemaPath);
     if (!schema.isJsonObject()) {
       throw new MalformedSchemaException("not a valid JSON schema", absKeywordLocation);
     }
@@ -403,7 +403,7 @@ public final class ValidatorContext {
 
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
-    URI keywordLocation = resolve(state.keywordLocation, schemaName);
+    URI keywordLocation = resolve(state.keywordLocation, schemaPath);
     URI instanceLocation = resolve(state.instanceLocation, instancePath);
 
     State parentState = state;
