@@ -37,8 +37,12 @@ public class Type extends Keyword {
       return false;
     }
 
-
+    int index = 0;
     for (JsonElement t : values) {
+      if (!Validator.isString(t)) {
+        context.schemaError("not a string", Integer.toString(index));
+        return false;
+      }
       switch (t.getAsString()) {
         case "null":
           if (instance.isJsonNull()) {
@@ -70,7 +74,14 @@ public class Type extends Keyword {
             BigDecimal n = Numbers.valueOf(instance.getAsString());
             return n.stripTrailingZeros().scale() <= 0;
           }
+          break;
+        case "string":
+          if (Validator.isString(instance)) {
+            return true;
+          }
+          break;
       }
+      index++;
     }
     return false;
   }
