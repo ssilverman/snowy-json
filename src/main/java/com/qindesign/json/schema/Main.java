@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -80,7 +81,7 @@ public class Main {
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
     var knownIDs = Validator.scanIDs(schemaID, schema);
-    ValidatorContext context = new ValidatorContext(schemaID, knownIDs);
+    ValidatorContext context = new ValidatorContext(schemaID, knownIDs, new HashSet<>());
     boolean result = context.apply(schema, "", instance, "");
     logger.info("Validation result: " + result);
   }

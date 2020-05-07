@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
@@ -96,7 +97,9 @@ public class Validator {
   public static boolean validate(JsonElement schema, JsonElement instance, URI baseURI)
       throws MalformedSchemaException
   {
-    return new ValidatorContext(baseURI, scanIDs(baseURI, schema)).apply(schema.getAsJsonObject(), "", instance, "");
+    var ids = scanIDs(baseURI, schema);
+    ValidatorContext context = new ValidatorContext(baseURI, ids, new HashSet<>());
+    return context.apply(schema.getAsJsonObject(), "", instance, "");
   }
 
   /**

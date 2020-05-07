@@ -10,6 +10,8 @@ import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Implements "$schema".
@@ -54,18 +56,24 @@ public class CoreSchema extends Keyword {
     }
 
     // Check if we should validate the schema
-    if (!context.baseURI().equals(id)) {
-      JsonElement e = Validator.loadResource(id);
-      if (e == null) {
-        context.schemaError("unknown schema resource");
-        return false;
-      }
+    Set<URI> validated = context.validatedSchemas();
+    if (validated.contains(id)) {
+      return true;
+    }
 
-      ValidatorContext context2 = new ValidatorContext(id, Validator.scanIDs(id, e));
-      if (!context2.apply(e, "", context.parentObject(), "")) {
-        context.schemaError("does not validate");
-        return false;
-      }
+    JsonElement e = Validator.loadResource(id);
+    if (e == null) {
+      context.schemaError("unknown schema resource");
+      return false;
+    }
+
+    validated = new HashSet<>(validated);
+    validated.add(id);
+
+    ValidatorContext context2 = new ValidatorContext(id, Validator.scanIDs(id, e), validated);
+    if (!context2.apply(e, "", context.parentObject(), "")) {
+      context.schemaError("does not validate");
+      return false;
     }
 
     return true;

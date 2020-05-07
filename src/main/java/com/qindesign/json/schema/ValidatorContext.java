@@ -145,18 +145,27 @@ public final class ValidatorContext {
   private final Map<Id, JsonElement> knownIDs;
 
   /**
+   * Tracks schemas that have either been validated or in the process of being
+   * validated, to avoid $schema recursion.
+   */
+  private final Set<URI> validatedSchemas;
+
+  /**
    * Creates a new schema context. Given is an absolute URI from where the
    * schema was obtained. The URI will be normalized.
    * <p>
    * Only empty fragments are allowed in the base URI, if present.
    *
    * @param baseURI the initial base URI
+   * @param knownIDs the known IDs in this resource
+   * @param validatedSchemas the list of validated schemas
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    */
-  public ValidatorContext(URI baseURI, Map<Id, JsonElement> knownIDs) {
+  public ValidatorContext(URI baseURI, Map<Id, JsonElement> knownIDs, Set<URI> validatedSchemas) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
+    Objects.requireNonNull(validatedSchemas, "validatedSchemas");
 
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
@@ -176,6 +185,7 @@ public final class ValidatorContext {
 
     this.baseURI = baseURI.normalize();
     this.knownIDs = knownIDs;
+    this.validatedSchemas = Collections.unmodifiableSet(validatedSchemas);
 
     state = new State();
     state.baseURI = baseURI;
@@ -186,6 +196,16 @@ public final class ValidatorContext {
     state.keywordLocation = URI.create("");
     state.absKeywordLocation = baseURI;
     state.instanceLocation = URI.create("");
+  }
+
+  /**
+   * Returns the set of schemas that have already been validated or are in the
+   * process of being validated. The set will be unmodifiable.
+   *
+   * @return the set of validated schemas.
+   */
+  public Set<URI> validatedSchemas() {
+    return validatedSchemas;
   }
 
   /**
