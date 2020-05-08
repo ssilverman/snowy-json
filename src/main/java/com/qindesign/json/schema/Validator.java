@@ -99,7 +99,7 @@ public class Validator {
   {
     var ids = scanIDs(baseURI, schema);
     ValidatorContext context = new ValidatorContext(baseURI, ids, new HashSet<>());
-    return context.apply(schema.getAsJsonObject(), "", instance, "");
+    return context.apply(schema, "", instance, "");
   }
 
   /**
@@ -246,7 +246,11 @@ public class Validator {
     } else {
       name = name.replace("~", "~0");
       name = name.replace("/", "~1");
-      newParentID = URI.create(parentID.getPath() + "/" + name);
+      try {
+        newParentID = URI.create(parentID.getPath() + "/" + name);
+      } catch (IllegalArgumentException ex) {
+        throw new MalformedSchemaException("bad URI: \"" + name + "\"", parentID);
+      }
     }
 
     if (e.isJsonArray()) {

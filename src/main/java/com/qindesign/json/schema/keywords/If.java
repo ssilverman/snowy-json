@@ -35,8 +35,14 @@ public class If extends Keyword {
     }
 
     if (context.apply(value, "", instance, "")) {
+      if (thenElem == null) {
+        return true;
+      }
       return context.apply(thenElem, "../then", instance, "");
     } else {
+      if (elseElem == null) {
+        return true;
+      }
       return context.apply(elseElem, "../else", instance, "");
     }
   }

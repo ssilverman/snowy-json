@@ -28,7 +28,7 @@ public class MultipleOf extends Keyword {
       context.schemaError("not a number");
       return false;
     }
-    BigDecimal n = Numbers.valueOf(instance.getAsString());
+    BigDecimal n = Numbers.valueOf(value.getAsString());
     if (n.compareTo(BigDecimal.ZERO) <= 0) {
       context.schemaError("not > 0");
       return false;

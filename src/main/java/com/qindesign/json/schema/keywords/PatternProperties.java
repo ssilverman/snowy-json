@@ -60,7 +60,7 @@ public class PatternProperties extends Keyword {
         if (!p.matcher(e.getKey()).matches()) {
           continue;
         }
-        if (!context.apply(schemaObject.getAsJsonObject(p.pattern()), p.pattern(),
+        if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
                            e.getValue(), e.getKey())) {
           return false;
         }

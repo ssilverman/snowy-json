@@ -42,8 +42,7 @@ public class Properties extends Keyword {
       if (!schemaObject.has(e.getKey())) {
         continue;
       }
-      if (!context.apply(schemaObject.getAsJsonObject(e.getKey()), e.getKey(), e.getValue(),
-                         e.getKey())) {
+      if (!context.apply(schemaObject.get(e.getKey()), e.getKey(), e.getValue(), e.getKey())) {
         return false;
       }
       validated.add(e.getKey());

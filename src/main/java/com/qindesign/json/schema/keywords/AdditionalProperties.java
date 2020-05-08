@@ -44,14 +44,14 @@ public class AdditionalProperties extends Keyword {
     // "properties"
     Map<URI, Annotation> annotations = context.getAnnotations(Properties.NAME);
     Annotation a = annotations.get(context.schemaParentLocation().resolve(Properties.NAME));
-    if (a.value instanceof Set<?>) {
+    if (a != null && a.value instanceof Set<?>) {
       validated.addAll((Set<String>) a.value);
     }
 
     // "patternProperties"
     annotations = context.getAnnotations(PatternProperties.NAME);
     a = annotations.get(context.schemaParentLocation().resolve(PatternProperties.NAME));
-    if (a.value instanceof Set<?>) {
+    if (a != null && a.value instanceof Set<?>) {
       validated.addAll((Set<String>) a.value);
     }
 

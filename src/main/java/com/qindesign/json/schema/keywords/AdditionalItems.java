@@ -39,12 +39,14 @@ public class AdditionalItems extends Keyword {
 
     Map<URI, Annotation> annotations = context.getAnnotations(Items.NAME);
     Annotation a = annotations.get(context.schemaParentLocation().resolve(Items.NAME));
-    if (a.value instanceof Boolean) {
-      if ((Boolean) a.value) {
-        return true;
+    if (a != null) {
+      if (a.value instanceof Boolean) {
+        if ((Boolean) a.value) {
+          return true;
+        }
+      } else if (a.value instanceof Integer) {
+        processedCount = (Integer) a.value;
       }
-    } else if (a.value instanceof Integer) {
-      processedCount = (Integer) a.value;
     }
 
     JsonArray array = instance.getAsJsonArray();
