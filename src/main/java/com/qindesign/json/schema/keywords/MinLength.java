@@ -37,7 +37,8 @@ public class MinLength extends Keyword {
     if (!Validator.isString(instance)) {
       return true;
     }
-    BigDecimal v = BigDecimal.valueOf(instance.getAsString().length());
+    BigDecimal v = BigDecimal.valueOf(
+        instance.getAsString().codePointCount(0, instance.getAsString().length()));
     return n.compareTo(v) <= 0;
   }
 }
