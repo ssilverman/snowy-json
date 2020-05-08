@@ -168,8 +168,8 @@ public class Validator {
       if (in == null) {
         return null;
       }
-      try (Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-        return Main.parse(r);
+      try {
+        return Main.parse(in);
       } catch (JsonParseException ex) {
         logger.log(Level.SEVERE, "Error parsing resource: " + uri, ex);
       }

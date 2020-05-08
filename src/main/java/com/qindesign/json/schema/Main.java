@@ -16,6 +16,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -71,12 +73,8 @@ public class Main {
     JsonElement instance;
 
     // Load the schema and instance
-    try (BufferedReader r = new BufferedReader(new FileReader(args[0], StandardCharsets.UTF_8))) {
-      schema = parse(r);
-    }
-    try (BufferedReader r = new BufferedReader(new FileReader(args[1], StandardCharsets.UTF_8))) {
-      instance = parse(r);
-    }
+    schema = parse(new File(args[0]));
+    instance = parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
     boolean result = Validator.validate(schema, instance, schemaID);
@@ -86,6 +84,34 @@ public class Main {
   // According to the source, JsonParser sets lenient mode to true, but I don't want this
   // See: https://github.com/google/gson/issues/1208
   // See: https://stackoverflow.com/questions/43233898/how-to-check-if-json-is-valid-in-java-using-gson/47890960#47890960
+
+  /**
+   * Parses JSON from a {@link File}.
+   *
+   * @param f the file to parse
+   * @return the parsed JSON element.
+   * @throws IOException if there was a problem reading the file.
+   * @throws JsonParseException if there was a parsing error.
+   */
+  public static JsonElement parse(File f) throws IOException {
+    try (BufferedReader r = new BufferedReader(new FileReader(f, StandardCharsets.UTF_8))) {
+      return parse(r);
+    }
+  }
+
+  /**
+   * Parses JSON from an {@link InputStream}.
+   *
+   * @param in the input stream
+   * @return the parsed JSON element.
+   * @throws IOException if there was a problem reading from the stream.
+   * @throws JsonParseException if there was a parsing error.
+   */
+  public static JsonElement parse(InputStream in) throws IOException {
+    try (Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+      return parse(r);
+    }
+  }
 
   /**
    * Parses JSON from a {@link Reader}.
