@@ -181,9 +181,10 @@ public final class ValidatorContext {
    *
    * @param baseURI the initial base URI
    * @param knownIDs the known IDs in this resource
-   * @param validatedSchemas the list of validated schemas
+   * @param validatedSchemas the list of validated schemas, must be mutable
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
+   * @throws NullPointerException if any of the arguments are {@code null}.
    */
   public ValidatorContext(URI baseURI, Map<Id, JsonElement> knownIDs, Set<URI> validatedSchemas) {
     Objects.requireNonNull(baseURI, "baseURI");
