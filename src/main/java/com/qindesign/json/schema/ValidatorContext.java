@@ -324,13 +324,20 @@ public final class ValidatorContext {
    * <p>
    * This first tries locally and then tries from a list of known resources.
    * <p>
-   * If the ID has a fragment then it will be removed prior to searching.
+   * If the ID has a fragment then it will be removed prior to searching the
+   * other known resources.
    *
    * @param id the id
    * @return the element having the given ID or {@code null} if there's no
    *         such element.
    */
   public JsonElement findAndSetRoot(URI id) {
+    JsonElement e = knownIDs.get(new Id(id));
+    if (e != null) {
+      return e;
+    }
+
+    // Strip off the fragment, but after we know we don't know about it
     if (id.getRawFragment() != null) {
       try {
         id = new URI(id.getScheme(), id.getRawSchemeSpecificPart(), null);
@@ -339,12 +346,10 @@ public final class ValidatorContext {
         return null;
       }
     }
-    JsonElement e = knownIDs.get(new Id(id));
-    if (e == null) {
-      e = Validator.loadResource(id);
-      if (e != null && Validator.isSchema(e)) {
-        state.schemaObject = null;
-      }
+
+    e = Validator.loadResource(id);
+    if (e != null && Validator.isSchema(e)) {
+      state.schemaObject = null;
     }
     return e;
   }
