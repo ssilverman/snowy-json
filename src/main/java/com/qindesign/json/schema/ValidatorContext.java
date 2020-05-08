@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,8 +28,6 @@ import java.util.stream.Stream;
 public final class ValidatorContext {
   private static final Class<?> CLASS = ValidatorContext.class;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
-
-  private static final Map<String, Keyword> keywords = new HashMap<>();
 
   /** These core keywords are processed first, in this order. */
   private static final Set<String> FIRST_KEYWORDS = new LinkedHashSet<>(
@@ -53,6 +53,9 @@ public final class ValidatorContext {
           "maxContains",
           "minContains"
       ).collect(Collectors.toSet());
+
+  private static final Map<String, Keyword> keywords = new HashMap<>();
+  private static final Map<String, Integer> keywordClasses;
 
   /**
    * Tracks context state.
@@ -100,6 +103,30 @@ public final class ValidatorContext {
     } catch (IOException ex) {
       logger.log(Level.SEVERE, "Error finding keywords", ex);
     }
+
+    // Fun with streams
+    // Map each keyword to its "class number", so we can sort easily
+    keywordClasses = keywords.keySet().stream().collect(Collectors.toMap(
+        Function.identity(),
+        name -> {
+          if (FIRST_KEYWORDS.contains(name)) {
+            return 0;
+          }
+          if (DEPENDENT_KEYWORDS.contains(name)) {
+            return 2;
+          }
+          return 1;
+        }));
+
+//    FIRST_KEYWORDS.stream()
+//        .filter(name -> keywords.containsKey(name))
+//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
+//    keywords.entrySet().stream()
+//        .filter(name -> !FIRST_KEYWORDS.contains(name) && !DEPENDENT_KEYWORDS.contains(name))
+//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
+//    DEPENDENT_KEYWORDS.stream()
+//        .filter(name -> keywords.containsKey(name))
+//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
   }
 
   /**
@@ -486,33 +513,29 @@ public final class ValidatorContext {
     state.keywordParentLocation = keywordLocation;
     state.instanceLocation = instanceLocation;
 
+    // Sort the names in the schema by their required evaluation order
+    // Also, more fun with streams
+    var ordered = schemaObject.entrySet().stream()
+        .filter(e -> keywords.containsKey(e.getKey()))
+        .sorted(Comparator.comparing(e -> keywordClasses.get(e.getKey())))
+        .collect(Collectors.toList());
+
+//    ordered.sort((e1, e2) -> {
+//      if (FIRST_KEYWORDS.contains(e1.getKey())) {
+//        return FIRST_KEYWORDS.contains(e2.getKey()) ? 0 : -1;
+//      }
+//      if (DEPENDENT_KEYWORDS.contains(e1.getKey())) {
+//        return DEPENDENT_KEYWORDS.contains(e2.getKey()) ? 0 : 1;
+//      }
+//      if (FIRST_KEYWORDS.contains(e2.getKey())) {
+//        return 1;
+//      }
+//      return DEPENDENT_KEYWORDS.contains(e2.getKey()) ? -1 : 0
+//    });
+
     try {
-      for (String name : FIRST_KEYWORDS) {
-        JsonElement e = schemaObject.get(name);
-        if (e == null) {
-          continue;
-        }
-        Keyword k = keywords.get(name);
-        if (k == null) {
-          continue;
-        }
-
-        state.keywordLocation = resolvePointer(keywordLocation, name);
-        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, name);
-        if (!k.apply(e, instance, this)) {
-          return false;
-        }
-      }
-
-      for (var e : schemaObject.entrySet()) {
-        if (DEPENDENT_KEYWORDS.contains(e.getKey()) || FIRST_KEYWORDS.contains(e.getKey())) {
-          continue;
-        }
+      for (var e : ordered) {
         Keyword k = keywords.get(e.getKey());
-        if (k == null) {
-          continue;
-        }
-
         state.keywordLocation = resolvePointer(keywordLocation, e.getKey());
         state.absKeywordLocation = resolveAbsolute(absKeywordLocation, e.getKey());
         if (!k.apply(e.getValue(), instance, this)) {
@@ -521,8 +544,6 @@ public final class ValidatorContext {
       }
 
       return true;
-
-      // TODO: Process dependent keywords
     } finally {
       state = parentState;
     }
