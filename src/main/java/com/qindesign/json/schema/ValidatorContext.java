@@ -117,16 +117,6 @@ public final class ValidatorContext {
           }
           return 1;
         }));
-
-//    FIRST_KEYWORDS.stream()
-//        .filter(name -> keywords.containsKey(name))
-//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
-//    keywords.entrySet().stream()
-//        .filter(name -> !FIRST_KEYWORDS.contains(name) && !DEPENDENT_KEYWORDS.contains(name))
-//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
-//    DEPENDENT_KEYWORDS.stream()
-//        .filter(name -> keywords.containsKey(name))
-//        .forEach(name -> orderedKeywords.add(keywords.get(name)));
   }
 
   /**
@@ -166,7 +156,13 @@ public final class ValidatorContext {
   /** Annotations collection, maps element location to its annotations. */
   private final Map<URI, Map<String, Map<URI, Annotation>>> annotations = new HashMap<>();
 
+  /**
+   * The initial base URI passed in with the constructor. This may or may not
+   * match the document ID.
+   */
   private final URI baseURI;
+
+  /** The current processing state. */
   private State state;
 
   private final Map<Id, JsonElement> knownIDs;
@@ -301,14 +297,19 @@ public final class ValidatorContext {
    * <p>
    * Note that this returns the dynamic path and not a resolved URI. This is
    * meant for annotations. Callers need to resolve against the base URI if
-   * they need an absolute form.</p>
+   * they need an absolute form.
    */
   public URI schemaParentLocation() {
     return state.keywordParentLocation;
   }
 
   /**
-   * Returns the location of the current keyword.
+   * Returns the location of the current keyword. This is the location of the
+   * current object.
+   * <p>
+   * Note that this returns the dynamic path and not a resolved URI. This is
+   * meant for annotations. Callers need to resolve against the base URI if
+   * they need an absolute form.
    */
   public URI schemaLocation() {
     return state.keywordLocation;
@@ -519,19 +520,6 @@ public final class ValidatorContext {
         .filter(e -> keywords.containsKey(e.getKey()))
         .sorted(Comparator.comparing(e -> keywordClasses.get(e.getKey())))
         .collect(Collectors.toList());
-
-//    ordered.sort((e1, e2) -> {
-//      if (FIRST_KEYWORDS.contains(e1.getKey())) {
-//        return FIRST_KEYWORDS.contains(e2.getKey()) ? 0 : -1;
-//      }
-//      if (DEPENDENT_KEYWORDS.contains(e1.getKey())) {
-//        return DEPENDENT_KEYWORDS.contains(e2.getKey()) ? 0 : 1;
-//      }
-//      if (FIRST_KEYWORDS.contains(e2.getKey())) {
-//        return 1;
-//      }
-//      return DEPENDENT_KEYWORDS.contains(e2.getKey()) ? -1 : 0
-//    });
 
     try {
       for (var e : ordered) {
