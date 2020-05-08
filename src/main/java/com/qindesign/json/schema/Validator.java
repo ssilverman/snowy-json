@@ -7,10 +7,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -231,7 +231,7 @@ public class Validator {
    *         vis-à-vis IDs.
    */
   private static URI scanIDs(URI rootURI, URI rootID, URI baseURI,
-                             URI parentID, String name,
+                             String parentID, String name,
                              JsonElement parent, JsonElement e,
                              Map<Id, JsonElement> ids)
       throws MalformedSchemaException {
@@ -240,17 +240,20 @@ public class Validator {
     }
 
     // Create the parent ID of the processed sub-elements
-    URI newParentID;
+    String newParentID;
     if (parent == null) {
-      newParentID = URI.create("");
+      newParentID = "";
     } else {
       name = name.replace("~", "~0");
       name = name.replace("/", "~1");
-      try {
-        newParentID = URI.create(parentID.getPath() + "/" + name);
-      } catch (IllegalArgumentException ex) {
-        throw new MalformedSchemaException("bad URI: \"" + name + "\"", parentID);
-      }
+      newParentID = parentID + "/" + name;
+    }
+
+    URI newParentURI;
+    try {
+      newParentURI = URI.create(URLEncoder.encode(newParentID, StandardCharsets.UTF_8));
+    } catch (IllegalArgumentException ex) {
+      throw new MalformedSchemaException("Unexpected bad URI: " + newParentID, baseURI);
     }
 
     if (e.isJsonArray()) {
@@ -265,27 +268,27 @@ public class Validator {
     JsonElement value = e.getAsJsonObject().get("$id");
     if (value != null) {
       if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", newParentID);
+        throw new MalformedSchemaException("not a string", newParentURI);
       }
 
       URI uri;
       try {
         uri = URI.create(value.getAsString()).normalize();
       } catch (IllegalArgumentException ex) {
-        throw new MalformedSchemaException("not a valid URI-reference", newParentID);
+        throw new MalformedSchemaException("not a valid URI-reference", newParentURI);
       }
       if (uri.getRawFragment() != null && !uri.getRawFragment().isEmpty()) {
-        throw new MalformedSchemaException("has a non-empty fragment", newParentID);
+        throw new MalformedSchemaException("has a non-empty fragment", newParentURI);
       }
 
       Id id = new Id(baseURI.resolve(uri));
       id.value = value.getAsString();
       id.base = baseURI;
-      id.path = newParentID.getPath();
+      id.path = newParentID;
       id.root = rootID;
       id.rootURI = rootURI;
       if (ids.put(id, e) != null) {
-        throw new MalformedSchemaException("ID not unique", newParentID);
+        throw new MalformedSchemaException("ID not unique", newParentURI);
       }
 
       baseURI = id.id;
@@ -298,23 +301,23 @@ public class Validator {
     value = e.getAsJsonObject().get("$anchor");
     if (value != null) {
       if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", newParentID);
+        throw new MalformedSchemaException("not a string", newParentURI);
       }
       if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
-        throw new MalformedSchemaException("invalid plain name", newParentID);
+        throw new MalformedSchemaException("invalid plain name", newParentURI);
       }
 
       Id id = new Id(baseURI.resolve("#" + value.getAsString()));  // Normalize?
       id.value = value.getAsString();
       id.base = baseURI;
-      id.path = newParentID.getPath();
+      id.path = newParentID;
       id.root = rootID;
       id.rootURI = rootURI;
       if (ids.put(id, e) != null) {
         throw new MalformedSchemaException(
             "anchor not unique: name=" + id.value +
             " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-            newParentID);
+            newParentURI);
       }
     }
 
