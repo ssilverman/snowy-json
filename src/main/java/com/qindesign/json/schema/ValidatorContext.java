@@ -9,6 +9,8 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -398,7 +400,8 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
-    return base.resolve("#" + base.getRawFragment() + "/" + path);
+    return base.resolve(
+        "#" + base.getRawFragment() + "/" + URLEncoder.encode(path, StandardCharsets.UTF_8));
   }
 
   /**
@@ -413,7 +416,7 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
-    return base.resolve(base.getPath() + "/" + path);
+    return base.resolve(base.getRawPath() + "/" + URLEncoder.encode(path, StandardCharsets.UTF_8));
   }
 
   /**
