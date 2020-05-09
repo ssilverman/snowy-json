@@ -30,10 +30,6 @@ public class UnevaluatedProperties extends Keyword {
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 
-    if (!context.parentObject().has(Properties.NAME)) {
-      return true;
-    }
-
     if (!instance.isJsonObject()) {
       return true;
     }
@@ -67,7 +63,7 @@ public class UnevaluatedProperties extends Keyword {
         if (validated.contains(e.getKey())) {
           continue;
         }
-        if (!context.apply(e.getValue(), "", e.getValue(), e.getKey())) {
+        if (!context.apply(value, "", e.getValue(), e.getKey())) {
           return false;
         }
         thisValidated.add(e.getKey());

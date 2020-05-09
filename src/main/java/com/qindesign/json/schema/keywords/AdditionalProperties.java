@@ -29,11 +29,6 @@ public class AdditionalProperties extends Keyword {
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 
-    if (!context.parentObject().has(Properties.NAME) &&
-        !context.parentObject().has(PatternProperties.NAME)) {
-      return true;
-    }
-
     if (!instance.isJsonObject()) {
       return true;
     }

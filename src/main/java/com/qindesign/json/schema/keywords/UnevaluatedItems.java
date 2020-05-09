@@ -27,10 +27,6 @@ public class UnevaluatedItems extends Keyword {
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 
-    if (!context.parentObject().has(Items.NAME)) {
-      return true;
-    }
-
     if (!instance.isJsonArray()) {
       return true;
     }
@@ -82,7 +78,7 @@ public class UnevaluatedItems extends Keyword {
 
     JsonArray array = instance.getAsJsonArray();
     for (int i = max; i < array.size(); i++) {
-      if (context.apply(value, "", array.get(i), Integer.toString(i))) {
+      if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
         return false;
       }
     }

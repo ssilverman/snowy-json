@@ -29,7 +29,7 @@ public class MultipleOf extends Keyword {
       return false;
     }
     BigDecimal n = Numbers.valueOf(value.getAsString());
-    if (n.compareTo(BigDecimal.ZERO) <= 0) {
+    if (n.signum() <= 0) {
       context.schemaError("not > 0");
       return false;
     }
@@ -37,6 +37,6 @@ public class MultipleOf extends Keyword {
     if (!Validator.isNumber(instance)) {
       return true;
     }
-    return n.remainder(Numbers.valueOf(value.getAsString())).signum() == 0;
+    return Numbers.valueOf(instance.getAsString()).remainder(n).signum() == 0;
   }
 }

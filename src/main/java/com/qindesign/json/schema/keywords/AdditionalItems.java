@@ -26,7 +26,8 @@ public class AdditionalItems extends Keyword {
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 
-    if (!context.parentObject().has(Items.NAME)) {
+    JsonElement items = context.parentObject().get(Items.NAME);
+    if (items == null || items.isJsonObject()) {
       return true;
     }
 

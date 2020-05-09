@@ -539,11 +539,19 @@ public final class ValidatorContext {
         .collect(Collectors.toList());
 
     try {
-      for (var e : ordered) {
-        Keyword k = keywords.get(e.getKey());
-        state.keywordLocation = resolvePointer(keywordLocation, e.getKey());
-        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, e.getKey());
-        if (!k.apply(e.getValue(), instance, this)) {
+      for (var m : ordered) {
+        Keyword k = keywords.get(m.getKey());
+        state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
+        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
+        if (!k.apply(m.getValue(), instance, this)) {
+          // Remove all subschema annotations
+          var a = annotations.get(instanceLocation);
+          if (a != null) {
+            for (var byName : a.entrySet()) {
+              byName.getValue().entrySet()
+                  .removeIf(e -> e.getKey().startsWith(state.keywordLocation));
+            }
+          }
           return false;
         }
       }

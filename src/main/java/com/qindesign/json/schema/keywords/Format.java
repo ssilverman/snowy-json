@@ -32,8 +32,8 @@ public class Format extends Keyword {
       "(?<year>[0-9]{4})-(?<month>0[1-9]|1[0-2])-(?<mday>0[1-9]|[12][0-9]|3[01])";
   private static final String FULL_TIME_PATTERN =
       "(?:[01][0-9]|2[0-3]):[0-5][0-9]:(?:[0-5][0-9]|60)(?:\\.[0-9]+)?" +
-      "(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])";
-  private static final String DATE_TIME_PATTERN = FULL_DATE_PATTERN + "T" + FULL_TIME_PATTERN;
+      "(?:[Zz]|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])";
+  private static final String DATE_TIME_PATTERN = FULL_DATE_PATTERN + "[Tt]" + FULL_TIME_PATTERN;
 
   private static final java.util.regex.Pattern DATE_TIME =
       java.util.regex.Pattern.compile("^" + DATE_TIME_PATTERN + "$");
@@ -285,7 +285,7 @@ public class Format extends Keyword {
         }
         // TODO: Allow IPv6 addresses here?
         if (value.getAsString().equals("hostname")) {
-          if (NON_HOSTNAME.matcher(instance.getAsString()).matches()) {
+          if (NON_HOSTNAME.matcher(instance.getAsString()).find()) {
             return false;
           }
         }

@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -49,7 +50,7 @@ public class CoreRef extends Keyword {
         return false;
       }
       if (e != null) {
-        e = Validator.followPointer(e, fragment);
+        e = Validator.followPointer(e, Strings.fragmentToJSONPointer(fragment));
       }
     } else {
       // Plain name
