@@ -219,6 +219,7 @@ public final class ValidatorContext {
     state.prevRecursiveBaseURI = null;
     state.recursiveBaseURI = null;
     state.schemaObject = null;
+    state.isRoot = true;
     state.keywordParentLocation = null;
     state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
@@ -519,14 +520,14 @@ public final class ValidatorContext {
       return true;
     }
 
-    state.isRoot = (state.schemaObject == null);
-    state.schemaObject = schemaObject;
     String keywordLocation = resolvePointer(state.keywordLocation, schemaPath);
     String instanceLocation = resolvePointer(state.instanceLocation, instancePath);
 
     State parentState = state;
     state = (State) state.clone();
     assert state != null;
+    state.isRoot = (state.schemaObject == null);
+    state.schemaObject = schemaObject;
     state.keywordParentLocation = keywordLocation;
     state.instanceLocation = instanceLocation;
 
