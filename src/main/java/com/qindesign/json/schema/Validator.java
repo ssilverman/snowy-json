@@ -221,7 +221,8 @@ public class Validator {
 
   /**
    * Scans all the IDs in a JSON document starting from a given base URI. The
-   * base URI is the initial known document resource ID. It will be normalized.
+   * base URI is the initial known document resource ID. It will be normalized
+   * and have any fragment, even an empty one, removed.
    * <p>
    * This will return at least one ID mapping to the base element, which may
    * be redefined by an ID element.
@@ -237,7 +238,7 @@ public class Validator {
     if (hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI with non-empty fragment");
     }
-    baseURI = baseURI.normalize();
+    baseURI = stripFragment(baseURI).normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
     URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids);
