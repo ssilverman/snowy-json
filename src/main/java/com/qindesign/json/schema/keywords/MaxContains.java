@@ -11,7 +11,6 @@ import com.qindesign.json.schema.Numbers;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.Map;
 
 /**
@@ -41,8 +40,8 @@ public class MaxContains extends Keyword {
       return true;
     }
 
-    Map<URI, Annotation> contains = context.getAnnotations(Contains.NAME);
-    Annotation a = contains.get(context.schemaParentLocation().resolve(Contains.NAME));
+    Map<String, Annotation> contains = context.getAnnotations(Contains.NAME);
+    Annotation a = contains.get(context.schemaParentLocation() + "/" + Contains.NAME);//))=-;
     if (a == null) {
       return true;
     }

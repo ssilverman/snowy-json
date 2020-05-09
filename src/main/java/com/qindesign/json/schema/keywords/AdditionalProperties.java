@@ -9,7 +9,6 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -42,15 +41,15 @@ public class AdditionalProperties extends Keyword {
     Set<String> validated = new HashSet<>();
 
     // "properties"
-    Map<URI, Annotation> annotations = context.getAnnotations(Properties.NAME);
-    Annotation a = annotations.get(context.schemaParentLocation().resolve(Properties.NAME));
+    Map<String, Annotation> annotations = context.getAnnotations(Properties.NAME);
+    Annotation a = annotations.get(context.schemaParentLocation() + "/" + Properties.NAME);
     if (a != null && a.value instanceof Set<?>) {
       validated.addAll((Set<String>) a.value);
     }
 
     // "patternProperties"
     annotations = context.getAnnotations(PatternProperties.NAME);
-    a = annotations.get(context.schemaParentLocation().resolve(PatternProperties.NAME));
+    a = annotations.get(context.schemaParentLocation() + "/" + PatternProperties.NAME);
     if (a != null && a.value instanceof Set<?>) {
       validated.addAll((Set<String>) a.value);
     }

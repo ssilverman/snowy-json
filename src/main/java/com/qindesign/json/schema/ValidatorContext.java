@@ -9,8 +9,6 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -83,10 +81,10 @@ public final class ValidatorContext {
     /** Any $recursiveAnchor=true bases we find along the way. */
     URI recursiveBaseURI;
 
-    URI keywordParentLocation;
-    URI keywordLocation;
+    String keywordParentLocation;
+    String keywordLocation;
     URI absKeywordLocation;
-    URI instanceLocation;
+    String instanceLocation;
 
     @Override
     protected Object clone() {
@@ -155,8 +153,11 @@ public final class ValidatorContext {
   /** Vocabularies in use. */
   private final Map<URI, Boolean> vocabularies = new HashMap<>();
 
-  /** Annotations collection, maps element location to its annotations. */
-  private final Map<URI, Map<String, Map<URI, Annotation>>> annotations = new HashMap<>();
+  /**
+   * Annotations collection, maps element location to its annotations:<br>
+   * instance location -> name -> schema location -> value
+   */
+  private final Map<String, Map<String, Map<String, Annotation>>> annotations = new HashMap<>();
 
   /**
    * The initial base URI passed in with the constructor. This may or may not
@@ -219,9 +220,9 @@ public final class ValidatorContext {
     state.recursiveBaseURI = null;
     state.schemaObject = null;
     state.keywordParentLocation = null;
-    state.keywordLocation = URI.create("");
+    state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
-    state.instanceLocation = URI.create("");
+    state.instanceLocation = "";
   }
 
   /**
@@ -302,7 +303,7 @@ public final class ValidatorContext {
    * meant for annotations. Callers need to resolve against the base URI if
    * they need an absolute form.
    */
-  public URI schemaParentLocation() {
+  public String schemaParentLocation() {
     return state.keywordParentLocation;
   }
 
@@ -314,7 +315,7 @@ public final class ValidatorContext {
    * meant for annotations. Callers need to resolve against the base URI if
    * they need an absolute form.
    */
-  public URI schemaLocation() {
+  public String schemaLocation() {
     return state.keywordLocation;
   }
 
@@ -381,9 +382,9 @@ public final class ValidatorContext {
    * @param name the annotation name
    * @return a map keyed by schema location
    */
-  public Map<URI, Annotation> getAnnotations(String name) {
-    Map<String, Map<URI, Annotation>> m = annotations.getOrDefault(state.instanceLocation,
-                                                                   Collections.emptyMap());
+  public Map<String, Annotation> getAnnotations(String name) {
+    Map<String, Map<String, Annotation>> m =
+        annotations.getOrDefault(state.instanceLocation, Collections.emptyMap());
     return Collections.unmodifiableMap(m.getOrDefault(name, Collections.emptyMap()));
   }
 
@@ -405,18 +406,24 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the path with the base URI. If the given path is empty, this returns
-   * the base URI. It is assumed that the base path is a JSON pointer.
+   * Merges the path with the base pointer. If the given path is empty, this
+   * returns the base pointer. It is assumed that the base path is a
+   * JSON pointer.
+   * <p>
+   * This also ensures that the path is a valid JSON pointer by escaping any
+   * characters as needed.
    *
-   * @param base the base URI
+   * @param base the base pointer
    * @param path path to append
-   * @return the merged URI.
+   * @return the merged pointer, escaping the path as needed.
    */
-  private static URI resolvePointer(URI base, String path) {
+  private static String resolvePointer(String base, String path) {
     if (path.isEmpty()) {
       return base;
     }
-    return base.resolve(base.getRawPath() + "/" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+    path = path.replace("~", "~0");
+    path = path.replace("/", "~1");
+    return base + "/" + path;
   }
 
   /**
@@ -514,8 +521,8 @@ public final class ValidatorContext {
 
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
-    URI keywordLocation = resolvePointer(state.keywordLocation, schemaPath);
-    URI instanceLocation = resolvePointer(state.instanceLocation, instancePath);
+    String keywordLocation = resolvePointer(state.keywordLocation, schemaPath);
+    String instanceLocation = resolvePointer(state.instanceLocation, instancePath);
 
     State parentState = state;
     state = (State) state.clone();

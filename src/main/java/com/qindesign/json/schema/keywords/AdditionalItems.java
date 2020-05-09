@@ -9,7 +9,6 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
 import java.util.Map;
 
 /**
@@ -37,8 +36,8 @@ public class AdditionalItems extends Keyword {
 
     int processedCount = 0;
 
-    Map<URI, Annotation> annotations = context.getAnnotations(Items.NAME);
-    Annotation a = annotations.get(context.schemaParentLocation().resolve(Items.NAME));
+    Map<String, Annotation> annotations = context.getAnnotations(Items.NAME);
+    Annotation a = annotations.get(context.schemaParentLocation() + "/" + Items.NAME);
     if (a != null) {
       if (a.value instanceof Boolean) {
         if ((Boolean) a.value) {

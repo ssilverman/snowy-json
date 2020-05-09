@@ -9,7 +9,6 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -36,13 +35,13 @@ public class UnevaluatedItems extends Keyword {
       return true;
     }
 
-    String loc = context.schemaParentLocation().toString();
+    String loc = context.schemaParentLocation();
     int max = 0;
 
     // Returns true if we need to return true and false to not return
-    Function<Map<URI, Annotation>, Boolean> f = (Map<URI, Annotation> a) -> {
+    Function<Map<String, Annotation>, Boolean> f = (Map<String, Annotation> a) -> {
       for (var e : a.entrySet()) {
-        if (!e.getKey().toString().startsWith(loc)) {
+        if (!e.getKey().startsWith(loc)) {
           continue;
         }
         Object v = e.getValue().value;
@@ -64,9 +63,9 @@ public class UnevaluatedItems extends Keyword {
     }
 
     // "items"
-    Map<URI, Annotation> annotations = context.getAnnotations(Items.NAME);
+    Map<String, Annotation> annotations = context.getAnnotations(Items.NAME);
     for (var e : annotations.entrySet()) {
-      if (!e.getKey().toString().startsWith(loc)) {
+      if (!e.getKey().startsWith(loc)) {
         continue;
       }
       Object v = e.getValue().value;

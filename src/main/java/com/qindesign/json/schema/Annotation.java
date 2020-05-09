@@ -3,14 +3,12 @@
  */
 package com.qindesign.json.schema;
 
-import java.net.URI;
-
 /**
  * Holds all the information needed to describe an annotation.
  */
 public class Annotation {
   public String name;
-  public URI instanceLocation;
-  public URI schemaLocation;
+  public String instanceLocation;
+  public String schemaLocation;
   public Object value;
 }
