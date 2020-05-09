@@ -12,7 +12,6 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -20,7 +19,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The schema processing state.
@@ -30,29 +28,25 @@ public final class ValidatorContext {
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
   /** These core keywords are processed first, in this order. */
-  private static final Set<String> FIRST_KEYWORDS = new LinkedHashSet<>(
-      Stream.of(
-          "$id",
-          "$recursiveAnchor",
-          "$schema",
-          "$anchor",
-          "$vocabulary",
-          "$defs"
-      ).collect(Collectors.toList()));
+  private static final Set<String> FIRST_KEYWORDS = Set.of(
+      "$id",
+      "$recursiveAnchor",
+      "$schema",
+      "$anchor",
+      "$vocabulary",
+      "$defs");
 
   /** These keywords depend on others before they can be applied. */
-  private static final Set<String> DEPENDENT_KEYWORDS =
-      Stream.of(
-          "if",
-          "then",
-          "else",
-          "additionalItems",
-          "unevaluatedItems",
-          "additionalProperties",
-          "unevaluatedProperties",
-          "maxContains",
-          "minContains"
-      ).collect(Collectors.toSet());
+  private static final Set<String> DEPENDENT_KEYWORDS = Set.of(
+      "if",
+      "then",
+      "else",
+      "additionalItems",
+      "unevaluatedItems",
+      "additionalProperties",
+      "unevaluatedProperties",
+      "maxContains",
+      "minContains");
 
   private static final Map<String, Keyword> keywords = new HashMap<>();
   private static final Map<String, Integer> keywordClasses;
