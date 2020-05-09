@@ -4,6 +4,8 @@
 package com.qindesign.json.schema;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 /**
@@ -103,6 +105,17 @@ public final class Strings {
    */
   public static URI jsonPointerToURI(String ptr) {
     return URI.create("#" + Strings.pctEncodeFragment(ptr));
+  }
+
+  /**
+   * Converts a URI fragment to a JSON pointer by un-escaping all percent-
+   * encoded characters. This assumes correctness.
+   *
+   * @param fragment the URI fragment
+   * @return the JSON pointer form of the URI fragment.
+   */
+  public static String fragmentToJSONPointer(String fragment) {
+    return URLDecoder.decode(fragment, StandardCharsets.UTF_8);
   }
 
   /**
