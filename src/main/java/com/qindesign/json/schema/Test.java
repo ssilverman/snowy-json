@@ -15,8 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -38,6 +36,7 @@ public class Test {
   private static final class Result {
     int total;
     int passed;
+    long duration;
   }
 
   public static void main(String[] args) throws IOException {
@@ -67,7 +66,7 @@ public class Test {
 
     Map<String, Result> results = new TreeMap<>();
     Result allResult = new Result();
-    Instant start = Instant.now();
+    long start = System.currentTimeMillis();
 
     // Validate and test as we go
     Files.walkFileTree(testDir.toPath(), new SimpleFileVisitor<>() {
@@ -90,31 +89,55 @@ public class Test {
         Result r = runSuite(file, instance.getAsJsonArray());
         allResult.total += r.total;
         allResult.passed += r.passed;
+        allResult.duration += r.duration;
         results.put(testDir.toPath().relativize(file).toString(), r);
 
         return FileVisitResult.CONTINUE;
       }
     });
 
-    int maxLen = results.keySet().stream().mapToInt(String::length).max().getAsInt();
+    long totalDuration = System.currentTimeMillis() - start;
 
-    Duration testDur = Duration.between(start, Instant.now());
-    System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s\n", "Name", "Pass", "Fail", "Total");
-    IntStream.range(0, maxLen + 19).forEach(i -> System.out.print('-'));
+    int maxLen = results.keySet().stream().mapToInt(String::length).max().getAsInt();
+    System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s  %-9s\n", "Name", "Pass", "Fail", "Total", "Duration");
+    IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
     System.out.println();
     results.forEach((name, result) -> {
-      System.out.printf("%-" + maxLen + "s  %4d  %4d  %5d\n",
-                        name, result.passed, result.total - result.passed, result.total);
+      System.out.printf("%-" + maxLen + "s  %4d  %4d  %5d  %8ss\n",
+                        name, result.passed, result.total - result.passed, result.total,
+                        formatDuration(result.duration));
     });
-    IntStream.range(0, maxLen + 19).forEach(i -> System.out.print('-'));
+    IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
     System.out.println();
-    System.out.printf("Pass:%d Fail:%d Total:%d\n",
-                      allResult.passed, allResult.total - allResult.passed, allResult.total);
-    System.out.println("Duration: " + testDur);
+    System.out.printf("Pass:%d Fail:%d Total:%d Time:%ss\n",
+                      allResult.passed, allResult.total - allResult.passed, allResult.total,
+                      formatDuration(allResult.duration).trim());
+    System.out.println("Times:");
+    System.out.printf("  Test: %ss", formatDuration(allResult.duration));
+    System.out.printf("  Other: %ss", formatDuration(totalDuration - allResult.duration));
+    System.out.printf("  Total: %ss", formatDuration(totalDuration));
   }
 
+  /**
+   * Formats a duration in milliseconds.
+   *
+   * @param millis the duration to format
+   * @return the formatted duration.
+   */
+  private static String formatDuration(long millis) {
+    return String.format("%2d.%03d", millis/1000, millis%1000);
+  }
+
+  /**
+   * Runs a set of test set
+   *
+   * @param file the suite file
+   * @param suite the suite JSON tree
+   * @return the suite results.
+   */
   private static Result runSuite(Path file, JsonArray suite) {
     Result suiteResult = new Result();
+    long start = System.currentTimeMillis();
 
     int groupIndex = 0;
     for (JsonElement g : suite) {
@@ -158,6 +181,7 @@ public class Test {
       groupIndex++;
     }
 
+    suiteResult.duration = System.currentTimeMillis() - start;
     return suiteResult;
   }
 }
