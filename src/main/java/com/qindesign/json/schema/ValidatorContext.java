@@ -401,7 +401,7 @@ public final class ValidatorContext {
       return base;
     }
     return base.resolve(
-        "#" + base.getRawFragment() + "/" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+        "#" + base.getRawFragment() + "/" + Strings.pctEncodeFragment(path));
   }
 
   /**
