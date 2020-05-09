@@ -18,6 +18,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Validator tools.
+ */
 public class Validator {
   private static final Class<?> CLASS = Validator.class;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
@@ -91,6 +94,15 @@ public class Validator {
     return e.isJsonPrimitive() && e.getAsJsonPrimitive().isString();
   }
 
+  /**
+   * Validates an instance against a schema.
+   *
+   * @param schema the schema
+   * @param instance the instance
+   * @param baseURI the schema's base URI
+   * @return the validation result.
+   * @throws MalformedSchemaException if the schema is somehow malformed.
+   */
   public static boolean validate(JsonElement schema, JsonElement instance, URI baseURI)
       throws MalformedSchemaException
   {
