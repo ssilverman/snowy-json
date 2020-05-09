@@ -3,6 +3,7 @@
  */
 package com.qindesign.json.schema;
 
+import java.net.URI;
 import java.util.BitSet;
 
 /**
@@ -88,6 +89,20 @@ public final class Strings {
       bs.set(c);
     }
     return bs;
+  }
+
+  /**
+   * Converts a JSON pointer to URI form, as a fragment. There's a small chance
+   * that this may throw an {@link IllegalArgumentException} if there was some
+   * encoding error.
+   *
+   * @param ptr the JSON pointer
+   * @return the pointer in URI form.
+   * @throws IllegalArgumentException if there was some encoding error, a
+   *         small chance.
+   */
+  public static URI jsonPointerToURI(String ptr) {
+    return URI.create("#" + Strings.pctEncodeFragment(ptr));
   }
 
   /**

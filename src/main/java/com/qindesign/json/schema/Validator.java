@@ -8,10 +8,7 @@ import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -249,13 +246,6 @@ public class Validator {
       newParentID = parentID + "/" + name;
     }
 
-    URI newParentURI;
-    try {
-      newParentURI = URI.create(URLEncoder.encode(newParentID, StandardCharsets.UTF_8));
-    } catch (IllegalArgumentException ex) {
-      throw new MalformedSchemaException("Unexpected bad URI: " + newParentID, baseURI);
-    }
-
     if (e.isJsonArray()) {
       int index = 0;
       for (var elem : e.getAsJsonArray()) {
@@ -268,17 +258,19 @@ public class Validator {
     JsonElement value = e.getAsJsonObject().get("$id");
     if (value != null) {
       if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", newParentURI);
+        throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
       }
 
       URI uri;
       try {
         uri = URI.create(value.getAsString()).normalize();
       } catch (IllegalArgumentException ex) {
-        throw new MalformedSchemaException("not a valid URI-reference", newParentURI);
+        throw new MalformedSchemaException("not a valid URI-reference",
+                                           Strings.jsonPointerToURI(newParentID));
       }
       if (uri.getRawFragment() != null && !uri.getRawFragment().isEmpty()) {
-        throw new MalformedSchemaException("has a non-empty fragment", newParentURI);
+        throw new MalformedSchemaException("has a non-empty fragment",
+                                           Strings.jsonPointerToURI(newParentID));
       }
 
       Id id = new Id(baseURI.resolve(uri));
@@ -288,7 +280,7 @@ public class Validator {
       id.root = rootID;
       id.rootURI = rootURI;
       if (ids.put(id, e) != null) {
-        throw new MalformedSchemaException("ID not unique", newParentURI);
+        throw new MalformedSchemaException("ID not unique", Strings.jsonPointerToURI(newParentID));
       }
 
       baseURI = id.id;
@@ -301,10 +293,11 @@ public class Validator {
     value = e.getAsJsonObject().get("$anchor");
     if (value != null) {
       if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", newParentURI);
+        throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
       }
       if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
-        throw new MalformedSchemaException("invalid plain name", newParentURI);
+        throw new MalformedSchemaException("invalid plain name",
+                                           Strings.jsonPointerToURI(newParentID));
       }
 
       Id id = new Id(baseURI.resolve("#" + value.getAsString()));  // Normalize?
@@ -317,7 +310,7 @@ public class Validator {
         throw new MalformedSchemaException(
             "anchor not unique: name=" + id.value +
             " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-            newParentURI);
+            Strings.jsonPointerToURI(newParentID));
       }
     }
 
