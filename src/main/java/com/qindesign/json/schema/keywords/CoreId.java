@@ -37,18 +37,11 @@ public class CoreId extends Keyword {
       return false;
     }
 
-    if (id.getRawFragment() != null) {
-      if (!id.getRawFragment().isEmpty()) {
-        context.schemaError("has a non-empty fragment");
-        return false;
-      }
-      try {
-        id = new URI(id.getScheme(), id.getRawSchemeSpecificPart(), null);
-      } catch (URISyntaxException ex) {
-        context.schemaError("unexpected bad URI");
-        return false;
-      }
+    if (Validator.hasNonEmptyFragment(id)) {
+      context.schemaError("has a non-empty fragment");
+      return false;
     }
+    id = Validator.stripFragment(id);
 
     context.setBaseURI(id);
 

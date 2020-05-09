@@ -197,11 +197,10 @@ public final class ValidatorContext {
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
     }
-    if (baseURI.getRawFragment() != null) {
-      if (!baseURI.getRawFragment().isEmpty()) {
-        throw new IllegalArgumentException("baseURI has a non-empty fragment");
-      }
-    } else {
+    if (Validator.hasNonEmptyFragment(baseURI)) {
+      throw new IllegalArgumentException("baseURI has a non-empty fragment");
+    }
+    if (baseURI.getRawFragment() == null) {
       // Ensure there's an empty fragment
       try {
         baseURI = new URI(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), "");
@@ -342,14 +341,7 @@ public final class ValidatorContext {
     }
 
     // Strip off the fragment, but after we know we don't know about it
-    if (id.getRawFragment() != null) {
-      try {
-        id = new URI(id.getScheme(), id.getRawSchemeSpecificPart(), null);
-      } catch (URISyntaxException ex) {
-        logger.log(Level.SEVERE, "Unexpected bad URI", ex);
-        return null;
-      }
-    }
+    id = Validator.stripFragment(id);
 
     e = Validator.loadResource(id);
     if (e != null && Validator.isSchema(e)) {

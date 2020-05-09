@@ -45,7 +45,7 @@ public class CoreRecursiveRef extends Keyword {
         return false;
       }
     }
-    if (uri.getRawFragment() != null && !uri.getRawFragment().isEmpty()) {
+    if (Validator.hasNonEmptyFragment(uri)) {
       context.schemaError("has a non-empty fragment");
       return false;
     }

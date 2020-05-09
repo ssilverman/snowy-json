@@ -8,6 +8,7 @@ import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,6 +93,36 @@ public class Validator {
    */
   public static boolean isString(JsonElement e) {
     return e.isJsonPrimitive() && e.getAsJsonPrimitive().isString();
+  }
+
+  /**
+   * Checks if the given URI has a non-empty fragment.
+   *
+   * @param uri the URI to check
+   * @return whether the URI has a non-empty fragment.
+   */
+  public static boolean hasNonEmptyFragment(URI uri) {
+    return (uri.getRawFragment() != null) && !uri.getRawFragment().isEmpty();
+  }
+
+  /**
+   * Strips any fragment off the given URI. If there is no fragment, even an
+   * empty one, then this returns the original URI.
+   *
+   * @param uri the URI
+   * @return a fragment-stripped URI.
+   * @throws IllegalArgumentException if there was an unexpected error creating
+   *         the new URI. This shouldn't normally need to be caught.
+   */
+  public static URI stripFragment(URI uri) {
+    if (uri.getRawFragment() == null) {
+      return uri;
+    }
+    try {
+      return new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null);
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Unexpected bad URI: " + uri, ex);
+    }
   }
 
   /**
@@ -203,7 +234,7 @@ public class Validator {
    */
   public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e)
       throws MalformedSchemaException {
-    if (baseURI.getRawFragment() != null && !baseURI.getRawFragment().isEmpty()) {
+    if (hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI with non-empty fragment");
     }
     baseURI = baseURI.normalize();
@@ -280,7 +311,7 @@ public class Validator {
         throw new MalformedSchemaException("not a valid URI-reference",
                                            Strings.jsonPointerToURI(newParentID));
       }
-      if (uri.getRawFragment() != null && !uri.getRawFragment().isEmpty()) {
+      if (hasNonEmptyFragment(uri)) {
         throw new MalformedSchemaException("has a non-empty fragment",
                                            Strings.jsonPointerToURI(newParentID));
       }

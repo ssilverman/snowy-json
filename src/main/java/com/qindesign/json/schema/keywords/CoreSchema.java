@@ -62,14 +62,7 @@ public class CoreSchema extends Keyword {
     }
 
     // Strip off any fragment
-    if (id.getRawFragment() != null) {
-      try {
-        id = new URI(id.getScheme(), id.getRawSchemeSpecificPart(), null);
-      } catch (URISyntaxException ex) {
-        context.schemaError("unexpected bad URI");
-        return false;
-      }
-    }
+    id = Validator.stripFragment(id);
     JsonElement e = Validator.loadResource(id);
     if (e == null) {
       context.schemaError("unknown schema resource");
