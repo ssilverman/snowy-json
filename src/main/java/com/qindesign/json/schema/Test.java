@@ -15,8 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 /**
  * Runs the test suite.
@@ -27,8 +32,13 @@ public class Test {
 
   private static final String TEST_SCHEMA = "test-schema.json";
 
-  private static int testCount;
-  private static int passCount;
+  /**
+   * Holds the results of one test.
+   */
+  private static final class Result {
+    int total;
+    int passed;
+  }
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
@@ -55,6 +65,10 @@ public class Test {
       System.exit(1);
     }
 
+    Map<String, Result> results = new TreeMap<>();
+    Result allResult = new Result();
+    Instant start = Instant.now();
+
     // Validate and test as we go
     Files.walkFileTree(testDir.toPath(), new SimpleFileVisitor<>() {
       @Override
@@ -72,18 +86,36 @@ public class Test {
           return FileVisitResult.CONTINUE;
         }
 
-        // Run the test
-        runTests(file, instance.getAsJsonArray());
+        // Run the suite
+        Result r = runSuite(file, instance.getAsJsonArray());
+        allResult.total += r.total;
+        allResult.passed += r.passed;
+        results.put(testDir.toPath().relativize(file).toString(), r);
 
         return FileVisitResult.CONTINUE;
       }
     });
 
-    logger.info("Pass:" + passCount + "/" + testCount +
-                " Fail:" + (testCount - passCount) + "/" + testCount);
+    int maxLen = results.keySet().stream().mapToInt(String::length).max().getAsInt();
+
+    Duration testDur = Duration.between(start, Instant.now());
+    System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s\n", "Name", "Pass", "Fail", "Total");
+    IntStream.range(0, maxLen + 19).forEach(i -> System.out.print('-'));
+    System.out.println();
+    results.forEach((name, result) -> {
+      System.out.printf("%-" + maxLen + "s  %4d  %4d  %5d\n",
+                        name, result.passed, result.total - result.passed, result.total);
+    });
+    IntStream.range(0, maxLen + 19).forEach(i -> System.out.print('-'));
+    System.out.println();
+    System.out.printf("Pass:%d Fail:%d Total:%d\n",
+                      allResult.passed, allResult.total - allResult.passed, allResult.total);
+    System.out.println("Duration: " + testDur);
   }
 
-  private static void runTests(Path file, JsonArray suite) {
+  private static Result runSuite(Path file, JsonArray suite) {
+    Result suiteResult = new Result();
+
     int groupIndex = 0;
     for (JsonElement g : suite) {
       JsonObject group = g.getAsJsonObject();
@@ -106,14 +138,14 @@ public class Test {
           throw new IllegalArgumentException(ex);
         }
 
-        testCount++;
+        suiteResult.total++;
         logger.info("Testing " + uri);
         try {
           boolean result = Validator.validate(schema, data, uri);
           if (result != valid) {
             logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
           } else {
-            passCount++;
+            suiteResult.passed++;
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
@@ -125,5 +157,7 @@ public class Test {
 
       groupIndex++;
     }
+
+    return suiteResult;
   }
 }
