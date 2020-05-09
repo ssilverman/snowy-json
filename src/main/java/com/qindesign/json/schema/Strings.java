@@ -79,17 +79,15 @@ public final class Strings {
 
   /**
    * Encodes a string into a valid URI fragment. If any percent-encoded
-   * characters are found then they are checked for a valid format. An
-   * {@link IllegalArgumentException} is thrown upon encountering any that
-   * are invalid.
+   * characters are found then they are checked for a valid format. Any that are
+   * invalid have their percent signs ('%') encoded as "%25" (the code for '%').
    *
    * @param s the string to encode
    * @return the encoded value.
-   * @throws IllegalArgumentException if a bad percent encoding was found.
    * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.5">Uniform Resource Identifier (URI): Generic Syntax: 3.5. Fragment</a>
    */
   public static String pctEncodeFragment(String s) {
-    StringBuilder sb = new StringBuilder(s);
+    StringBuilder sb = new StringBuilder();
     int[] pctState = { -1 };  // Array is to make it accessible from the lambda
     s.codePoints().forEach(c -> {
       if (pctState[0] >= 0) {
@@ -98,24 +96,39 @@ public final class Strings {
             pctState[0] = c;
             return;
           }
+          sb.append("%25");
+          // Keep pctState at '%'
         } else if (isHex(c)) {
           sb.append('%').append((char) pctState[0]).append((char) c);
           pctState[0] = -1;
           return;
+        } else {
+          // pctState is a hex value
+          sb.append("%25").append((char) pctState[0]);
+          pctState[0] = -1;
         }
-        throw new IllegalArgumentException("Invalid fragment: " + s);
       }
 
       if ((c < 128) && validFragment.get(c)) {
-        sb.appendCodePoint(c);
+        sb.append((char) c);
         return;
       }
       if ('%' != c) {
-        sb.appendCodePoint(c);
+        sb.append(c);
         return;
       }
       pctState[0] = '%';
     });
+
+    // Write any buffered characters
+    if (pctState[0] >= 0) {
+      if (pctState[0] == '%') {
+        sb.append("%25");
+      } else {
+        sb.append("%25").append((char) pctState[0]);
+      }
+    }
+
     return sb.toString();
   }
 }
