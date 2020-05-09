@@ -57,7 +57,7 @@ public class PatternProperties extends Keyword {
     for (var e : object.entrySet()) {
       // For each that matches, check the schema
       for (java.util.regex.Pattern p : patterns) {
-        if (!p.matcher(e.getKey()).matches()) {
+        if (!p.matcher(e.getKey()).find()) {
           continue;
         }
         if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
