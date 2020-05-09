@@ -340,6 +340,7 @@ public class Format extends Keyword {
         }
         try {
           UUID.fromString(instance.getAsString());
+          return true;
         } catch (IllegalArgumentException ex) {
           return false;
         }
