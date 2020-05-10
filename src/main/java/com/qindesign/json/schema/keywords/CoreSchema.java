@@ -4,6 +4,7 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
+import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Validator;
@@ -11,6 +12,7 @@ import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -55,14 +57,15 @@ public class CoreSchema extends Keyword {
       return false;
     }
 
+    // Strip off any fragment
+    id = Validator.stripFragment(id);
+
     // Check if we should validate the schema
     Set<URI> validated = context.validatedSchemas();
     if (validated.contains(id)) {
       return true;
     }
 
-    // Strip off any fragment
-    id = Validator.stripFragment(id);
     JsonElement e = Validator.loadResource(id);
     if (e == null) {
       context.schemaError("unknown schema resource");
@@ -72,7 +75,14 @@ public class CoreSchema extends Keyword {
     validated = new HashSet<>(validated);
     validated.add(id);
 
-    ValidatorContext context2 = new ValidatorContext(id, Validator.scanIDs(id, e), validated);
+    Map<Id, JsonElement> ids;
+    try {
+      ids = Validator.scanIDs(id, e);
+    } catch (MalformedSchemaException ex) {
+      context.schemaError("malformed schema: " + ex.getMessage());
+      return false;
+    }
+    ValidatorContext context2 = new ValidatorContext(id, ids, validated);
     if (!context2.apply(e, "", context.parentObject(), "")) {
       context.schemaError("does not validate");
       return false;

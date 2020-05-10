@@ -35,14 +35,16 @@ public class Validator {
       { "https://json-schema.org/draft/2019-09/meta/meta-data", "/draft-2019-09/meta-data.json" },
       { "https://json-schema.org/draft/2019-09/meta/format", "/draft-2019-09/format.json" },
       { "https://json-schema.org/draft/2019-09/meta/content", "/draft-2019-09/content.json" },
+      { "http://json-schema.org/draft-07/schema", "/draft-07/schema.json" },
+      { "http://json-schema.org/draft-06/schema", "/draft-06/schema.json" },
       }).collect(Collectors.toMap(
           data -> URI.create((String) data[0]),
           data -> {
-            URL url = Validator.class.getResource((String) data[1]);
+            URL url = CLASS.getResource((String) data[1]);
             if (url == null) {
               throw new MissingResourceException(
-                  "Can't find resource \"" + data[1] + "\" in " + Validator.class.getName(),
-                  Validator.class.getName(), (String) data[1]);
+                  "Can't find resource \"" + data[1] + "\" in " + CLASS.getName(),
+                  CLASS.getName(), (String) data[1]);
             }
             return url;
           }));
@@ -298,70 +300,81 @@ public class Validator {
       return rootID;
     }
 
+    // Don't look at the $id or $anchor values inside properties
+    boolean inProperties = name.equals("properties");
+
     // Process any "$id"
-    JsonElement value = e.getAsJsonObject().get("$id");
-    if (value != null) {
-      if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
+    JsonElement value;
+
+    if (!inProperties) {
+      value = e.getAsJsonObject().get("$id");
+      if (value != null) {
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+          throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
+        }
+
+        URI uri;
+        try {
+          uri = URI.create(value.getAsString()).normalize();
+        } catch (IllegalArgumentException ex) {
+          throw new MalformedSchemaException("not a valid URI-reference",
+                                             Strings.jsonPointerToURI(newParentID));
+        }
+        if (hasNonEmptyFragment(uri)) {
+          throw new MalformedSchemaException("has a non-empty fragment",
+                                             Strings.jsonPointerToURI(newParentID));
+        }
+
+        Id id = new Id(baseURI.resolve(uri));
+        id.value = value.getAsString();
+        id.base = baseURI;
+        id.path = newParentID;
+        id.root = rootID;
+        id.rootURI = rootURI;
+        if (ids.put(id, e) != null) {
+          throw new MalformedSchemaException("ID not unique",
+                                             Strings.jsonPointerToURI(newParentID));
+        }
+
+        baseURI = id.id;
+        if (parent == null) {
+          rootID = id.id;
+        }
       }
 
-      URI uri;
-      try {
-        uri = URI.create(value.getAsString()).normalize();
-      } catch (IllegalArgumentException ex) {
-        throw new MalformedSchemaException("not a valid URI-reference",
-                                           Strings.jsonPointerToURI(newParentID));
-      }
-      if (hasNonEmptyFragment(uri)) {
-        throw new MalformedSchemaException("has a non-empty fragment",
-                                           Strings.jsonPointerToURI(newParentID));
-      }
+      // Process any "$anchor"
+      value = e.getAsJsonObject().get("$anchor");
+      if (value != null) {
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+          throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
+        }
+        if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
+          throw new MalformedSchemaException("invalid plain name",
+                                             Strings.jsonPointerToURI(newParentID));
+        }
 
-      Id id = new Id(baseURI.resolve(uri));
-      id.value = value.getAsString();
-      id.base = baseURI;
-      id.path = newParentID;
-      id.root = rootID;
-      id.rootURI = rootURI;
-      if (ids.put(id, e) != null) {
-        throw new MalformedSchemaException("ID not unique", Strings.jsonPointerToURI(newParentID));
+        Id id = new Id(baseURI.resolve("#" + value.getAsString()));  // Normalize?
+        id.value = value.getAsString();
+        id.base = baseURI;
+        id.path = newParentID;
+        id.root = rootID;
+        id.rootURI = rootURI;
+        if (ids.put(id, e) != null) {
+          throw new MalformedSchemaException(
+              "anchor not unique: name=" + id.value +
+              " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
+              Strings.jsonPointerToURI(newParentID));
+        }
       }
-
-      baseURI = id.id;
-      if (parent == null) {
-        rootID = id.id;
-      }
-    }
-
-    // Process any "$anchor"
-    value = e.getAsJsonObject().get("$anchor");
-    if (value != null) {
-      if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-        throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
-      }
-      if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
-        throw new MalformedSchemaException("invalid plain name",
-                                           Strings.jsonPointerToURI(newParentID));
-      }
-
-      Id id = new Id(baseURI.resolve("#" + value.getAsString()));  // Normalize?
-      id.value = value.getAsString();
-      id.base = baseURI;
-      id.path = newParentID;
-      id.root = rootID;
-      id.rootURI = rootURI;
-      if (ids.put(id, e) != null) {
-        throw new MalformedSchemaException(
-            "anchor not unique: name=" + id.value +
-            " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-            Strings.jsonPointerToURI(newParentID));
-      }
-    }
+    }  // !inProperties
 
     // Process everything else
+    // Only process $id and $anchor if not inside properties
     for (var entry : e.getAsJsonObject().entrySet()) {
-      if (entry.getKey().equals("$id") || entry.getKey().equals("$anchor")) {
-        continue;
+      if (!inProperties) {
+        if (entry.getKey().equals("$id") || entry.getKey().equals("$anchor")) {
+          continue;
+        }
       }
       scanIDs(rootURI, rootID, baseURI, newParentID, entry.getKey(), e, entry.getValue(), ids);
     }
