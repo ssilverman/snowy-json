@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,6 +29,10 @@ public class UnevaluatedProperties extends Keyword {
   @SuppressWarnings("unchecked")
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      return true;
+    }
+
     context.checkValidSchema(value);
 
     if (!instance.isJsonObject()) {

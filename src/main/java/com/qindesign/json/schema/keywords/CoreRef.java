@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
@@ -28,6 +29,13 @@ public class CoreRef extends Keyword {
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
       return false;
+    }
+
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      if (context.parentObject().size() != 1) {
+        context.schemaError("has siblings");
+        return false;
+      }
     }
 
     URI uri;

@@ -8,6 +8,8 @@ import com.google.common.net.InternetDomainName;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Option;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -217,6 +219,13 @@ public class Format extends Keyword {
       context.schemaError("not a string");
       return false;
     }
+
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      if (Boolean.FALSE.equals(context.options().get(Option.FORMAT))) {
+        return false;
+      }
+    }
+    // TODO: Add annotation
 
     switch (value.getAsString()) {
       case "date-time":

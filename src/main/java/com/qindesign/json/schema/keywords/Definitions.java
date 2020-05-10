@@ -1,5 +1,5 @@
 /*
- * Created by shawn on 5/5/20 10:17 PM.
+ * Created by shawn on 5/10/20 1:43 AM.
  */
 package com.qindesign.json.schema.keywords;
 
@@ -11,30 +11,34 @@ import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
- * Implements "$recursiveAnchor".
+ * Implements "definitions".
  */
-public class CoreRecursiveAnchor extends Keyword {
-  public static final String NAME = "$recursiveAnchor";
+public class Definitions extends Keyword {
+  public static final String NAME = "definitions";
 
-  public CoreRecursiveAnchor() {
+  public Definitions() {
     super(NAME);
   }
 
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
-    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
       return true;
     }
 
-    if (!Validator.isBoolean(value)) {
-      context.schemaError("not a boolean");
+    if (!value.isJsonObject()) {
+      context.schemaError("not an object");
       return false;
     }
 
-    if (value.getAsBoolean() && context.parentObject().has(CoreId.NAME)) {
-      context.setRecursiveBaseURI();
+    for (var e : value.getAsJsonObject().entrySet()) {
+      if (!Validator.isSchema(e.getValue())) {
+        context.schemaError("not a schema", e.getKey());
+        return false;
+      }
     }
+
     return true;
   }
 }

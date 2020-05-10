@@ -8,6 +8,7 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
@@ -26,6 +27,10 @@ public class MaxContains extends Keyword {
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      return true;
+    }
+
     if (!Validator.isNumber(value)) {
       context.schemaError("not a number");
       return false;

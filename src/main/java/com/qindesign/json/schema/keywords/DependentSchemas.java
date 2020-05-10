@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -22,6 +23,10 @@ public class DependentSchemas extends Keyword {
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      return true;
+    }
+
     if (!value.isJsonObject()) {
       context.schemaError("not an object");
       return false;

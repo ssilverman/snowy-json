@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -37,9 +38,11 @@ public class CoreId extends Keyword {
       return false;
     }
 
-    if (Validator.hasNonEmptyFragment(id)) {
-      context.schemaError("has a non-empty fragment");
-      return false;
+    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      if (Validator.hasNonEmptyFragment(id)) {
+        context.schemaError("has a non-empty fragment");
+        return false;
+      }
     }
     id = Validator.stripFragment(id);
 
