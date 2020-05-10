@@ -113,9 +113,9 @@ public class Test {
                       allResult.passed, allResult.total - allResult.passed, allResult.total,
                       formatDuration(allResult.duration).trim());
     System.out.println("Times:");
-    System.out.printf("  Test: %ss", formatDuration(allResult.duration));
-    System.out.printf("  Other: %ss", formatDuration(totalDuration - allResult.duration));
-    System.out.printf("  Total: %ss", formatDuration(totalDuration));
+    System.out.printf("  Test: %ss\n", formatDuration(allResult.duration));
+    System.out.printf("  Other: %ss\n", formatDuration(totalDuration - allResult.duration));
+    System.out.printf("  Total: %ss\n", formatDuration(totalDuration));
   }
 
   /**
