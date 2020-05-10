@@ -199,13 +199,15 @@ public final class ValidatorContext {
    * Only empty fragments are allowed in the base URI, if present.
    *
    * @param baseURI the initial base URI
+   * @param spec the specification to use
    * @param knownIDs the known IDs in this resource
    * @param validatedSchemas the list of validated schemas, must be mutable
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
    */
-  public ValidatorContext(URI baseURI, Map<Id, JsonElement> knownIDs, Set<URI> validatedSchemas) {
+  public ValidatorContext(URI baseURI, Specification spec,
+                          Map<Id, JsonElement> knownIDs, Set<URI> validatedSchemas) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
@@ -231,7 +233,7 @@ public final class ValidatorContext {
 
     state = new State();
     state.baseURI = baseURI;
-    state.spec = (Specification) options.get(Option.SPECIFICATION);
+    state.spec = spec;
     state.prevRecursiveBaseURI = null;
     state.recursiveBaseURI = null;
     state.schemaObject = null;

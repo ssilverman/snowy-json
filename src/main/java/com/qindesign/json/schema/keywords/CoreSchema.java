@@ -89,7 +89,7 @@ public class CoreSchema extends Keyword {
       context.schemaError("malformed schema: " + ex.getMessage());
       return false;
     }
-    ValidatorContext context2 = new ValidatorContext(id, ids, validated);
+    ValidatorContext context2 = new ValidatorContext(id, spec, ids, validated);
     if (!context2.apply(e, "", context.parentObject(), "")) {
       context.schemaError("does not validate");
       return false;

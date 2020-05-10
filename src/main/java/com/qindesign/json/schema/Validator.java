@@ -137,13 +137,12 @@ public class Validator {
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
-  public static boolean validate(JsonElement schema, JsonElement instance, URI baseURI,
-                                 Specification spec)
+  public static boolean validate(JsonElement schema, JsonElement instance,
+                                 URI baseURI, Specification spec)
       throws MalformedSchemaException
   {
     var ids = scanIDs(baseURI, schema, spec);
-    ValidatorContext context = new ValidatorContext(baseURI, ids, new HashSet<>());
-    context.options().set(Option.SPECIFICATION, spec);
+    ValidatorContext context = new ValidatorContext(baseURI, spec, ids, new HashSet<>());
     return context.apply(schema, "", instance, "");
   }
 
