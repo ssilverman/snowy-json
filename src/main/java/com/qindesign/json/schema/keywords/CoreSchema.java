@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -66,6 +67,12 @@ public class CoreSchema extends Keyword {
       return true;
     }
 
+    Specification spec = Specification.of(id);
+    if (spec == null) {
+      context.schemaError("unknown schema ID");
+      return false;
+    }
+
     JsonElement e = Validator.loadResource(id);
     if (e == null) {
       context.schemaError("unknown schema resource");
@@ -88,6 +95,7 @@ public class CoreSchema extends Keyword {
       return false;
     }
 
+    context.setSpecification(spec);
     return true;
   }
 }

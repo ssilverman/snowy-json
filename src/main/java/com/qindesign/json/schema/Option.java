@@ -10,7 +10,8 @@ import java.util.Objects;
  */
 public enum Option {
   /** Indicates whether to treat "format" as an assertion, a Boolean. */
-  FORMAT(Boolean.class)
+  FORMAT(Boolean.class),
+  SPECIFICATION(Specification.class)
   ;
 
   private Class<?> type;

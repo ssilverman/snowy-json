@@ -77,6 +77,9 @@ public final class ValidatorContext {
     /** The current base URI. This is the base URI of the closest ancestor. */
     URI baseURI;
 
+    /** The current specification. */
+    Specification spec;
+
     /** The previous $recursiveAnchor=true base. */
     URI prevRecursiveBaseURI;
 
@@ -228,6 +231,7 @@ public final class ValidatorContext {
 
     state = new State();
     state.baseURI = baseURI;
+    state.spec = (Specification) options.get(Option.SPECIFICATION);
     state.prevRecursiveBaseURI = null;
     state.recursiveBaseURI = null;
     state.schemaObject = null;
@@ -291,6 +295,24 @@ public final class ValidatorContext {
       state.prevRecursiveBaseURI = state.recursiveBaseURI;
     }
     state.recursiveBaseURI = state.baseURI;
+  }
+
+  /**
+   * Returns the current specification in use.
+   */
+  public Specification specification() {
+    return state.spec;
+  }
+
+  /**
+   * Sets the current specification. This controls how the schema is processed.
+   *
+   * @param spec the new specification
+   */
+  public void setSpecification(Specification spec) {
+    Objects.requireNonNull(spec);
+
+    state.spec = spec;
   }
 
   /**

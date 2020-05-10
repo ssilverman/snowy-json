@@ -10,18 +10,24 @@ import java.util.Objects;
 
 /**
  * Handles options and their defaults. This is specification-aware.
+ * <p>
+ * There are also non-specification specific options, such as which
+ * specification the validator is following.
  */
 public final class Options {
-  static final Map<Specification, Map<Option, Object>> defaults = new HashMap<>();
+  static final Map<Specification, Map<Option, Object>> specDefaults = new HashMap<>();
+  static final Map<Option, Object> defaults = new HashMap<>();
 
   private final Map<Option, Object> options = new HashMap<>();
 
   static {
-    defaults.put(Specification.DRAFT_07, new HashMap<>());
-    defaults.put(Specification.DRAFT_2019_09, new HashMap<>());
+    specDefaults.put(Specification.DRAFT_07, new HashMap<>());
+    specDefaults.put(Specification.DRAFT_2019_09, new HashMap<>());
 
-    defaults.get(Specification.DRAFT_07).put(Option.FORMAT, true);
-    defaults.get(Specification.DRAFT_2019_09).put(Option.FORMAT, false);
+    specDefaults.get(Specification.DRAFT_07).put(Option.FORMAT, true);
+    specDefaults.get(Specification.DRAFT_2019_09).put(Option.FORMAT, false);
+
+    defaults.put(Option.SPECIFICATION, Specification.DRAFT_2019_09);
   }
 
   Options() {
@@ -51,7 +57,7 @@ public final class Options {
 
   /**
    * Clears the specified option. This unsets the option so that any defaults
-   * will be used instead. This returns any previously set value, or
+   * will be returned instead. This returns any previously set value, or
    * {@code null} if there was none.
    *
    * @param option the option to retrieve
@@ -64,9 +70,10 @@ public final class Options {
   }
 
   /**
-   * Gets the specified option. If nothing has been set for the option then this
-   * returns {@code null}. Note that this does not consult the defaults. To
-   * the the option or the default, see {@link #getOrDefault}.
+   * Gets the specified option. If there is nothing set for the option then this
+   * returns {@code null}. Note that this consults the non-specification
+   * defaults if the option has not been set. To get the option or the default
+   * for a specific specification, see {@link #getOrDefault}.
    *
    * @param option the option to retrieve
    * @return the option, or {@code null} if not set.
@@ -75,7 +82,7 @@ public final class Options {
   public Object get(Option option) {
     Objects.requireNonNull(option, "option");
 
-    return options.get(option);
+    return options.getOrDefault(option, defaults.get(option));
   }
 
   /**
@@ -93,6 +100,6 @@ public final class Options {
 
     return options
         .getOrDefault(option,
-                      defaults.getOrDefault(spec, Collections.emptyMap()).get(option));
+                      specDefaults.getOrDefault(spec, Collections.emptyMap()).get(option));
   }
 }
