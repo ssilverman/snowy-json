@@ -315,8 +315,10 @@ public class Validator {
     if (!inProperties) {
       value = e.getAsJsonObject().get("$id");
       if (value != null) {
+        String path = newParentID + "/$id";
+
         if (!isString(value)) {
-          throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
+          throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(path));
         }
 
         URI uri;
@@ -324,14 +326,14 @@ public class Validator {
           uri = URI.create(value.getAsString()).normalize();
         } catch (IllegalArgumentException ex) {
           throw new MalformedSchemaException("not a valid URI-reference",
-                                             Strings.jsonPointerToURI(newParentID));
+                                             Strings.jsonPointerToURI(path));
         }
 
         // Specification-specific handling
         if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
           if (hasNonEmptyFragment(uri)) {
             throw new MalformedSchemaException("has a non-empty fragment",
-                                               Strings.jsonPointerToURI(newParentID));
+                                               Strings.jsonPointerToURI(path));
           }
 
           Id id = new Id(baseURI.resolve(uri));
@@ -353,11 +355,11 @@ public class Validator {
           if (hasNonEmptyFragment(uri)) {
             if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
               throw new MalformedSchemaException("plain name has non-fragment parts",
-                                                 Strings.jsonPointerToURI(newParentID));
+                                                 Strings.jsonPointerToURI(path));
             }
             if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
               throw new MalformedSchemaException("invalid plain name",
-                                                 Strings.jsonPointerToURI(newParentID));
+                                                 Strings.jsonPointerToURI(path));
             }
 
             Id id = new Id(baseURI.resolve("#" + uri.getRawFragment()));
@@ -380,13 +382,15 @@ public class Validator {
       if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
         value = e.getAsJsonObject().get("$anchor");
         if (value != null) {
+          String path = newParentID + "/$anchor";
+
           if (!isString(value)) {
             throw new MalformedSchemaException("not a string",
-                                               Strings.jsonPointerToURI(newParentID));
+                                               Strings.jsonPointerToURI(path));
           }
           if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
             throw new MalformedSchemaException("invalid plain name",
-                                               Strings.jsonPointerToURI(newParentID));
+                                               Strings.jsonPointerToURI(path));
           }
 
           Id id = new Id(baseURI.resolve("#" + value.getAsString()));
