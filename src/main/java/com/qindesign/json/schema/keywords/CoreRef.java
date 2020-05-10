@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
@@ -43,9 +44,15 @@ public class CoreRef extends Keyword {
     JsonElement e;
     String fragment = uri.getRawFragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
-      e = context.findAndSetRoot(Validator.stripFragment(uri));
+      uri = Validator.stripFragment(uri);
+      e = context.findAndSetRoot(uri);
       if (e != null) {
         e = Validator.followPointer(e, Strings.fragmentToJSONPointer(fragment));
+      }
+
+      // Earlier specs would make this the new base
+      if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        context.setBaseURI(uri);
       }
     } else {
       // Plain name
