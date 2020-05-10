@@ -38,7 +38,7 @@ public class CoreId extends Keyword {
       return false;
     }
 
-    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
       if (Validator.hasNonEmptyFragment(id)) {
         context.schemaError("has a non-empty fragment");
         return false;
