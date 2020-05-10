@@ -43,10 +43,21 @@ public class CoreId extends Keyword {
         context.schemaError("has a non-empty fragment");
         return false;
       }
-    }
-    id = Validator.stripFragment(id);
 
-    context.setBaseURI(id);
+      id = Validator.stripFragment(id);
+      context.setBaseURI(id);
+    } else {
+      if (Validator.hasNonEmptyFragment(id)) {
+        if (id.getScheme() != null || !id.getRawSchemeSpecificPart().isEmpty()) {
+          context.schemaError("plain name has non-fragment parts");
+          return false;
+        }
+        if (!Validator.ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
+          context.schemaError("invalid plain name");
+          return false;
+        }
+      }
+    }
 
     return true;
   }
