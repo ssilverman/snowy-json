@@ -76,13 +76,14 @@ public class Test {
         JsonElement instance = Main.parse(file.toFile());
 
         // Validate the test
+        logger.info("Validating test suite: " + file);
         try {
-          if (!Validator.validate(testSchema, instance, file.toUri(), spec)) {
-            logger.warning("Not a valid test: " + file);
+          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec)) {
+            logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
           }
         } catch (MalformedSchemaException ex) {
-          logger.log(Level.SEVERE, "Malformed schema: " + file, ex);
+          logger.log(Level.SEVERE, "Malformed schema: " + testSchemaFile, ex);
           return FileVisitResult.CONTINUE;
         }
 
