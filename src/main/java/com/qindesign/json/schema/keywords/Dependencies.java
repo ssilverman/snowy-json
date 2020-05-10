@@ -79,6 +79,6 @@ public class Dependencies extends Keyword {
       }
     }
 
-    return false;
+    return true;
   }
 }
