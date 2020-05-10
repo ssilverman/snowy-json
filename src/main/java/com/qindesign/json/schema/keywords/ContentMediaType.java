@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
@@ -22,6 +23,10 @@ public class ContentMediaType extends Keyword {
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
+    if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
+      return true;
+    }
+
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
       return false;

@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -23,6 +24,9 @@ public class If extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
     context.checkValidSchema(value);
+    if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
+      return true;
+    }
 
     JsonObject parent = context.parentObject();
     JsonElement thenElem = parent.get("then");
