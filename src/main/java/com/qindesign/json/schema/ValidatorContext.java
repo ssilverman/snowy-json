@@ -6,6 +6,7 @@ package com.qindesign.json.schema;
 import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.keywords.CoreRef;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -580,6 +581,14 @@ public final class ValidatorContext {
     try {
       for (var m : ordered) {
         Keyword k = keywords.get(m.getKey());
+
+        // $ref causes all other properties to be ignored
+        if (specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+          if (schemaObject.has(CoreRef.NAME) && !k.name().equals(CoreRef.NAME)) {
+            continue;
+          }
+        }
+
         state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
         state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
         if (!k.apply(m.getValue(), instance, this)) {

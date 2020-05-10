@@ -6,39 +6,17 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Set;
 
 /**
  * Implements the "$ref" core applicator.
  */
 public class CoreRef extends Keyword {
   public static final String NAME = "$ref";
-
-  /** Draft-07 disallowed siblings. */
-  private static final Set<String> DRAFT_07_DISALLOWED_SIBLINGS = Set.of(
-      AdditionalItems.NAME,
-      AdditionalProperties.NAME,
-      AllOf.NAME,
-      AnyOf.NAME,
-      Contains.NAME,
-      CoreId.NAME,
-      CoreSchema.NAME,
-      Dependencies.NAME,
-      If.NAME,
-      "then",
-      "else",
-      Items.NAME,
-      Not.NAME,
-      OneOf.NAME,
-      PatternProperties.NAME,
-      Properties.NAME,
-      PropertyNames.NAME);
 
   public CoreRef() {
     super(NAME);
@@ -50,16 +28,6 @@ public class CoreRef extends Keyword {
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
       return false;
-    }
-
-    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-      // Only disallow siblings not in the allowed list
-      for (String name : context.parentObject().keySet()) {
-        if (DRAFT_07_DISALLOWED_SIBLINGS.contains(name)) {
-          context.schemaError("has disallowed siblings");
-          return false;
-        }
-      }
     }
 
     URI uri;
