@@ -12,16 +12,16 @@ import java.util.Objects;
  * Handles options and their defaults. This is specification-aware.
  */
 public final class Options {
-  static final Map<Draft, Map<Option, Object>> defaults = new HashMap<>();
+  static final Map<Specification, Map<Option, Object>> defaults = new HashMap<>();
 
   private final Map<Option, Object> options = new HashMap<>();
 
   static {
-    defaults.put(Draft.DRAFT_07, new HashMap<>());
-    defaults.put(Draft.DRAFT_2019_09, new HashMap<>());
+    defaults.put(Specification.DRAFT_07, new HashMap<>());
+    defaults.put(Specification.DRAFT_2019_09, new HashMap<>());
 
-    defaults.get(Draft.DRAFT_07).put(Option.FORMAT, true);
-    defaults.get(Draft.DRAFT_2019_09).put(Option.FORMAT, false);
+    defaults.get(Specification.DRAFT_07).put(Option.FORMAT, true);
+    defaults.get(Specification.DRAFT_2019_09).put(Option.FORMAT, false);
   }
 
   Options() {
@@ -66,11 +66,11 @@ public final class Options {
   /**
    * Gets the specified option. If nothing has been set for the option then this
    * returns {@code null}. Note that this does not consult the defaults. To
-   * the the option or the default, see {@link #getOrDefault(Option, Draft)}.
+   * the the option or the default, see {@link #getOrDefault}.
    *
    * @param option the option to retrieve
    * @return the option, or {@code null} if not set.
-   * @see #getOrDefault(Option, Draft)
+   * @see #getOrDefault(Option, Specification)
    */
   public Object get(Option option) {
     Objects.requireNonNull(option, "option");
@@ -80,18 +80,19 @@ public final class Options {
 
   /**
    * Returns the value of the specified option or, if it's not set, the default
-   * for the given draft. This may return {@code null} if nothing is set.
+   * for the given specification. This may return {@code null} if nothing
+   * is set.
    *
    * @param option the option to retrieve
-   * @param draft the draft for which to get the default
-   * @return the option's value or default, or {@code null}/
+   * @param spec the specification for which to get the default
+   * @return the option's value or default, or {@code null}.
    */
-  public Object getOrDefault(Option option, Draft draft) {
+  public Object getOrDefault(Option option, Specification spec) {
     Objects.requireNonNull(option, "option");
-    Objects.requireNonNull(draft, "draft");
+    Objects.requireNonNull(spec, "spec");
 
     return options
         .getOrDefault(option,
-                      defaults.getOrDefault(draft, Collections.emptyMap()).get(option));
+                      defaults.getOrDefault(spec, Collections.emptyMap()).get(option));
   }
 }
