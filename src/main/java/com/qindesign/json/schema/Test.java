@@ -19,7 +19,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Runs the test suite.
@@ -30,6 +32,10 @@ public class Test {
 
   private static final String TEST_SCHEMA = "test-schema.json";
   private static final Specification spec = Specification.DRAFT_2019_09;
+  private static final Map<Specification, String> testDirs = Stream.of(new Object[][] {
+      { Specification.DRAFT_2019_09, "draft2019-09" },
+      { Specification.DRAFT_07, "draft7" },
+  }).collect(Collectors.toMap(data -> (Specification) data[0], data -> (String) data[1]));
 
   /**
    * Holds the results of one test.
@@ -59,7 +65,7 @@ public class Test {
     JsonElement testSchema = Main.parse(testSchemaFile);
     logger.info("Loaded test schema");
 
-    File testDir = root.toPath().resolve("tests/draft2019-09").toFile();
+    File testDir = root.toPath().resolve("tests/" + testDirs.get(spec)).toFile();
     if (!testDir.isDirectory()) {
       logger.severe("Not a directory: " + testDir);
       System.exit(1);
