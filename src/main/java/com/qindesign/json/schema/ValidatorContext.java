@@ -160,6 +160,9 @@ public final class ValidatorContext {
     }
   }
 
+  /** Stores the validation options. */
+  private Options options = new Options();
+
   /** Vocabularies in use. */
   private final Map<URI, Boolean> vocabularies = new HashMap<>();
 
@@ -233,6 +236,16 @@ public final class ValidatorContext {
     state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
     state.instanceLocation = "";
+  }
+
+  /**
+   * Returns all the options. Use this to modify or retrieve any options.
+   *
+   * @return all the options.
+   * @link Options
+   */
+  public Options options() {
+    return options;
   }
 
   /**
