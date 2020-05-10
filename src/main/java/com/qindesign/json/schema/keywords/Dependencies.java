@@ -60,13 +60,12 @@ public class Dependencies extends Keyword {
         Set<String> names = new HashSet<>();
         for (JsonElement name : e.getValue().getAsJsonArray()) {
           if (!Validator.isString(name)) {
-            context.schemaError(e.getKey() + "/" + index + ": not a string");
+            context.schemaError("not a string", e.getKey() + "/" + index);
             return false;
           }
           if (!names.add(name.getAsString())) {
-            context.schemaError(
-                e.getKey() + "/" + index +
-                ": \"" + Strings.jsonString(name.getAsString()) + "\": not unique");
+            context.schemaError("\"" + Strings.jsonString(name.getAsString()) + "\": not unique",
+                                e.getKey() + "/" + index);
             return false;
           }
           if (!object.has(name.getAsString())) {
