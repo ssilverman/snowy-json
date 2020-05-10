@@ -309,7 +309,7 @@ public class Validator {
     if (!inProperties) {
       value = e.getAsJsonObject().get("$id");
       if (value != null) {
-        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+        if (!isString(value)) {
           throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(newParentID));
         }
 
