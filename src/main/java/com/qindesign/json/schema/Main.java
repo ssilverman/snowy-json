@@ -61,6 +61,8 @@ public class Main {
     }
   }
 
+  private static final Specification spec = Specification.DRAFT_2019_09;
+
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
       System.out.println("Usage: " + CLASS.getName() + " <schema> <instance>");
@@ -77,7 +79,7 @@ public class Main {
     instance = parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
-    boolean result = Validator.validate(schema, instance, schemaID);
+    boolean result = Validator.validate(schema, instance, schemaID, spec);
     logger.info("Validation result: " + result);
   }
 

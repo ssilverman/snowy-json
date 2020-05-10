@@ -29,6 +29,7 @@ public class Test {
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
   private static final String TEST_SCHEMA = "test-schema.json";
+  private static final Specification spec = Specification.DRAFT_2019_09;
 
   /**
    * Holds the results of one test.
@@ -76,7 +77,7 @@ public class Test {
 
         // Validate the test
         try {
-          if (!Validator.validate(testSchema, instance, file.toUri())) {
+          if (!Validator.validate(testSchema, instance, file.toUri(), spec)) {
             logger.warning("Not a valid test: " + file);
             return FileVisitResult.CONTINUE;
           }
@@ -164,7 +165,7 @@ public class Test {
         suiteResult.total++;
         logger.info("Testing " + uri);
         try {
-          boolean result = Validator.validate(schema, data, uri);
+          boolean result = Validator.validate(schema, data, uri, spec);
           if (result != valid) {
             logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
           } else {

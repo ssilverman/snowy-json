@@ -133,14 +133,17 @@ public class Validator {
    * @param schema the schema
    * @param instance the instance
    * @param baseURI the schema's base URI
+   * @param spec the specification to use
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
-  public static boolean validate(JsonElement schema, JsonElement instance, URI baseURI)
+  public static boolean validate(JsonElement schema, JsonElement instance, URI baseURI,
+                                 Specification spec)
       throws MalformedSchemaException
   {
-    var ids = scanIDs(baseURI, schema);
+    var ids = scanIDs(baseURI, schema, spec);
     ValidatorContext context = new ValidatorContext(baseURI, ids, new HashSet<>());
+    context.options().set(Option.SPECIFICATION, spec);
     return context.apply(schema, "", instance, "");
   }
 
@@ -231,11 +234,12 @@ public class Validator {
    *
    * @param baseURI the base URI
    * @param e the JSON document
+   * @param spec the current specification
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
    */
-  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e)
+  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {
     if (hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI with non-empty fragment");
@@ -243,7 +247,7 @@ public class Validator {
     baseURI = stripFragment(baseURI).normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
-    URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids);
+    URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids, spec);
 
     // Ensure we have at least the base URI, if it's not already there
     Id id = new Id(baseURI);
@@ -269,6 +273,7 @@ public class Validator {
    * @param parent the parent of the given element
    * @param e the element to scan
    * @param ids the ID map
+   * @param spec the current specification
    * @return the root ID, may change from the original.
    * @throws MalformedSchemaException if the schema is considered malformed
    *         vis-à-vis IDs.
@@ -276,7 +281,8 @@ public class Validator {
   private static URI scanIDs(URI rootURI, URI rootID, URI baseURI,
                              String parentID, String name,
                              JsonElement parent, JsonElement e,
-                             Map<Id, JsonElement> ids)
+                             Map<Id, JsonElement> ids,
+                             Specification spec)
       throws MalformedSchemaException {
     if (e.isJsonPrimitive() || e.isJsonNull()) {
       return rootID;
@@ -295,7 +301,8 @@ public class Validator {
     if (e.isJsonArray()) {
       int index = 0;
       for (var elem : e.getAsJsonArray()) {
-        scanIDs(rootURI, rootID, baseURI, newParentID, Integer.toString(index++), e, elem, ids);
+        scanIDs(rootURI, rootID, baseURI, newParentID, Integer.toString(index++), e, elem, ids,
+                spec);
       }
       return rootID;
     }
@@ -320,9 +327,11 @@ public class Validator {
           throw new MalformedSchemaException("not a valid URI-reference",
                                              Strings.jsonPointerToURI(newParentID));
         }
-        if (hasNonEmptyFragment(uri)) {
-          throw new MalformedSchemaException("has a non-empty fragment",
-                                             Strings.jsonPointerToURI(newParentID));
+        if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+          if (hasNonEmptyFragment(uri)) {
+            throw new MalformedSchemaException("has a non-empty fragment",
+                                               Strings.jsonPointerToURI(newParentID));
+          }
         }
 
         Id id = new Id(baseURI.resolve(uri));
@@ -376,7 +385,8 @@ public class Validator {
           continue;
         }
       }
-      scanIDs(rootURI, rootID, baseURI, newParentID, entry.getKey(), e, entry.getValue(), ids);
+      scanIDs(rootURI, rootID, baseURI, newParentID, entry.getKey(), e, entry.getValue(), ids,
+              spec);
     }
 
     return rootID;

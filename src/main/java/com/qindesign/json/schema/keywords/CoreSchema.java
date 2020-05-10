@@ -84,7 +84,7 @@ public class CoreSchema extends Keyword {
 
     Map<Id, JsonElement> ids;
     try {
-      ids = Validator.scanIDs(id, e);
+      ids = Validator.scanIDs(id, e, spec);
     } catch (MalformedSchemaException ex) {
       context.schemaError("malformed schema: " + ex.getMessage());
       return false;
