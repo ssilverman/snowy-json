@@ -27,6 +27,10 @@ public class ContentMediaType extends Keyword {
       return false;
     }
 
+    if (!Validator.isString(instance)) {
+      return true;
+    }
+
     context.addAnnotation(NAME, value.getAsString());
     return true;
   }
