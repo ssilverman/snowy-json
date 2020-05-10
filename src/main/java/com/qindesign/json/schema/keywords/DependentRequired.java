@@ -56,7 +56,8 @@ public class DependentRequired extends Keyword {
         }
         if (!names.add(name.getAsString())) {
           context.schemaError(
-              e.getKey() + "/" + index + ": \"" + Strings.jsonString(name.getAsString()) + "\": not unique");
+              e.getKey() + "/" + index +
+              ": \"" + Strings.jsonString(name.getAsString()) + "\": not unique");
           return false;
         }
         if (!object.has(name.getAsString())) {
