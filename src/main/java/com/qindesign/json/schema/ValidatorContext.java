@@ -12,13 +12,14 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The schema processing state.
@@ -27,26 +28,33 @@ public final class ValidatorContext {
   private static final Class<?> CLASS = ValidatorContext.class;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
-  /** These core keywords are processed first, in this order. */
-  private static final Set<String> FIRST_KEYWORDS = Set.of(
-      "$id",
-      "$recursiveAnchor",
-      "$schema",
-      "$anchor",
-      "$vocabulary",
-      "$defs");
+  /** Represents all keywords not in a specific set. */
+  private static final Set<String> EVERY_OTHER_KEYWORD = Collections.emptySet();
 
-  /** These keywords depend on others before they can be applied. */
-  private static final Set<String> DEPENDENT_KEYWORDS = Set.of(
-      "if",
-      "then",
-      "else",
-      "additionalItems",
-      "unevaluatedItems",
-      "additionalProperties",
-      "unevaluatedProperties",
-      "maxContains",
-      "minContains");
+  /**
+   * All the known keywords, and the order in which they must be processed. A
+   * set's position in the list indicates the processing order.
+   */
+  private static final List<Set<String>> KEYWORD_SETS = List.of(
+      Set.of(
+          "$id",
+          "$recursiveAnchor",
+          "$schema",
+          "$anchor",
+          "$vocabulary",
+          "$defs"),
+      EVERY_OTHER_KEYWORD,
+      Set.of(
+          "if",
+          "then",
+          "else",
+          "additionalItems",
+          "additionalProperties",
+          "maxContains",
+          "minContains"),
+      Set.of(
+          "unevaluatedItems",
+          "unevaluatedProperties"));
 
   private static final Map<String, Keyword> keywords = new HashMap<>();
   private static final Map<String, Integer> keywordClasses;
@@ -92,25 +100,33 @@ public final class ValidatorContext {
   }
 
   static {
+    // First, load all the known keywords
     try {
       findKeywords();
     } catch (IOException ex) {
       logger.log(Level.SEVERE, "Error finding keywords", ex);
     }
+    // The 'keywords' set now contains all the keywords
+
+    // Temporary tuple type
+    final class Pair<K, V> {
+      K key;
+      V value;
+
+      Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+      }
+    }
 
     // Fun with streams
     // Map each keyword to its "class number", so we can sort easily
-    keywordClasses = keywords.keySet().stream().collect(Collectors.toMap(
-        Function.identity(),
-        name -> {
-          if (FIRST_KEYWORDS.contains(name)) {
-            return 0;
-          }
-          if (DEPENDENT_KEYWORDS.contains(name)) {
-            return 2;
-          }
-          return 1;
-        }));
+    keywordClasses = IntStream.range(0, KEYWORD_SETS.size())
+        .boxed()
+        .flatMap(i -> KEYWORD_SETS.get(i).stream().map(name -> new Pair<>(name, i)))
+        .collect(Collectors.toMap(p -> p.key, p -> p.value));
+    int otherClass = KEYWORD_SETS.indexOf(EVERY_OTHER_KEYWORD);
+    keywords.keySet().forEach(name -> keywordClasses.putIfAbsent(name, otherClass));
   }
 
   /**
