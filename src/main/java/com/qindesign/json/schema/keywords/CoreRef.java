@@ -75,12 +75,7 @@ public class CoreRef extends Keyword {
     JsonElement e;
     String fragment = uri.getRawFragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
-      try {
-        e = context.findAndSetRoot(new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null));
-      } catch (URISyntaxException ex) {
-        context.schemaError("unexpected bad URI");
-        return false;
-      }
+      e = context.findAndSetRoot(Validator.stripFragment(uri));
       if (e != null) {
         e = Validator.followPointer(e, Strings.fragmentToJSONPointer(fragment));
       }
