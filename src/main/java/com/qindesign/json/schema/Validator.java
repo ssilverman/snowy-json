@@ -329,12 +329,35 @@ public class Validator {
                                              Strings.jsonPointerToURI(path));
         }
 
-        // Specification-specific handling
-        if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          if (hasNonEmptyFragment(uri)) {
+        if (hasNonEmptyFragment(uri)) {
+          if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
             throw new MalformedSchemaException("has a non-empty fragment",
                                                Strings.jsonPointerToURI(path));
           }
+
+          if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
+            throw new MalformedSchemaException("plain name has non-fragment parts",
+                                               Strings.jsonPointerToURI(path));
+          }
+          if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
+            throw new MalformedSchemaException("invalid plain name",
+                                               Strings.jsonPointerToURI(path));
+          }
+
+          Id id = new Id(baseURI.resolve("#" + uri.getRawFragment()));
+          id.value = value.getAsString();
+          id.base = baseURI;
+          id.path = newParentID;
+          id.root = rootID;
+          id.rootURI = rootURI;
+          if (ids.put(id, e) != null) {
+            throw new MalformedSchemaException(
+                "anchor not unique: name=" + id.value +
+                " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
+                Strings.jsonPointerToURI(newParentID));
+          }
+        } else {
+          uri = stripFragment(uri);
 
           Id id = new Id(baseURI.resolve(uri));
           id.value = value.getAsString();
@@ -350,30 +373,6 @@ public class Validator {
           baseURI = id.id;
           if (parent == null) {
             rootID = id.id;
-          }
-        } else {
-          if (hasNonEmptyFragment(uri)) {
-            if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
-              throw new MalformedSchemaException("plain name has non-fragment parts",
-                                                 Strings.jsonPointerToURI(path));
-            }
-            if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
-              throw new MalformedSchemaException("invalid plain name",
-                                                 Strings.jsonPointerToURI(path));
-            }
-
-            Id id = new Id(baseURI.resolve("#" + uri.getRawFragment()));
-            id.value = value.getAsString();
-            id.base = baseURI;
-            id.path = newParentID;
-            id.root = rootID;
-            id.rootURI = rootURI;
-            if (ids.put(id, e) != null) {
-              throw new MalformedSchemaException(
-                  "anchor not unique: name=" + id.value +
-                  " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-                  Strings.jsonPointerToURI(newParentID));
-            }
           }
         }
       }
