@@ -31,10 +31,10 @@ public class Test {
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
   private static final String TEST_SCHEMA = "test-schema.json";
-  private static final Specification spec = Specification.DRAFT_2019_09;
   private static final Map<Specification, String> testDirs = Stream.of(new Object[][] {
       { Specification.DRAFT_2019_09, "draft2019-09" },
       { Specification.DRAFT_07, "draft7" },
+      { Specification.DRAFT_06, "draft6" },
   }).collect(Collectors.toMap(data -> (Specification) data[0], data -> (String) data[1]));
 
   /**
@@ -43,7 +43,8 @@ public class Test {
   private static final class Result {
     int total;
     int passed;
-    long duration;
+    long duration;  // The test duration
+    long totalDuration;  // The duration including overhead
   }
 
   public static void main(String[] args) throws IOException {
@@ -65,46 +66,32 @@ public class Test {
     JsonElement testSchema = Main.parse(testSchemaFile);
     logger.info("Loaded test schema");
 
-    File testDir = root.toPath().resolve("tests/" + testDirs.get(spec)).toFile();
-    if (!testDir.isDirectory()) {
-      logger.severe("Not a directory: " + testDir);
-      System.exit(1);
-    }
+    for (Specification spec : Specification.values()) {
+      System.out.println();
 
-    Map<String, Result> results = new TreeMap<>();
-    Result allResult = new Result();
-    long start = System.currentTimeMillis();
-
-    // Validate and test as we go
-    Files.walkFileTree(testDir.toPath(), new SimpleFileVisitor<>() {
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        JsonElement instance = Main.parse(file.toFile());
-
-        // Validate the test
-        logger.info("Validating test suite: " + file);
-        try {
-          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec)) {
-            logger.warning("Not a valid test suite: " + file);
-            return FileVisitResult.CONTINUE;
-          }
-        } catch (MalformedSchemaException ex) {
-          logger.log(Level.SEVERE, "Malformed schema: " + testSchemaFile, ex);
-          return FileVisitResult.CONTINUE;
-        }
-
-        // Run the suite
-        Result r = runSuite(file, instance.getAsJsonArray());
-        allResult.total += r.total;
-        allResult.passed += r.passed;
-        allResult.duration += r.duration;
-        results.put(testDir.toPath().relativize(file).toString(), r);
-
-        return FileVisitResult.CONTINUE;
+      File testDir = root.toPath().resolve("tests/" + testDirs.get(spec)).toFile();
+      if (!testDir.isDirectory()) {
+        logger.severe("Not a directory: " + testDir);
+        continue;
       }
-    });
 
-    long totalDuration = System.currentTimeMillis() - start;
+      logger.info("Running tests: " + spec);
+      Map<String, Result> results = new TreeMap<>();
+      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec);
+      printSpecResults(spec, specResult, results);
+    }
+  }
+
+  /**
+   * Prints the results of one test run for a specification.
+   *
+   * @param spec the specification
+   * @param specResult the total result
+   * @param results the suite results
+   */
+  private static void printSpecResults(Specification spec,
+                                       Result specResult, Map<String, Result> results) {
+    System.out.println("Results for specification: " + spec);
 
     int maxLen = results.keySet().stream().mapToInt(String::length).max().getAsInt();
     System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s  %-9s\n", "Name", "Pass", "Fail", "Total", "Duration");
@@ -118,13 +105,13 @@ public class Test {
     IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
     System.out.println();
     System.out.printf("Pass:%d Fail:%d Total:%d Time:%ss\n",
-                      allResult.passed, allResult.total - allResult.passed, allResult.total,
-                      formatDuration(allResult.duration).trim());
+                      specResult.passed, specResult.total - specResult.passed, specResult.total,
+                      formatDuration(specResult.duration).trim());
     System.out.println("Times:");
-    System.out.printf("  Test: %ss\n", formatDuration(allResult.duration));
-    System.out.printf("  Other: %ss\n", formatDuration(totalDuration - allResult.duration));
-    System.out.printf("  Total: %ss\n", formatDuration(totalDuration));
-  }
+    System.out.printf("  Test: %ss\n", formatDuration(specResult.duration));
+    System.out.printf("  Other: %ss\n", formatDuration(specResult.totalDuration - specResult.duration));
+    System.out.printf("  Total: %ss\n", formatDuration(specResult.totalDuration));
+}
 
   /**
    * Formats a duration in milliseconds.
@@ -137,13 +124,63 @@ public class Test {
   }
 
   /**
+   * Runs all the tests for a specification.
+   *
+   * @param dir the test directory
+   * @param testSchema the test schema elements, for validating the suites
+   * @param testSchemaFile the test schema file
+   * @param results all the test results for this specification will be put here
+   * @param spec the specification
+   * @return the test results.
+   */
+  private static Result runSpec(File dir, JsonElement testSchema, File testSchemaFile,
+                                Map<String, Result> results, Specification spec)
+      throws IOException {
+    Result result = new Result();
+    long start = System.currentTimeMillis();
+
+    // Validate and test as we go
+    Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        JsonElement instance = Main.parse(file.toFile());
+
+        // Validate the test
+        logger.fine("Validating test suite: " + file);
+        try {
+          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec)) {
+            logger.warning("Not a valid test suite: " + file);
+            return FileVisitResult.CONTINUE;
+          }
+        } catch (MalformedSchemaException ex) {
+          logger.log(Level.SEVERE, "Malformed schema: " + testSchemaFile, ex);
+          return FileVisitResult.CONTINUE;
+        }
+
+        // Run the suite
+        Result r = runSuite(file, instance.getAsJsonArray(), spec);
+        result.total += r.total;
+        result.passed += r.passed;
+        result.duration += r.duration;
+        results.put(dir.toPath().relativize(file).toString(), r);
+
+        return FileVisitResult.CONTINUE;
+      }
+    });
+
+    result.totalDuration = System.currentTimeMillis() - start;
+    return result;
+  }
+
+  /**
    * Runs a set of test set
    *
    * @param file the suite file
    * @param suite the suite JSON tree
+   * @param spec the specification
    * @return the suite results.
    */
-  private static Result runSuite(Path file, JsonArray suite) {
+  private static Result runSuite(Path file, JsonArray suite, Specification spec) {
     Result suiteResult = new Result();
     long start = System.currentTimeMillis();
 
@@ -170,17 +207,17 @@ public class Test {
         }
 
         suiteResult.total++;
-        logger.info("Testing " + uri);
+        logger.fine("Testing " + uri);
         try {
           boolean result = Validator.validate(schema, data, uri, spec);
           if (result != valid) {
-            logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
+            logger.fine(uri + ": Bad result: got=" + result + " want=" + valid);
           } else {
             suiteResult.passed++;
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
-            logger.info(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
+            logger.fine(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
           } else {
             suiteResult.passed++;
           }
@@ -192,6 +229,7 @@ public class Test {
     }
 
     suiteResult.duration = System.currentTimeMillis() - start;
+    suiteResult.totalDuration = suiteResult.duration;
     return suiteResult;
   }
 }
