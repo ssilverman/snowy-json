@@ -181,6 +181,8 @@ public class Test {
         } catch (MalformedSchemaException ex) {
           if (valid) {
             logger.info(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
+          } else {
+            suiteResult.passed++;
           }
         }
         testIndex++;
