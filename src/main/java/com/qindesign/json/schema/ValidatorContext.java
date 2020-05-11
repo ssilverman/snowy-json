@@ -190,6 +190,8 @@ public final class ValidatorContext {
   /**
    * Tracks schemas that have either been validated or in the process of being
    * validated, to avoid $schema recursion.
+   * <p>
+   * This being non-empty is a good indicator that this is a meta-schema.
    */
   private final Set<URI> validatedSchemas;
 

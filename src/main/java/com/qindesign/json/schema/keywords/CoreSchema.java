@@ -95,6 +95,11 @@ public class CoreSchema extends Keyword {
       return false;
     }
 
+    // Add all the vocabularies if this isn't a meta-schema
+    if (context.validatedSchemas().isEmpty()) {
+      context2.vocabularies().forEach(context::setVocabulary);
+    }
+
     context.setSpecification(spec);
     return true;
   }
