@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitResult;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -24,7 +26,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Runs the test suite.
+ * Runs the test suite for multiple specifications.
  */
 public class Test {
   private static final Class<?> CLASS = Main.class;
@@ -66,7 +68,13 @@ public class Test {
     JsonElement testSchema = Main.parse(testSchemaFile);
     logger.info("Loaded test schema");
 
+    var res = prepareKnownResources();
+
     for (Specification spec : Specification.values()) {
+      if (!testDirs.containsKey(spec)) {
+        continue;
+      }
+
       System.out.println();
 
       File testDir = root.toPath().resolve("tests/" + testDirs.get(spec)).toFile();
@@ -77,9 +85,68 @@ public class Test {
 
       logger.info("Running tests: " + spec);
       Map<String, Result> results = new TreeMap<>();
-      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec);
+      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec, res);
       printSpecResults(spec, specResult, results);
     }
+  }
+
+  /**
+   * Prepare some known resources for the tests.
+   */
+  private static Map<URI, JsonElement> prepareKnownResources() {
+    return Stream.of(new Object[][] {
+        {
+            "http://localhost:1234/integer.json",
+            Main.parse(new StringReader("{\"type\": \"integer\"}"))
+        },
+        {
+            "http://localhost:1234/name.json",
+            Main.parse(new StringReader(
+                "{" +
+                "  \"type\": \"string\"," +
+                "  \"definitions\": {" +
+                "    \"orNull\": {" +
+                "      \"anyOf\": [{\"type\": \"null\"}, {\"$ref\": \"#\"}]" +
+                "    }" +
+                "  }" +
+                "}"))
+        },
+        {
+            "http://localhost:1234/name-defs.json",
+            Main.parse(new StringReader(
+                "{" +
+                "  \"type\": \"string\"," +
+                "  \"$defs\": {" +
+                "    \"orNull\": {" +
+                "      \"anyOf\": [{\"type\": \"null\"}, {\"$ref\": \"#\"}]" +
+                "    }" +
+                "  }" +
+                "}"))
+        },
+        {
+            "http://localhost:1234/subSchemas.json",
+            Main.parse(new StringReader(
+                "{" +
+                "  \"integer\": {\"type\": \"integer\"}," +
+                "  \"refToInteger\": {\"$ref\": \"#/integer\"}" +
+                "}"))
+        },
+        {
+            "http://localhost:1234/subSchemas-defs.json",
+            Main.parse(new StringReader(
+                "{" +
+                "  \"$defs\": {" +
+                "    \"integer\": {\"type\": \"integer\"}," +
+                "    \"refToInteger\": {\"$ref\": \"#/$defs/integer\"}" +
+                "  }" +
+                "}"))
+        },
+        {
+            "http://localhost:1234/folder/folderInteger.json",
+            Main.parse(new StringReader("{\"type\": \"integer\"}"))
+        },
+        }).collect(Collectors.toMap(data -> URI.create((String) data[0]),
+                                    data -> (JsonElement) data[1]));
   }
 
   /**
@@ -131,10 +198,12 @@ public class Test {
    * @param testSchemaFile the test schema file
    * @param results all the test results for this specification will be put here
    * @param spec the specification
+   * @param knownResources any known resources
    * @return the test results.
    */
   private static Result runSpec(File dir, JsonElement testSchema, File testSchemaFile,
-                                Map<String, Result> results, Specification spec)
+                                Map<String, Result> results, Specification spec,
+                                Map<URI, JsonElement> knownResources)
       throws IOException {
     Result result = new Result();
     long start = System.currentTimeMillis();
@@ -148,7 +217,8 @@ public class Test {
         // Validate the test
         logger.fine("Validating test suite: " + file);
         try {
-          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec)) {
+          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec,
+                                  Collections.emptyMap())) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
           }
@@ -158,7 +228,7 @@ public class Test {
         }
 
         // Run the suite
-        Result r = runSuite(file, instance.getAsJsonArray(), spec);
+        Result r = runSuite(file, instance.getAsJsonArray(), spec, knownResources);
         result.total += r.total;
         result.passed += r.passed;
         result.duration += r.duration;
@@ -173,14 +243,16 @@ public class Test {
   }
 
   /**
-   * Runs a set of test set
+   * Runs a set of tests.
    *
    * @param file the suite file
    * @param suite the suite JSON tree
    * @param spec the specification
+   * @param knownResources any known resources
    * @return the suite results.
    */
-  private static Result runSuite(Path file, JsonArray suite, Specification spec) {
+  private static Result runSuite(Path file, JsonArray suite, Specification spec,
+                                 Map<URI, JsonElement> knownResources) {
     Result suiteResult = new Result();
     long start = System.currentTimeMillis();
 
@@ -209,7 +281,7 @@ public class Test {
         suiteResult.total++;
         logger.fine("Testing " + uri);
         try {
-          boolean result = Validator.validate(schema, data, uri, spec);
+          boolean result = Validator.validate(schema, data, uri, spec, knownResources);
           if (result != valid) {
             logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
           } else {

@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -79,7 +80,7 @@ public class Main {
     instance = parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
-    boolean result = Validator.validate(schema, instance, schemaID, spec);
+    boolean result = Validator.validate(schema, instance, schemaID, spec, Collections.emptyMap());
     logger.info("Validation result: " + result);
   }
 

@@ -129,20 +129,27 @@ public class Validator {
   }
 
   /**
-   * Validates an instance against a schema.
+   * Validates an instance against a schema. Known resources can be added,
+   * however the IDs in the schema will override those resources if there
+   * are duplicates.
    *
    * @param schema the schema
    * @param instance the instance
    * @param baseURI the schema's base URI
    * @param spec the specification to use
+   * @param knownResources any known resources
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
-                                 URI baseURI, Specification spec)
+                                 URI baseURI, Specification spec,
+                                 Map<URI, JsonElement> knownResources)
       throws MalformedSchemaException
   {
     var ids = scanIDs(baseURI, schema, spec);
+    if (knownResources != null) {
+      knownResources.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
+    }
     ValidatorContext context = new ValidatorContext(baseURI, spec, ids, new HashSet<>());
     return context.apply(schema, "", instance, "");
   }
