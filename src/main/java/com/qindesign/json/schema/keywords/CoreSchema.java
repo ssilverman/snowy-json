@@ -86,7 +86,7 @@ public class CoreSchema extends Keyword {
     try {
       ids = Validator.scanIDs(id, e, spec);
     } catch (MalformedSchemaException ex) {
-      context.schemaError("malformed schema: " + ex.getMessage());
+      context.schemaError("malformed schema: " + id + ": " + ex.getMessage());
       return false;
     }
     ValidatorContext context2 = new ValidatorContext(id, spec, ids, validated);
