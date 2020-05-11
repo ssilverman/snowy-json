@@ -12,6 +12,7 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
+import com.qindesign.json.schema.Vocabulary;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * Implements the "format" assertion.
+ * Implements the "format" assertion/annotation.
  */
 public class Format extends Keyword {
   public static final String NAME = "format";
@@ -221,18 +222,20 @@ public class Format extends Keyword {
     }
 
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-      if (Boolean.FALSE.equals(context.options().get(Option.FORMAT))) {
-        return false;
+      Boolean vocab = context.vocabularies().get(Vocabulary.FORMAT.id());
+      Object opt = context.options().get(Option.FORMAT);
+      if (Boolean.FALSE.equals(vocab) && Boolean.FALSE.equals(opt)) {
+        context.addAnnotation(NAME, value.getAsString());
+        return true;
       }
     }
-    // TODO: Add annotation
 
     switch (value.getAsString()) {
       case "date-time":
       case "date":
       case "full-date":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         Matcher m;
         if (value.getAsString().equals("date-time")) {
@@ -255,29 +258,33 @@ public class Format extends Keyword {
           // Special handling for February
           if (month == 2) {
             int year = Integer.parseInt(m.group("year"));
-            if (!isLeapYear(year)) {
-              return mday <= 28;
+            if (!isLeapYear(year) && mday > 28) {
+              return false;
             }
           }
-          return true;
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-          return true;
+          // Not numbers, obviously
         }
+        break;
       case "time":
       case "full-time":
-        if (!Validator.isString(instance)) {
-          return true;
+        if (Validator.isString(instance)) {
+          if (!FULL_TIME.matcher(instance.getAsString()).matches()) {
+            return false;
+          }
         }
-        return FULL_TIME.matcher(instance.getAsString()).matches();
+        break;
       case "duration":
-        if (!Validator.isString(instance)) {
-          return true;
+        if (Validator.isString(instance)) {
+          if (!DURATION.matcher(instance.getAsString()).matches()) {
+            return false;
+          }
         }
-        return DURATION.matcher(instance.getAsString()).matches();
+        break;
       case "email":
       case "idn-email":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
 //        // For now, just check for one '@' sign not at the ends
 //        int atIndex = instance.getAsString().indexOf('@');
@@ -286,11 +293,14 @@ public class Format extends Keyword {
 //          return true;
 //        }
 //        return false;
-        return EMAIL.matcher(instance.getAsString()).matches();
+        if (!EMAIL.matcher(instance.getAsString()).matches()) {
+          return false;
+        }
+        break;
       case "hostname":
       case "idn-hostname":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         // TODO: Allow IPv6 addresses here?
         if (value.getAsString().equals("hostname")) {
@@ -298,11 +308,14 @@ public class Format extends Keyword {
             return false;
           }
         }
-        return InternetDomainName.isValid(instance.getAsString());
+        if (!InternetDomainName.isValid(instance.getAsString())) {
+          return false;
+        }
+        break;
       case "ipv4":
       case "ipv6":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         try {
           int len;
@@ -311,75 +324,87 @@ public class Format extends Keyword {
           } else {
             len = 16;
           }
-          return InetAddresses.forString(instance.getAsString()).getAddress().length == len;
+          if (InetAddresses.forString(instance.getAsString()).getAddress().length != len) {
+            return false;
+          }
         } catch (IllegalArgumentException ex) {
-          return false;
+          // Not a valid literal
         }
+        break;
       case "uri":
       case "uri-reference":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         try {
           URI uri = new URI(instance.getAsString());
           if (value.getAsString().equals("uri")) {
             return uri.isAbsolute();
           }
-          return true;
         } catch (URISyntaxException ex) {
           return false;
         }
+        break;
       case "iri":
       case "iri-reference":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         try {
           URI uri = new URI(iriToURI(instance.getAsString()));
           if (value.getAsString().equals("iri")) {
             return uri.isAbsolute();
           }
-          return true;
         } catch (URISyntaxException ex) {
           return false;
         }
+        break;
       case "uuid":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         try {
           UUID.fromString(instance.getAsString());
-          return true;
         } catch (IllegalArgumentException ex) {
           return false;
         }
+        break;
       case "uri-template":
-        if (!Validator.isString(instance)) {
-          return true;
+        if (Validator.isString(instance)) {
+          if (!checkURITemplate(instance.getAsString())) {
+            return false;
+          }
         }
-        return checkURITemplate(instance.getAsString());
+        break;
       case "json-pointer":
-        if (!Validator.isString(instance)) {
-          return true;
+        if (Validator.isString(instance)) {
+          if (!JSON_POINTER.matcher(instance.getAsString()).matches()) {
+            return false;
+          }
         }
-        return JSON_POINTER.matcher(instance.getAsString()).matches();
+        break;
       case "relative-json-pointer":
-        if (!Validator.isString(instance)) {
-          return true;
+        if (Validator.isString(instance)) {
+          if (!RELATIVE_JSON_POINTER.matcher(instance.getAsString()).matches()) {
+            return false;
+          }
         }
-        return RELATIVE_JSON_POINTER.matcher(instance.getAsString()).matches();
+        break;
       case "regex":
         if (!Validator.isString(instance)) {
-          return true;
+          break;
         }
         try {
           java.util.regex.Pattern.compile(instance.getAsString());
-          return true;
         } catch (PatternSyntaxException ex) {
           return false;
         }
+        break;
       default:
-        return true;
+        break;
     }
+
+    context.addAnnotation(NAME, value.getAsString());
+    return true;
   }
 }
