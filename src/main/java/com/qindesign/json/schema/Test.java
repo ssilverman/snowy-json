@@ -211,13 +211,13 @@ public class Test {
         try {
           boolean result = Validator.validate(schema, data, uri, spec);
           if (result != valid) {
-            logger.fine(uri + ": Bad result: got=" + result + " want=" + valid);
+            logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
           } else {
             suiteResult.passed++;
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
-            logger.fine(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
+            logger.info(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
           } else {
             suiteResult.passed++;
           }
