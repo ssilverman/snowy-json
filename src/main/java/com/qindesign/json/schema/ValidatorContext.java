@@ -37,18 +37,14 @@ public final class ValidatorContext {
    * set's position in the list indicates the processing order.
    */
   private static final List<Set<String>> KEYWORD_SETS = List.of(
+      Set.of("$schema"),
+      Set.of("$id"),
       Set.of(
-          "$id",
           "$recursiveAnchor",
-          "$schema",
           "$anchor",
-          "$vocabulary",
-          "$defs"),
+          "$vocabulary"),
       EVERY_OTHER_KEYWORD,
       Set.of(
-          "if",
-          "then",
-          "else",
           "additionalItems",
           "additionalProperties",
           "maxContains",
