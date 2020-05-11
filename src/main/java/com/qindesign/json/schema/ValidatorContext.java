@@ -227,7 +227,7 @@ public final class ValidatorContext {
     }
 
     this.baseURI = baseURI.normalize();
-    this.knownIDs = knownIDs;
+    this.knownIDs = Collections.unmodifiableMap(knownIDs);
     this.validatedSchemas = Collections.unmodifiableSet(validatedSchemas);
 
     state = new State();
