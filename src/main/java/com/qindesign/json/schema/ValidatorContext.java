@@ -202,7 +202,7 @@ public final class ValidatorContext {
    * @param baseURI the initial base URI
    * @param spec the specification to use
    * @param knownIDs the known IDs in this resource
-   * @param validatedSchemas the list of validated schemas, must be mutable
+   * @param validatedSchemas the set of validated schemas
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
@@ -429,7 +429,7 @@ public final class ValidatorContext {
 
   /**
    * Gets the all the annotations attached to the current instance location for
-   * the given name. The returned map will be unmodifiable.
+   * the given name.
    *
    * @param name the annotation name
    * @return a map keyed by schema location
