@@ -3,9 +3,12 @@
  */
 package com.qindesign.json.schema;
 
+import static com.qindesign.json.schema.Validator.ANCHOR_PATTERN;
+
 import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreRef;
 import java.io.IOException;
 import java.net.URI;
@@ -275,7 +278,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Sets the base URI by normalizing the given URI with the current base URI.
+   * Sets the base URI by resolving the given URI with the current base URI.
    * This does not change the recursive base URI.
    *
    * @param uri the new relative base URI
@@ -536,6 +539,101 @@ public final class ValidatorContext {
    */
   public void checkValidSchema(JsonElement e) throws MalformedSchemaException {
     checkValidSchema(e, "");
+  }
+
+  /**
+   * Follows a JSON pointer into a JSON element and returns the requested
+   * sub-element. It is expected that {@code ptr} is a valid JSON pointer.
+   * <p>
+   * This sets the base URI along the way as it passes each $id, starting from
+   * the given base URI. This ignores any child $id at the root level because
+   * that's how we got here in the first place; we don't need to process
+   * it again.
+   *
+   * @param baseURI the starting point for any new base URI
+   * @param e the element to traverse
+   * @param ptr the JSON pointer
+   * @return the specified sub-element or {@code null} if not found.
+   * @throws MalformedSchemaException if an invalid $id was encountered
+   */
+  public JsonElement followPointer(URI baseURI, JsonElement e, String ptr)
+      throws MalformedSchemaException {
+    int i = -1;
+    StringBuilder path = new StringBuilder();
+    URI newBase = baseURI;
+
+    // Split using a negative limit so that trailing empty strings are allowed
+    for (String part : ptr.split("/", -1)) {
+      i++;
+
+      // Only ignore the first empty string, the one before the initial "/"
+      // All others could be zero-length member names
+      if (i == 0) {
+        if (part.isEmpty()) {
+          continue;
+        }
+      }
+      path.append('/').append(part);
+
+      if (e == null) {
+        return null;
+      }
+      try {
+        int index = Integer.parseInt(part);
+        if (!e.isJsonArray()) {
+          return null;
+        }
+        if (index >= e.getAsJsonArray().size()) {
+          return null;
+        }
+        e = e.getAsJsonArray().get(index);
+        continue;
+      } catch (NumberFormatException ex) {
+        // Nothing, skip to name processing
+      }
+
+      if (!e.isJsonObject()) {
+        return null;
+      }
+
+      JsonElement id = e.getAsJsonObject().get(CoreId.NAME);
+      if (i > 1 && id != null && Validator.isString(id)) {
+        URI uri;
+        try {
+          uri = new URI(id.getAsString()).normalize();
+        } catch (URISyntaxException ex) {
+          schemaError("not a valid URI-reference", path.toString() + "/" + CoreId.NAME);
+          return null;
+        }
+
+        if (Validator.hasNonEmptyFragment(uri)) {
+          if (specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+            schemaError("has a non-empty fragment", path.toString() + "/" + CoreId.NAME);
+            return null;
+          }
+          if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
+            schemaError("invalid plain name", path.toString() + "/" + CoreId.NAME);
+            return null;
+          }
+
+          // If it's not just a fragment then it represents a new base URI
+          if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
+            newBase = newBase.resolve(uri);
+          }
+        } else {
+          newBase = newBase.resolve(Validator.stripFragment(uri));
+        }
+      }
+
+      // Transform the part
+      part = part.replace("~0", "~");
+      part = part.replace("~1", "/");
+      e = e.getAsJsonObject().get(part);
+    }
+    if (e != null) {
+      state.baseURI = newBase;
+    }
+    return e;
   }
 
   /**

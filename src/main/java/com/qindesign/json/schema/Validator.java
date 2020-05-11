@@ -155,56 +155,6 @@ public class Validator {
   }
 
   /**
-   * Follows a JSON pointer into a JSON element and returns the requested
-   * sub-element. It is expected that {@code ptr} is a valid JSON pointer.
-   *
-   * @param e the element to traverse
-   * @param ptr the JSON pointer
-   * @return the specified sub-element or {@code null} if not found.
-   */
-  public static JsonElement followPointer(JsonElement e, String ptr) {
-    boolean first = true;
-    // Split using a negative limit so that trailing empty strings are allowed
-    for (String part : ptr.split("/", -1)) {
-      // Only ignore the first empty string, the one before the initial "/"
-      // All others could be zero-length member names
-      if (first) {
-        first = false;
-        if (part.isEmpty()) {
-          continue;
-        }
-      }
-
-      if (e == null) {
-        return null;
-      }
-      try {
-        int index = Integer.parseInt(part);
-        if (!e.isJsonArray()) {
-          return null;
-        }
-        if (index >= e.getAsJsonArray().size()) {
-          return null;
-        }
-        e = e.getAsJsonArray().get(index);
-        continue;
-      } catch (NumberFormatException ex) {
-        // Nothing, skip to name processing
-      }
-
-      if (!e.isJsonObject()) {
-        return null;
-      }
-
-      // Transform the part
-      part = part.replace("~0", "~");
-      part = part.replace("~1", "/");
-      e = e.getAsJsonObject().get(part);
-    }
-    return e;
-  }
-
-  /**
    * Loads a resource as JSON. This returns {@code null} if the resource could
    * not be found.
    *

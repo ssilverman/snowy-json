@@ -6,7 +6,6 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
@@ -40,6 +39,8 @@ public class CoreRef extends Keyword {
     }
 
     // Resolve and treat as either a JSON pointer or plain name
+    // In both cases, this doesn't set the base URI of the first $id element
+    // because CoreId will be doing this when encountered
     uri = context.baseURI().resolve(uri);
     JsonElement e;
     String fragment = uri.getRawFragment();
@@ -47,16 +48,19 @@ public class CoreRef extends Keyword {
       uri = Validator.stripFragment(uri);
       e = context.findAndSetRoot(uri);
       if (e != null) {
-        e = Validator.followPointer(e, Strings.fragmentToJSONPointer(fragment));
-      }
-
-      // Earlier specs would make this the new base
-      if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-        context.setBaseURI(uri);
+        e = context.followPointer(uri, e, Strings.fragmentToJSONPointer(fragment));
       }
     } else {
       // Plain name
+      // TODO: Do I need to set the base to the closest ancestor's base?
       e = context.findAndSetRoot(uri);
+      if (e != null) {
+        // Since we're following to another schema, CoreId will set the new base
+        // URI, so don't set it here
+        if (e.isJsonObject() && !e.getAsJsonObject().has(CoreId.NAME)) {
+          context.setBaseURI(uri);
+        }
+      }
     }
 
     if (e == null) {
