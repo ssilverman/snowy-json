@@ -329,6 +329,7 @@ public class Format extends Keyword {
           }
         } catch (IllegalArgumentException ex) {
           // Not a valid literal
+          return false;
         }
         break;
       case "uri":
