@@ -5,6 +5,7 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.qindesign.json.schema.keywords.CoreSchema;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -230,20 +231,44 @@ public class Validator {
    * <p>
    * This will return at least one ID mapping to the base element, which may
    * be redefined by an ID element.
+   * <p>
+   * This first tries to determine the specification by looking at the $schema
+   * keyword. If one exists and is valid and known, then that specification will
+   * be used for parsing. Otherwise, the given default specification is used.
    *
    * @param baseURI the base URI
    * @param e the JSON document
-   * @param spec the current specification
+   * @param defaultSpec the default specification to use if the given schema
+   *                    isn't otherwise identified
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
    */
-  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
+  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification defaultSpec)
       throws MalformedSchemaException {
     if (hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI with non-empty fragment");
     }
     baseURI = stripFragment(baseURI).normalize();
+    Specification spec = null;
+
+    // First figure out the spec we should use to parse this schema
+    if (e.isJsonObject()) {
+      JsonElement schema = e.getAsJsonObject().get(CoreSchema.NAME);
+      if (schema != null && isString(schema)) {
+        try {
+          URI uri = new URI(schema.getAsString());
+          if (uri.isAbsolute() && uri.normalize().equals(uri)) {
+            spec = Specification.of(stripFragment(uri));
+          }
+        } catch (URISyntaxException ex) {
+          // Ignore
+        }
+      }
+    }
+    if (spec == null) {
+      spec = defaultSpec;
+    }
 
     Map<Id, JsonElement> ids = new HashMap<>();
     URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids, spec);
