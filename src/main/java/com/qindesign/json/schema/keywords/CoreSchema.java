@@ -59,6 +59,7 @@ public class CoreSchema extends Keyword {
     }
 
     // Strip off any fragment
+    // TODO: Warning?
     id = Validator.stripFragment(id);
 
     // Check if we should validate the schema
