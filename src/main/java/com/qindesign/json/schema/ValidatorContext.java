@@ -319,13 +319,24 @@ public final class ValidatorContext {
   }
 
   /**
-   * Enables or disables a vocabulary. This returns whether the ID is unique.
+   * Sets a vocabulary as required or optional. Set {@code true} for required
+   * and {@code false} for optional.
+   * <p>
+   * This returns whether the ID is unique. If not unique then the new value is
+   * not set.
    *
-   * @param id the vocabulary
-   * @param flag whether to enable or disable the vocabulary
+   * @param id the vocabulary ID
+   * @param required whether the vocabulary is required or optional
    */
-  public boolean setVocabulary(URI id, boolean flag) {
-    return vocabularies.putIfAbsent(id, flag) == null;
+  public boolean setVocabulary(URI id, boolean required) {
+    return vocabularies.putIfAbsent(id, required) == null;
+  }
+
+  /**
+   * Returns all the known vocabularies and whether they're required.
+   */
+  public Map<URI, Boolean> vocabularies() {
+    return Collections.unmodifiableMap(vocabularies);
   }
 
   /**
