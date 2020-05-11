@@ -45,13 +45,14 @@ public class CoreId extends Keyword {
         context.schemaError("has a non-empty fragment");
         return false;
       }
-      if (id.getScheme() != null || !id.getRawSchemeSpecificPart().isEmpty()) {
-        context.schemaError("plain name has non-fragment parts");
-        return false;
-      }
       if (!ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
         context.schemaError("invalid plain name");
         return false;
+      }
+
+      // If it's not just a fragment then it represents a new base URI
+      if (id.getScheme() != null || !id.getRawSchemeSpecificPart().isEmpty()) {
+        context.setBaseURI(id);
       }
     } else {
       id = Validator.stripFragment(id);

@@ -335,16 +335,12 @@ public class Validator {
                                                Strings.jsonPointerToURI(path));
           }
 
-          if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
-            throw new MalformedSchemaException("plain name has non-fragment parts",
-                                               Strings.jsonPointerToURI(path));
-          }
           if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
             throw new MalformedSchemaException("invalid plain name",
                                                Strings.jsonPointerToURI(path));
           }
 
-          Id id = new Id(baseURI.resolve("#" + uri.getRawFragment()));
+          Id id = new Id(baseURI.resolve(uri));
           id.value = value.getAsString();
           id.base = baseURI;
           id.path = newParentID;
