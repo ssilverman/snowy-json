@@ -3,6 +3,8 @@
  */
 package com.qindesign.json.schema.keywords;
 
+import static com.qindesign.json.schema.Validator.ANCHOR_PATTERN;
+
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
@@ -38,25 +40,22 @@ public class CoreId extends Keyword {
       return false;
     }
 
-    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-      if (Validator.hasNonEmptyFragment(id)) {
+    if (Validator.hasNonEmptyFragment(id)) {
+      if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
         context.schemaError("has a non-empty fragment");
         return false;
       }
-
+      if (id.getScheme() != null || !id.getRawSchemeSpecificPart().isEmpty()) {
+        context.schemaError("plain name has non-fragment parts");
+        return false;
+      }
+      if (!ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
+        context.schemaError("invalid plain name");
+        return false;
+      }
+    } else {
       id = Validator.stripFragment(id);
       context.setBaseURI(id);
-    } else {
-      if (Validator.hasNonEmptyFragment(id)) {
-        if (id.getScheme() != null || !id.getRawSchemeSpecificPart().isEmpty()) {
-          context.schemaError("plain name has non-fragment parts");
-          return false;
-        }
-        if (!Validator.ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
-          context.schemaError("invalid plain name");
-          return false;
-        }
-      }
     }
 
     return true;
