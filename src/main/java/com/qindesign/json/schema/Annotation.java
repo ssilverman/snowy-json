@@ -3,6 +3,7 @@
  */
 package com.qindesign.json.schema;
 
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -11,7 +12,8 @@ import java.util.Objects;
 public class Annotation {
   public final String name;
   public String instanceLocation;
-  public String schemaLocation;
+  public String keywordLocation;
+  public URI absKeywordLocation;
   public Object value;
 
   Annotation(String name) {
@@ -20,7 +22,7 @@ public class Annotation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, instanceLocation, schemaLocation, value);
+    return Objects.hash(name, instanceLocation, keywordLocation, absKeywordLocation, value);
   }
 
   @Override
@@ -31,7 +33,8 @@ public class Annotation {
     Annotation a = (Annotation) obj;
     return this.equals(a) && Objects.equals(name, a.name) &&
            Objects.equals(instanceLocation, a.instanceLocation) &&
-           Objects.equals(schemaLocation, a.schemaLocation) &&
+           Objects.equals(keywordLocation, a.keywordLocation) &&
+           Objects.equals(absKeywordLocation, a.absKeywordLocation) &&
            Objects.equals(value, a.value);
   }
 

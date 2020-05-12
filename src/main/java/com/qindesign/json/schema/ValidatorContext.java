@@ -473,7 +473,8 @@ public final class ValidatorContext {
   public void addAnnotation(String name, Object value) {
     Annotation a = new Annotation(name);
     a.instanceLocation = state.instanceLocation;
-    a.schemaLocation = state.keywordLocation;
+    a.keywordLocation = state.keywordLocation;
+    a.absKeywordLocation = state.absKeywordLocation;
     a.value = value;
 
     var aForInstance = annotations.computeIfAbsent(state.instanceLocation, k -> new HashMap<>());
@@ -746,12 +747,12 @@ public final class ValidatorContext {
       for (var m : ordered) {
         Keyword k = keywords.get(m.getKey());
 
-        // $ref causes all other properties to be ignored
-        if (specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-          if (schemaObject.has(CoreRef.NAME) && !k.name().equals(CoreRef.NAME)) {
-            continue;
-          }
+      // $ref causes all other properties to be ignored
+      if (specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        if (schemaObject.has(CoreRef.NAME) && !k.name().equals(CoreRef.NAME)) {
+          continue;
         }
+      }
 
         state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
         state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
