@@ -283,13 +283,15 @@ public class Test {
         try {
           boolean result = Validator.validate(schema, data, uri, spec, knownResources);
           if (result != valid) {
-            logger.info(uri + ": Bad result: got=" + result + " want=" + valid);
+            logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
+                        ": got=" + result + " want=" + valid);
           } else {
             suiteResult.passed++;
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
-            logger.info(uri + ": Bad result: got=Malformed schema: " + ex.getMessage());
+            logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
+                        ": got=Malformed schema: " + ex.getMessage());
           } else {
             suiteResult.passed++;
           }
