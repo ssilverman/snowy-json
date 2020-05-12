@@ -8,11 +8,14 @@ import static com.qindesign.json.schema.Validator.ANCHOR_PATTERN;
 import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreRef;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -185,6 +188,7 @@ public final class ValidatorContext {
   private State state;
 
   private final Map<Id, JsonElement> knownIDs;
+  private final Map<URI, URL> knownURLs;
 
   /**
    * Tracks schemas that have either been validated or in the process of being
@@ -203,15 +207,18 @@ public final class ValidatorContext {
    * @param baseURI the initial base URI
    * @param spec the specification to use
    * @param knownIDs the known IDs in this resource
+   * @param knownURLs known URLs mapped from IDs
    * @param validatedSchemas the set of validated schemas
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
    */
   public ValidatorContext(URI baseURI, Specification spec,
-                          Map<Id, JsonElement> knownIDs, Set<URI> validatedSchemas) {
+                          Map<Id, JsonElement> knownIDs, Map<URI, URL> knownURLs,
+                          Set<URI> validatedSchemas) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
+    Objects.requireNonNull(knownURLs, "knownURLs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
 
     if (!baseURI.isAbsolute()) {
@@ -231,6 +238,7 @@ public final class ValidatorContext {
 
     this.baseURI = baseURI.normalize();
     this.knownIDs = Collections.unmodifiableMap(knownIDs);
+    this.knownURLs = Collections.unmodifiableMap(knownURLs);
     this.validatedSchemas = Collections.unmodifiableSet(validatedSchemas);
 
     state = new State();
@@ -254,6 +262,13 @@ public final class ValidatorContext {
    */
   public Options options() {
     return options;
+  }
+
+  /**
+   * Returns all the known resources.
+   */
+  public Map<URI, URL> knownURLs() {
+    return knownURLs;
   }
 
   /**
@@ -402,6 +417,44 @@ public final class ValidatorContext {
 
     // Strip off the fragment, but after we know we don't know about it
     id = Validator.stripFragment(id);
+
+    // Walk backwards until we find a matching resource or we hit the beginning
+    StringBuilder sb = new StringBuilder();
+    URI uri = id;
+    String path = uri.getRawPath();
+    while (true) {
+      // Try the resource
+      URL url = knownURLs.get(uri);
+      if (url != null) {
+        try (InputStream in = new URL(url.toString() + sb.toString()).openStream()) {
+          state.schemaObject = null;
+          return Main.parse(in);
+        } catch (IOException | JsonParseException ex) {
+          // Ignore and try next
+        }
+      }
+
+      if (path == null || path.isEmpty()) {
+        break;
+      }
+
+      // Reduce the path
+      path = uri.getRawPath();
+      int lastSlashIndex = path.lastIndexOf('/');
+      if (lastSlashIndex >= 0) {
+        if (sb.length() > 0) {
+          sb.insert(0, '/');
+        }
+        sb.insert(0, path.substring(lastSlashIndex + 1));
+        try {
+          uri = new URI(uri.getScheme(), uri.getRawAuthority(), path.substring(0, lastSlashIndex),
+                        uri.getRawQuery(), null);
+        } catch (URISyntaxException ex) {
+          // Something's wrong, so ignore and continue the search
+          break;
+        }
+      }
+    }
 
     e = Validator.loadResource(id);
     if (e != null && Validator.isSchema(e)) {

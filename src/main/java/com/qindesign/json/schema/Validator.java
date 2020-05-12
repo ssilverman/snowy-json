@@ -11,8 +11,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
@@ -137,20 +137,24 @@ public class Validator {
    * @param instance the instance
    * @param baseURI the schema's base URI
    * @param spec the specification to use
-   * @param knownResources any known resources
+   * @param knownIDs any known JSON contents
+   * @param knownURLs any known resources
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
                                  URI baseURI, Specification spec,
-                                 Map<URI, JsonElement> knownResources)
+                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
       throws MalformedSchemaException
   {
     var ids = scanIDs(baseURI, schema, spec);
-    if (knownResources != null) {
-      knownResources.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
+    if (knownIDs != null) {
+      knownIDs.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
     }
-    ValidatorContext context = new ValidatorContext(baseURI, spec, ids, new HashSet<>());
+    if (knownURLs == null) {
+      knownURLs = Collections.emptyMap();
+    }
+    ValidatorContext context = new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet());
     return context.apply(schema, "", instance, "");
   }
 

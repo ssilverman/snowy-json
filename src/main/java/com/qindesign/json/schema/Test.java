@@ -8,9 +8,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,7 +68,9 @@ public class Test {
     JsonElement testSchema = Main.parse(testSchemaFile);
     logger.info("Loaded test schema");
 
-    var res = prepareKnownResources();
+    Map<URI, JsonElement> knownIDs = Collections.emptyMap();
+    Map<URI, URL> knownURLs = Map.of(URI.create("http://localhost:1234"),
+                                     root.toPath().resolve("remotes").toUri().toURL());
 
     for (Specification spec : Specification.values()) {
       if (!testDirs.containsKey(spec)) {
@@ -85,68 +87,10 @@ public class Test {
 
       logger.info("Running tests: " + spec);
       Map<String, Result> results = new TreeMap<>();
-      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec, res);
+      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec,
+                                  knownIDs, knownURLs);
       printSpecResults(spec, specResult, results);
     }
-  }
-
-  /**
-   * Prepare some known resources for the tests.
-   */
-  private static Map<URI, JsonElement> prepareKnownResources() {
-    return Stream.of(new Object[][] {
-        {
-            "http://localhost:1234/integer.json",
-            Main.parse(new StringReader("{\"type\": \"integer\"}"))
-        },
-        {
-            "http://localhost:1234/name.json",
-            Main.parse(new StringReader(
-                "{" +
-                "  \"type\": \"string\"," +
-                "  \"definitions\": {" +
-                "    \"orNull\": {" +
-                "      \"anyOf\": [{\"type\": \"null\"}, {\"$ref\": \"#\"}]" +
-                "    }" +
-                "  }" +
-                "}"))
-        },
-        {
-            "http://localhost:1234/name-defs.json",
-            Main.parse(new StringReader(
-                "{" +
-                "  \"type\": \"string\"," +
-                "  \"$defs\": {" +
-                "    \"orNull\": {" +
-                "      \"anyOf\": [{\"type\": \"null\"}, {\"$ref\": \"#\"}]" +
-                "    }" +
-                "  }" +
-                "}"))
-        },
-        {
-            "http://localhost:1234/subSchemas.json",
-            Main.parse(new StringReader(
-                "{" +
-                "  \"integer\": {\"type\": \"integer\"}," +
-                "  \"refToInteger\": {\"$ref\": \"#/integer\"}" +
-                "}"))
-        },
-        {
-            "http://localhost:1234/subSchemas-defs.json",
-            Main.parse(new StringReader(
-                "{" +
-                "  \"$defs\": {" +
-                "    \"integer\": {\"type\": \"integer\"}," +
-                "    \"refToInteger\": {\"$ref\": \"#/$defs/integer\"}" +
-                "  }" +
-                "}"))
-        },
-        {
-            "http://localhost:1234/folder/folderInteger.json",
-            Main.parse(new StringReader("{\"type\": \"integer\"}"))
-        },
-        }).collect(Collectors.toMap(data -> URI.create((String) data[0]),
-                                    data -> (JsonElement) data[1]));
   }
 
   /**
@@ -198,12 +142,13 @@ public class Test {
    * @param testSchemaFile the test schema file
    * @param results all the test results for this specification will be put here
    * @param spec the specification
-   * @param knownResources any known resources
+   * @param knownIDs any known JSON contents
+   * @param knownURLs any known resources
    * @return the test results.
    */
   private static Result runSpec(File dir, JsonElement testSchema, File testSchemaFile,
                                 Map<String, Result> results, Specification spec,
-                                Map<URI, JsonElement> knownResources)
+                                Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
       throws IOException {
     Result result = new Result();
     long start = System.currentTimeMillis();
@@ -218,7 +163,7 @@ public class Test {
         logger.fine("Validating test suite: " + file);
         try {
           if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec,
-                                  Collections.emptyMap())) {
+                                  knownIDs, knownURLs)) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
           }
@@ -228,7 +173,7 @@ public class Test {
         }
 
         // Run the suite
-        Result r = runSuite(file, instance.getAsJsonArray(), spec, knownResources);
+        Result r = runSuite(file, instance.getAsJsonArray(), spec, knownIDs, knownURLs);
         result.total += r.total;
         result.passed += r.passed;
         result.duration += r.duration;
@@ -248,11 +193,12 @@ public class Test {
    * @param file the suite file
    * @param suite the suite JSON tree
    * @param spec the specification
-   * @param knownResources any known resources
+   * @param knownIDs any known JSON contents
+   * @param knownURLs any known resources
    * @return the suite results.
    */
   private static Result runSuite(Path file, JsonArray suite, Specification spec,
-                                 Map<URI, JsonElement> knownResources) {
+                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs) {
     Result suiteResult = new Result();
     long start = System.currentTimeMillis();
 
@@ -281,7 +227,7 @@ public class Test {
         suiteResult.total++;
         logger.fine("Testing " + uri);
         try {
-          boolean result = Validator.validate(schema, data, uri, spec, knownResources);
+          boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs);
           if (result != valid) {
             logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
                         ": got=" + result + " want=" + valid);
