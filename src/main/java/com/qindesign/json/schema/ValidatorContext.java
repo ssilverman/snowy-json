@@ -300,6 +300,7 @@ public final class ValidatorContext {
    */
   public void setBaseURI(URI uri) {
     state.baseURI = state.baseURI.resolve(uri);
+    state.absKeywordLocation = state.baseURI;
   }
 
   /**
@@ -507,8 +508,11 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
-    return base.resolve(
-        "#" + base.getRawFragment() + "/" + Strings.pctEncodeFragment(path));
+    String fragment = base.getRawFragment();
+    if (fragment == null) {
+      fragment = "";
+    }
+    return base.resolve("#" + fragment + "/" + Strings.pctEncodeFragment(path));
   }
 
   /**
@@ -685,6 +689,7 @@ public final class ValidatorContext {
     }
     if (e != null) {
       state.baseURI = newBase;
+      state.absKeywordLocation = newBase;
     }
     return e;
   }
