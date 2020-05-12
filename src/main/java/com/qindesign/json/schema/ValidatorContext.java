@@ -471,8 +471,7 @@ public final class ValidatorContext {
    * @param value the annotation value
    */
   public void addAnnotation(String name, Object value) {
-    Annotation a = new Annotation();
-    a.name = name;
+    Annotation a = new Annotation(name);
     a.instanceLocation = state.instanceLocation;
     a.schemaLocation = state.keywordLocation;
     a.value = value;
