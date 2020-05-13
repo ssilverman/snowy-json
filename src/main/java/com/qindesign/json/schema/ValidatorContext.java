@@ -114,23 +114,12 @@ public final class ValidatorContext {
     }
     // The 'keywords' set now contains all the keywords
 
-    // Temporary tuple type
-    final class Pair<K, V> {
-      K key;
-      V value;
-
-      Pair(K key, V value) {
-        this.key = key;
-        this.value = value;
-      }
-    }
-
     // Fun with streams
     // Map each keyword to its "class number", so we can sort easily
     keywordClasses = IntStream.range(0, KEYWORD_SETS.size())
         .boxed()
-        .flatMap(i -> KEYWORD_SETS.get(i).stream().map(name -> new Pair<>(name, i)))
-        .collect(Collectors.toMap(p -> p.key, p -> p.value));
+        .flatMap(i -> KEYWORD_SETS.get(i).stream().map(name -> Map.entry(name, i)))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     int otherClass = KEYWORD_SETS.indexOf(EVERY_OTHER_KEYWORD);
     keywords.keySet().forEach(name -> keywordClasses.putIfAbsent(name, otherClass));
   }
