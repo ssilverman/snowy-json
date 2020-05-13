@@ -746,6 +746,8 @@ public final class ValidatorContext {
         .sorted(Comparator.comparing(e -> keywordClasses.get(e.getKey())))
         .collect(Collectors.toList());
 
+    boolean result = true;
+
     for (var m : ordered) {
       Keyword k = keywords.get(m.getKey());
 
@@ -772,13 +774,16 @@ public final class ValidatorContext {
                              .get(state.keywordLocation) == null) {
           addAnnotation("error", new ValidationResult(false, k.name()));
         }
-        state = parentState;
-        return false;
+
+        // Don't escape early because we need to process all the keywords
+        result = false;
       }
     }
 
     state = parentState;
-    addAnnotation("error", new ValidationResult(true, null));
-    return true;
+    if (result) {
+      addAnnotation("error", new ValidationResult(true, null));
+    }
+    return result;
   }
 }
