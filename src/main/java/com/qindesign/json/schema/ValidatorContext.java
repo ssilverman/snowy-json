@@ -206,8 +206,8 @@ public final class ValidatorContext {
    *
    * @param baseURI the initial base URI
    * @param spec the specification to use
-   * @param knownIDs the known IDs in this resource
-   * @param knownURLs known URLs mapped from IDs
+   * @param knownIDs known JSON contents
+   * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
@@ -401,7 +401,12 @@ public final class ValidatorContext {
    * from a new resource and is a schema then the current state will be set as
    * the root.
    * <p>
-   * This first tries locally and then tries from a list of known resources.
+   * The search order is as follows:
+   * <ol>
+   * <li>Known JSON contents</li>
+   * <li>Known resources</li>
+   * <li>Predefined known resources such as known schemas</li>
+   * </ol>
    * <p>
    * If the ID has a fragment then it will be removed prior to searching the
    * other known resources.

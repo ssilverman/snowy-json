@@ -129,9 +129,12 @@ public class Validator {
   }
 
   /**
-   * Validates an instance against a schema. Known resources can be added,
-   * however the IDs in the schema will override those resources if there
-   * are duplicates.
+   * Validates an instance against a schema. Known JSON contents and resources
+   * can be added, however the IDs in the schema will override those resources
+   * if there are duplicates.
+   * <p>
+   * When searching for resources, {@code knownIDs} is searched first and
+   * {@code knownURLs} is searched second.
    * <p>
    * The default specification is given, but if one can be determined from the
    * schema then that is used instead.
@@ -140,8 +143,8 @@ public class Validator {
    * @param instance the instance
    * @param baseURI the schema's base URI
    * @param defaultSpec the default specification to use
-   * @param knownIDs any known JSON contents
-   * @param knownURLs any known resources
+   * @param knownIDs any known JSON contents, searched first
+   * @param knownURLs any known resources, searched second
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
