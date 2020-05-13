@@ -483,6 +483,20 @@ public final class ValidatorContext {
   }
 
   /**
+   * Returns whether there's an existing annotation having the given name at the
+   * current instance location.
+   *
+   * @param name the annotation name
+   * @return whether there's an existing annotation.
+   */
+  public boolean hasAnnotation(String name) {
+    return annotations
+        .getOrDefault(state.instanceLocation, Collections.emptyMap())
+        .getOrDefault(name, Collections.emptyMap())
+        .containsKey(state.keywordLocation);
+  }
+
+  /**
    * Gets the all the annotations attached to the current instance location for
    * the given name.
    *
@@ -770,8 +784,7 @@ public final class ValidatorContext {
                                e.getKey().startsWith(state.keywordLocation));
           }
         }
-        if (a == null || a.getOrDefault(instanceLocation, Collections.emptyMap())
-                             .get(state.keywordLocation) == null) {
+        if (!hasAnnotation("error")) {
           addAnnotation("error", new ValidationResult(false, k.name()));
         }
 
