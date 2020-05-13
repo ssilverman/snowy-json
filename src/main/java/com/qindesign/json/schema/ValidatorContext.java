@@ -712,7 +712,9 @@ public final class ValidatorContext {
       throws MalformedSchemaException
   {
     if (Validator.isBoolean(schema)) {
-      return schema.getAsBoolean();
+      boolean result = schema.getAsBoolean();
+      addAnnotation("error", new ValidationResult(result, null));
+      return result;
     }
 
     URI absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
@@ -722,6 +724,7 @@ public final class ValidatorContext {
 
     JsonObject schemaObject = schema.getAsJsonObject();
     if (schemaObject.size() == 0) {  // Empty schemas always validate
+      addAnnotation("error", new ValidationResult(true, null));
       return true;
     }
 
@@ -743,9 +746,8 @@ public final class ValidatorContext {
         .sorted(Comparator.comparing(e -> keywordClasses.get(e.getKey())))
         .collect(Collectors.toList());
 
-    try {
-      for (var m : ordered) {
-        Keyword k = keywords.get(m.getKey());
+    for (var m : ordered) {
+      Keyword k = keywords.get(m.getKey());
 
       // $ref causes all other properties to be ignored
       if (specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
@@ -754,24 +756,29 @@ public final class ValidatorContext {
         }
       }
 
-        state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
-        state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
-        if (!k.apply(m.getValue(), instance, this)) {
-          // Remove all subschema annotations
-          var a = annotations.get(instanceLocation);
-          if (a != null) {
-            for (var byName : a.entrySet()) {
-              byName.getValue().entrySet()
-                  .removeIf(e -> e.getKey().startsWith(state.keywordLocation));
-            }
+      state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
+      state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
+      if (!k.apply(m.getValue(), instance, this)) {
+        // Remove all subschema annotations that aren't errors
+        var a = annotations.get(instanceLocation);
+        if (a != null) {
+          for (var byName : a.entrySet()) {
+            byName.getValue().entrySet()
+                .removeIf(e -> !Objects.equals(e.getValue().name, "error") &&
+                               e.getKey().startsWith(state.keywordLocation));
           }
-          return false;
         }
+        if (a == null || a.getOrDefault(instanceLocation, Collections.emptyMap())
+                             .get(state.keywordLocation) == null) {
+          addAnnotation("error", new ValidationResult(false, k.name()));
+        }
+        state = parentState;
+        return false;
       }
-
-      return true;
-    } finally {
-      state = parentState;
     }
+
+    state = parentState;
+    addAnnotation("error", new ValidationResult(true, null));
+    return true;
   }
 }
