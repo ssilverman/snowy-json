@@ -161,7 +161,8 @@ public class Validator {
     if (knownURLs == null) {
       knownURLs = Collections.emptyMap();
     }
-    ValidatorContext context = new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet());
+    ValidatorContext context =
+        new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet());
     return context.apply(schema, "", instance, "");
   }
 
