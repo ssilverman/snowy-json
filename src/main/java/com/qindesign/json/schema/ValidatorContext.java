@@ -477,9 +477,10 @@ public final class ValidatorContext {
     a.absKeywordLocation = state.absKeywordLocation;
     a.value = value;
 
-    var aForInstance = annotations.computeIfAbsent(state.instanceLocation, k -> new HashMap<>());
-    var aForName = aForInstance.computeIfAbsent(name, k -> new HashMap<>());
-    aForName.put(state.keywordLocation, a);
+    annotations
+        .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
+        .computeIfAbsent(name, k -> new HashMap<>())
+        .put(state.keywordLocation, a);
   }
 
   /**
@@ -504,9 +505,10 @@ public final class ValidatorContext {
    * @return a map keyed by schema location
    */
   public Map<String, Annotation> getAnnotations(String name) {
-    Map<String, Map<String, Annotation>> m =
-        annotations.getOrDefault(state.instanceLocation, Collections.emptyMap());
-    return Collections.unmodifiableMap(m.getOrDefault(name, Collections.emptyMap()));
+    return Collections.unmodifiableMap(
+        annotations
+            .getOrDefault(state.instanceLocation, Collections.emptyMap())
+            .getOrDefault(name, Collections.emptyMap()));
   }
 
   /**
@@ -776,14 +778,11 @@ public final class ValidatorContext {
       state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
       if (!k.apply(m.getValue(), instance, this)) {
         // Remove all subschema annotations that aren't errors
-        var a = annotations.get(instanceLocation);
-        if (a != null) {
-          for (var byName : a.entrySet()) {
-            byName.getValue().entrySet()
-                .removeIf(e -> !Objects.equals(e.getValue().name, "error") &&
-                               e.getKey().startsWith(state.keywordLocation));
-          }
-        }
+        annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+            .values()
+            .forEach(
+                v -> v.entrySet().removeIf(e -> !Objects.equals(e.getValue().name, "error") &&
+                                                e.getKey().startsWith(state.keywordLocation)));
         if (!hasAnnotation("error")) {
           addAnnotation("error", new ValidationResult(false, k.name()));
         }
