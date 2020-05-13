@@ -132,21 +132,25 @@ public class Validator {
    * Validates an instance against a schema. Known resources can be added,
    * however the IDs in the schema will override those resources if there
    * are duplicates.
+   * <p>
+   * The default specification is given, but if one can be determined from the
+   * schema then that is used instead.
    *
    * @param schema the schema
    * @param instance the instance
    * @param baseURI the schema's base URI
-   * @param spec the specification to use
+   * @param defaultSpec the default specification to use
    * @param knownIDs any known JSON contents
    * @param knownURLs any known resources
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
-                                 URI baseURI, Specification spec,
+                                 URI baseURI, Specification defaultSpec,
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
       throws MalformedSchemaException
   {
+    Specification spec = determineSpecification(schema, defaultSpec);
     var ids = scanIDs(baseURI, schema, spec);
     if (knownIDs != null) {
       knownIDs.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
@@ -186,6 +190,39 @@ public class Validator {
   }
 
   /**
+   * Determines the specification of a schema. The heuristics are:
+   * <ul>
+   * <li>Examine any $schema keyword to see if the value is valid and known</li>
+   * </ul>
+   * <p>
+   * This returns {@code defaultSpec} if a specification could not otherwise
+   * be identified.
+   *
+   * @param schema the schema object
+   * @param defaultSpec the spec to be returned as a default
+   * @return the specification or the default if one could not be determined.
+   */
+  public static Specification determineSpecification(JsonElement schema,
+                                                     Specification defaultSpec) {
+    if (!schema.isJsonObject()) {
+      return defaultSpec;
+    }
+    JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
+    if (schemaVal == null || !isString(schemaVal)) {
+      return defaultSpec;
+    }
+    try {
+      URI uri = new URI(schemaVal.getAsString());
+      if (uri.isAbsolute() && uri.normalize().equals(uri)) {
+        return Specification.of(stripFragment(uri));
+      }
+    } catch (URISyntaxException ex) {
+      // Ignore
+    }
+    return defaultSpec;
+  }
+
+  /**
    * Scans all the IDs in a JSON document starting from a given base URI. The
    * base URI is the initial known document resource ID. It will be normalized
    * and have any fragment, even an empty one, removed.
@@ -193,43 +230,24 @@ public class Validator {
    * This will return at least one ID mapping to the base element, which may
    * be redefined by an ID element.
    * <p>
-   * This first tries to determine the specification by looking at the $schema
-   * keyword. If one exists and is valid and known, then that specification will
-   * be used for parsing. Otherwise, the given default specification is used.
+   * The given specification is the one used for processing. It can be
+   * identified by the caller via a call to
+   * {@link #determineSpecification(JsonElement, Specification)}.
    *
    * @param baseURI the base URI
    * @param e the JSON document
-   * @param defaultSpec the default specification to use if the given schema
-   *                    isn't otherwise identified
+   * @param spec the specification to use for processing
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
+   * @see #determineSpecification(JsonElement, Specification)
    */
-  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification defaultSpec)
+  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {
     if (hasNonEmptyFragment(baseURI)) {
-      throw new IllegalArgumentException("Base UI with non-empty fragment");
+      throw new IllegalArgumentException("Base UI has a non-empty fragment");
     }
     baseURI = stripFragment(baseURI).normalize();
-    Specification spec = null;
-
-    // First figure out the spec we should use to parse this schema
-    if (e.isJsonObject()) {
-      JsonElement schema = e.getAsJsonObject().get(CoreSchema.NAME);
-      if (schema != null && isString(schema)) {
-        try {
-          URI uri = new URI(schema.getAsString());
-          if (uri.isAbsolute() && uri.normalize().equals(uri)) {
-            spec = Specification.of(stripFragment(uri));
-          }
-        } catch (URISyntaxException ex) {
-          // Ignore
-        }
-      }
-    }
-    if (spec == null) {
-      spec = defaultSpec;
-    }
 
     Map<Id, JsonElement> ids = new HashMap<>();
     URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids, spec);
