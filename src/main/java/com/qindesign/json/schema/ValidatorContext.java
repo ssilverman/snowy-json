@@ -94,6 +94,9 @@ public final class ValidatorContext {
     URI absKeywordLocation;
     String instanceLocation;
 
+    /** Flag that indicates whether to collect annotations, an optimization. */
+    boolean isCollectAnnotations;
+
     @Override
     protected Object clone() {
       try {
@@ -241,6 +244,7 @@ public final class ValidatorContext {
     state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
     state.instanceLocation = "";
+    state.isCollectAnnotations = true;
   }
 
   /**
@@ -385,6 +389,16 @@ public final class ValidatorContext {
   }
 
   /**
+   * Sets whether to collect annotations. This is an optimization that can be
+   * called when a keyword knows no further annotations should be collected.
+   *
+   * @param flag the new state
+   */
+  public void setCollectAnnotations(boolean flag) {
+    state.isCollectAnnotations = flag;
+  }
+
+  /**
    * Finds the element associated with the given ID. If there is no such element
    * having the ID then this returns {@code null}. If the returned element was
    * from a new resource and is a schema then the current state will be set as
@@ -468,6 +482,10 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
+    if (!state.isCollectAnnotations && !name.equals("error")) {
+      return;
+    }
+
     Annotation a = new Annotation(name);
     a.instanceLocation = state.instanceLocation;
     a.keywordLocation = state.keywordLocation;
