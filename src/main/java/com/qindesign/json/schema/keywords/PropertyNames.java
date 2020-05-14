@@ -28,12 +28,11 @@ public class PropertyNames extends Keyword {
       return true;
     }
 
-    boolean retval = true;
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", new JsonPrimitive(name), name)) {
-        retval = false;
+        return false;
       }
     }
-    return retval;
+    return true;
   }
 }

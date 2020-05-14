@@ -37,22 +37,19 @@ public class Properties extends Keyword {
     JsonObject schemaObject = value.getAsJsonObject();
     JsonObject object = instance.getAsJsonObject();
 
-    boolean retval = true;
     Set<String> validated = new HashSet<>();
-
     for (var e : object.entrySet()) {
       if (!schemaObject.has(e.getKey())) {
         continue;
       }
       if (!context.apply(schemaObject.get(e.getKey()), e.getKey(), e.getValue(), e.getKey())) {
-        retval = false;
-      } else {
-        validated.add(e.getKey());
+        return false;
       }
+      validated.add(e.getKey());
     }
 
     context.addAnnotation(NAME, validated);
 
-    return retval;
+    return true;
   }
 }
