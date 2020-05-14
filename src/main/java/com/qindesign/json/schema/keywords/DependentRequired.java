@@ -66,12 +66,9 @@ public class DependentRequired extends Keyword {
           return false;
         }
         if (!object.has(name.getAsString())) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(
-                  false,
-                  "dependent property \"" + Strings.jsonString(name.getAsString()) +
-                  "\" not found"));
+          context.addError(
+              false,
+              "dependent property \"" + Strings.jsonString(name.getAsString()) + "\" not found");
           return false;
         }
         index++;

@@ -37,9 +37,7 @@ public class Minimum extends Keyword {
     BigDecimal n = Numbers.valueOf(instance.getAsString());
     BigDecimal v = Numbers.valueOf(value.getAsString());
     if (n.compareTo(v) < 0) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, "want at least " + v + ", got" + n));
+      context.addError(false, "want at least " + v + ", got" + n);
       return false;
     }
     return true;

@@ -41,9 +41,7 @@ public class MultipleOf extends Keyword {
 
     BigDecimal v = Numbers.valueOf(instance.getAsString());
     if (v.remainder(n).signum() != 0) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, v + " not a multiple of " + n));
+      context.addError(false, v + " not a multiple of " + n);
       return false;
     }
     return true;

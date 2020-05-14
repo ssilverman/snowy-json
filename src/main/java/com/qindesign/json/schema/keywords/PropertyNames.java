@@ -32,11 +32,7 @@ public class PropertyNames extends Keyword {
 
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", new JsonPrimitive(name), name)) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(
-                false,
-                "property name \"" + Strings.jsonString(name) + "\" not valid"));
+        context.addError(false, "property name \"" + Strings.jsonString(name) + "\" not valid");
         return false;
       }
     }

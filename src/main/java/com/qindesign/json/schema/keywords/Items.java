@@ -42,9 +42,7 @@ public class Items extends Keyword {
       for (int i = 0; i < limit; i++) {
         if (!context.apply(schemaArray.get(i), Integer.toString(i),
                            array.get(i), Integer.toString(i))) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(false, "item " + i + " not valid in array"));
+          context.addError(false, "item " + i + " not valid in array");
           return false;
         }
       }
@@ -53,9 +51,7 @@ public class Items extends Keyword {
       int index = 0;
       for (JsonElement e : array) {
         if (!context.apply(value, "", e, Integer.toString(index))) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(false, "item " + index + " not valid"));
+          context.addError(false, "item " + index + " not valid");
           return false;
         }
         index++;

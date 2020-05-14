@@ -38,11 +38,7 @@ public class OneOf extends Keyword {
     }
 
     if (validCount != 1) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(
-              false,
-              "want 1 item valid, got " + validCount + " items valid"));
+      context.addError(false, "want 1 item valid, got " + validCount + " items valid");
     }
     return validCount == 1;
   }

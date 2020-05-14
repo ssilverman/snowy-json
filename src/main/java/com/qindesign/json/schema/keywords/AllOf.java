@@ -32,9 +32,7 @@ public class AllOf extends Keyword {
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
       if (!context.apply(e, Integer.toString(index), instance, "")) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(false, "item " + index + " not valid"));
+        context.addError(false, "item " + index + " not valid");
         return false;
       }
       index++;

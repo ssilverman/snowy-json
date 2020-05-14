@@ -44,12 +44,10 @@ public class Pattern extends Keyword {
     }
 
     if (!p.matcher(instance.getAsString()).find()) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(
-              false,
-              "string \"" + Strings.jsonString(instance.getAsString()) +
-              "\" does not match pattern \"" + Strings.jsonString(value.getAsString()) + "\""));
+      context.addError(
+          false,
+          "string \"" + Strings.jsonString(instance.getAsString()) +
+          "\" does not match pattern \"" + Strings.jsonString(value.getAsString()) + "\"");
       return false;
     }
     return true;

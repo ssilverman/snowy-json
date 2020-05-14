@@ -53,9 +53,7 @@ public class AdditionalItems extends Keyword {
     JsonArray array = instance.getAsJsonArray();
     for (int i = processedCount; i < array.size(); i++) {
       if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(false, "additional item " + i + " not valid"));
+        context.addError(false, "additional item " + i + " not valid");
         return false;
       }
     }

@@ -171,6 +171,12 @@ public final class ValidatorContext {
   private final Map<String, Map<String, Map<String, Annotation>>> annotations = new HashMap<>();
 
   /**
+   * Error "annotation" collection, maps element location to its errors:<br>
+   * instance location -> schema location -> value
+   */
+  private final Map<String, Map<String, Annotation>> errors = new HashMap<>();
+
+  /**
    * The initial base URI passed in with the constructor. This may or may not
    * match the document ID.
    */
@@ -482,7 +488,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
-    if (!state.isCollectAnnotations && !name.equals("error")) {
+    if (!state.isCollectAnnotations) {
       return;
     }
 
@@ -503,6 +509,33 @@ public final class ValidatorContext {
   }
 
   /**
+   * Adds an error "annotation" to the current instance location. This throws a
+   * {@link MalformedSchemaException} if the value is not unique. This helps
+   * detect infinite loops.
+   * <p>
+   * The message can be {@code null} to indicate no message.
+   *
+   * @param result the validation result
+   * @param message the error message, may be {@code null}
+   * @throws MalformedSchemaException if the addition is not unique.
+   */
+  public void addError(boolean result, String message) throws MalformedSchemaException {
+    Annotation a = new Annotation("error");
+    a.instanceLocation = state.instanceLocation;
+    a.keywordLocation = state.keywordLocation;
+    a.absKeywordLocation = state.absKeywordLocation;
+    a.value = new ValidationResult(result, message);
+
+    Annotation oldA = errors
+        .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
+        .putIfAbsent(state.keywordLocation, a);
+    if (oldA != null) {
+      throw new MalformedSchemaException("error not unique: possible infinite loop",
+                                         state.absKeywordLocation);
+    }
+  }
+
+  /**
    * Returns whether there's an existing annotation having the given name at the
    * current instance location.
    *
@@ -513,6 +546,15 @@ public final class ValidatorContext {
     return annotations
         .getOrDefault(state.instanceLocation, Collections.emptyMap())
         .getOrDefault(name, Collections.emptyMap())
+        .containsKey(state.keywordLocation);
+  }
+
+  /**
+   * Returns whether there's an existing error at the current instance location.
+   */
+  public boolean hasError() {
+    return errors
+        .getOrDefault(state.instanceLocation, Collections.emptyMap())
         .containsKey(state.keywordLocation);
   }
 
@@ -797,16 +839,15 @@ public final class ValidatorContext {
         annotations.getOrDefault(instanceLocation, Collections.emptyMap())
             .values()
             .forEach(
-                v -> v.entrySet().removeIf(e -> !Objects.equals(e.getValue().name, "error") &&
-                                                e.getKey().startsWith(state.keywordLocation)));
-        if (!hasAnnotation("error")) {
-          addAnnotation("error", new ValidationResult(false, k.name()));
+                v -> v.entrySet().removeIf(e -> e.getKey().startsWith(state.keywordLocation)));
+        if (!hasError()) {
+          addError(false, k.name());
         }
 
         // Don't escape early because we need to process all the keywords
         result = false;
       } else {
-        addAnnotation("error", new ValidationResult(true, k.name()));
+        addError(true, k.name());
       }
     }
 

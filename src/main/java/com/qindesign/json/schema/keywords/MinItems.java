@@ -44,9 +44,7 @@ public class MinItems extends Keyword {
 
     BigDecimal v = BigDecimal.valueOf(instance.getAsJsonArray().size());
     if (n.compareTo(v) > 0) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, "want at least " + n + " items, got" + v));
+      context.addError(false, "want at least " + n + " items, got" + v);
       return false;
     }
     return true;

@@ -44,9 +44,7 @@ public class MinProperties extends Keyword {
 
     BigDecimal v = BigDecimal.valueOf(instance.getAsJsonObject().size());
     if (n.compareTo(v) > 0) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, "want at least " + n + " properties, got" + v));
+      context.addError(false, "want at least " + n + " properties, got" + v);
       return false;
     }
     return true;

@@ -50,11 +50,9 @@ public class Dependencies extends Keyword {
           continue;
         }
         if (!context.apply(e.getValue(), e.getKey(), instance, "")) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(
-                  false,
-                  "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
+          context.addError(
+              false,
+              "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
           return false;
         }
       } else if (e.getValue().isJsonArray()) {
@@ -75,12 +73,10 @@ public class Dependencies extends Keyword {
             return false;
           }
           if (!object.has(name.getAsString())) {
-            context.addAnnotation(
-                "error",
-                new ValidationResult(
-                    false,
-                    "dependent property \"" + Strings.jsonString(name.getAsString()) +
-                    "\" not found"));
+            context.addError(
+                false,
+                "dependent property \"" + Strings.jsonString(name.getAsString()) +
+                "\" not found");
             return false;
           }
           index++;

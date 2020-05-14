@@ -45,11 +45,7 @@ public class Properties extends Keyword {
         continue;
       }
       if (!context.apply(schemaObject.get(e.getKey()), e.getKey(), e.getValue(), e.getKey())) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(
-                false,
-                "property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
+        context.addError(false, "property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
         return false;
       }
       validated.add(e.getKey());

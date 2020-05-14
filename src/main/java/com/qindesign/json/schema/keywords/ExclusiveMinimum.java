@@ -37,9 +37,7 @@ public class ExclusiveMinimum extends Keyword {
     BigDecimal n = Numbers.valueOf(instance.getAsString());
     BigDecimal v = Numbers.valueOf(value.getAsString());
     if (n.compareTo(v) <= 0) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, "want greater than " + v + ", got" + n));
+      context.addError(false, "want greater than " + v + ", got" + n);
       return false;
     }
     return true;

@@ -44,11 +44,9 @@ public class Required extends Keyword {
         return false;
       }
       if (!object.has(e.getAsString())) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(
-                false,
-                "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found"));
+        context.addError(
+            false,
+            "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found");
         return false;
       }
       index++;

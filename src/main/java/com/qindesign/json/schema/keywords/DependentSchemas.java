@@ -44,11 +44,9 @@ public class DependentSchemas extends Keyword {
         continue;
       }
       if (!context.apply(e.getValue(), e.getKey(), instance, "")) {
-        context.addAnnotation(
-            "error",
-            new ValidationResult(
-                false,
-                "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
+        context.addError(
+            false,
+            "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
         return false;
       }
     }

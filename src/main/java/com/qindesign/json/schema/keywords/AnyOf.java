@@ -40,9 +40,7 @@ public class AnyOf extends Keyword {
     }
 
     if (!retval) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(false, "no items valid"));
+      context.addError(false, "no items valid");
     }
     return retval;
   }

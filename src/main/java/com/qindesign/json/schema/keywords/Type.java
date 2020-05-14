@@ -87,11 +87,7 @@ public class Type extends Keyword {
     }
 
     if (Validator.isString(value)) {
-      context.addAnnotation(
-          "error",
-          new ValidationResult(
-              false,
-              "value not a \"" + Strings.jsonString(value.getAsString()) + "\""));
+      context.addError(false, "value not a \"" + Strings.jsonString(value.getAsString()) + "\"");
     } else {
       StringBuilder sb = new StringBuilder();
       value.getAsJsonArray()
@@ -101,11 +97,7 @@ public class Type extends Keyword {
       } else {
         sb.append(']').replace(0, 2, "[");
       }
-      context.addAnnotation(
-          "error",
-          new ValidationResult(
-              false,
-              "value not one of " + sb));
+      context.addError(false, "value not one of " + sb);
     }
     return false;
   }

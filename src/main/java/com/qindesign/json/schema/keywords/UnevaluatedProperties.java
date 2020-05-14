@@ -71,11 +71,9 @@ public class UnevaluatedProperties extends Keyword {
           continue;
         }
         if (!context.apply(value, "", e.getValue(), e.getKey())) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(
-                  false,
-                  "unevaluated property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
+          context.addError(
+              false,
+              "unevaluated property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
           return false;
         }
         thisValidated.add(e.getKey());

@@ -64,12 +64,10 @@ public class PatternProperties extends Keyword {
         }
         if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
                            e.getValue(), e.getKey())) {
-          context.addAnnotation(
-              "error",
-              new ValidationResult(
-                  false,
-                  "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
-                  Strings.jsonString(p.pattern()) + "\""));
+          context.addError(
+              false,
+              "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
+              Strings.jsonString(p.pattern()) + "\"");
         }
         validated.add(e.getKey());
       }
