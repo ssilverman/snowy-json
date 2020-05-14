@@ -29,7 +29,7 @@ public class MaxLength extends Keyword {
       return false;
     }
     BigDecimal n = Numbers.valueOf(value.getAsString());
-    if (n.compareTo(BigDecimal.ZERO) < 0) {
+    if (n.signum() < 0) {
       context.schemaError("not >= 0");
       return false;
     }
