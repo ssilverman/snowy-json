@@ -26,6 +26,7 @@ public class Items extends Keyword {
       throws MalformedSchemaException {
     if (!Validator.isSchema(value) && !value.isJsonArray()) {
       context.schemaError("not a schema or array");
+      return false;
     }
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema

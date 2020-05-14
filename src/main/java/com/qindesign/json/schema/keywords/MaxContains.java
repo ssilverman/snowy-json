@@ -43,6 +43,7 @@ public class MaxContains extends Keyword {
     }
     if (n.stripTrailingZeros().scale() > 0) {
       context.schemaError("not an integer");
+      return false;
     }
 
     if (!context.parentObject().has(Contains.NAME)) {

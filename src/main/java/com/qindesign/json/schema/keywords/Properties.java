@@ -28,6 +28,7 @@ public class Properties extends Keyword {
       throws MalformedSchemaException {
     if (!value.isJsonObject()) {
       context.schemaError("not an object");
+      return false;
     }
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema

@@ -24,6 +24,7 @@ public class Title extends Keyword {
       throws MalformedSchemaException {
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
+      return false;
     }
 
     context.addAnnotation(NAME, value.getAsString());
