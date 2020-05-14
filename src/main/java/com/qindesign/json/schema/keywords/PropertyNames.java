@@ -29,7 +29,7 @@ public class PropertyNames extends Keyword {
     }
 
     for (String name : instance.getAsJsonObject().keySet()) {
-      if (!context.apply(value, "", new JsonPrimitive(name), "")) {
+      if (!context.apply(value, "", new JsonPrimitive(name), name)) {
         return false;
       }
     }
