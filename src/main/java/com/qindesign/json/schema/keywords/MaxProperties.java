@@ -33,6 +33,9 @@ public class MaxProperties extends Keyword {
       context.schemaError("not >= 0");
       return false;
     }
+    if (n.stripTrailingZeros().scale() > 0) {
+      context.schemaError("not an integer");
+    }
 
     if (!instance.isJsonObject()) {
       return true;

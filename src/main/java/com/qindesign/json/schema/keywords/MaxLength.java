@@ -33,6 +33,9 @@ public class MaxLength extends Keyword {
       context.schemaError("not >= 0");
       return false;
     }
+    if (n.stripTrailingZeros().scale() > 0) {
+      context.schemaError("not an integer");
+    }
 
     if (!Validator.isString(instance)) {
       return true;
