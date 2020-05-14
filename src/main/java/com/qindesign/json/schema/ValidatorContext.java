@@ -459,22 +459,29 @@ public final class ValidatorContext {
   }
 
   /**
-   * Adds an annotation to the current instance location.
+   * Adds an annotation to the current instance location. This throws a
+   * {@link MalformedSchemaException} if the value is not unique. This helps
+   * detect infinite loops.
    *
    * @param name the annotation name
    * @param value the annotation value
+   * @throws MalformedSchemaException if the addition is not unique.
    */
-  public void addAnnotation(String name, Object value) {
+  public void addAnnotation(String name, Object value) throws MalformedSchemaException {
     Annotation a = new Annotation(name);
     a.instanceLocation = state.instanceLocation;
     a.keywordLocation = state.keywordLocation;
     a.absKeywordLocation = state.absKeywordLocation;
     a.value = value;
 
-    annotations
+    Annotation oldA = annotations
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
         .computeIfAbsent(name, k -> new HashMap<>())
-        .put(state.keywordLocation, a);
+        .putIfAbsent(state.keywordLocation, a);
+    if (oldA != null) {
+      throw new MalformedSchemaException("annotation not unique: possible infinite loop",
+                                         state.absKeywordLocation);
+    }
   }
 
   /**
@@ -722,9 +729,7 @@ public final class ValidatorContext {
       throws MalformedSchemaException
   {
     if (Validator.isBoolean(schema)) {
-      boolean result = schema.getAsBoolean();
-      addAnnotation("error", new ValidationResult(result, null));
-      return result;
+      return schema.getAsBoolean();
     }
 
     URI absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
@@ -734,7 +739,6 @@ public final class ValidatorContext {
 
     JsonObject schemaObject = schema.getAsJsonObject();
     if (schemaObject.size() == 0) {  // Empty schemas always validate
-      addAnnotation("error", new ValidationResult(true, null));
       return true;
     }
 
@@ -783,13 +787,12 @@ public final class ValidatorContext {
 
         // Don't escape early because we need to process all the keywords
         result = false;
+      } else {
+        addAnnotation("error", new ValidationResult(true, k.name()));
       }
     }
 
     state = parentState;
-    if (result) {
-      addAnnotation("error", new ValidationResult(true, null));
-    }
     return result;
   }
 }
