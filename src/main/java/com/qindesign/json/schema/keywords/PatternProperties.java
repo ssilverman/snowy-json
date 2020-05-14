@@ -69,6 +69,7 @@ public class PatternProperties extends Keyword {
               false,
               "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
               Strings.jsonString(p.pattern()) + "\"");
+          return false;
         }
         validated.add(e.getKey());
       }
