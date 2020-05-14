@@ -6,6 +6,8 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.regex.PatternSyntaxException;
@@ -40,6 +42,16 @@ public class Pattern extends Keyword {
     if (!Validator.isString(instance)) {
       return true;
     }
-    return p.matcher(instance.getAsString()).find();
+
+    if (!p.matcher(instance.getAsString()).find()) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(
+              false,
+              "string \"" + Strings.jsonString(instance.getAsString()) +
+              "\" does not match pattern \"" + Strings.jsonString(value.getAsString()) + "\""));
+      return false;
+    }
+    return true;
   }
 }

@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -34,6 +35,14 @@ public class OneOf extends Keyword {
       if (context.apply(e, Integer.toString(index++), instance, "")) {
         validCount++;
       }
+    }
+
+    if (validCount != 1) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(
+              false,
+              "want 1 item valid, got " + validCount + " items valid"));
     }
     return validCount == 1;
   }

@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,7 +64,12 @@ public class PatternProperties extends Keyword {
         }
         if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
                            e.getValue(), e.getKey())) {
-          return false;
+          context.addAnnotation(
+              "error",
+              new ValidationResult(
+                  false,
+                  "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
+                  Strings.jsonString(p.pattern()) + "\""));
         }
         validated.add(e.getKey());
       }

@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
@@ -82,6 +84,28 @@ public class Type extends Keyword {
           break;
       }
       index++;
+    }
+
+    if (Validator.isString(value)) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(
+              false,
+              "value not a \"" + Strings.jsonString(value.getAsString()) + "\""));
+    } else {
+      StringBuilder sb = new StringBuilder();
+      value.getAsJsonArray()
+          .forEach(e -> sb.append(", \"").append(Strings.jsonString(e.getAsString())).append('\"'));
+      if (sb.length() == 0) {
+        sb.append("[]");
+      } else {
+        sb.append(']').replace(0, 2, "[");
+      }
+      context.addAnnotation(
+          "error",
+          new ValidationResult(
+              false,
+              "value not one of " + sb));
     }
     return false;
   }

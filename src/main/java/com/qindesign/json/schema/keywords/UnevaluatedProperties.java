@@ -9,6 +9,8 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
 import java.util.Map;
@@ -69,6 +71,11 @@ public class UnevaluatedProperties extends Keyword {
           continue;
         }
         if (!context.apply(value, "", e.getValue(), e.getKey())) {
+          context.addAnnotation(
+              "error",
+              new ValidationResult(
+                  false,
+                  "unevaluated property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
           return false;
         }
         thisValidated.add(e.getKey());

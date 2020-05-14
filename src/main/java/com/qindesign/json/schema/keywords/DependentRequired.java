@@ -9,6 +9,7 @@ import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
@@ -65,6 +66,12 @@ public class DependentRequired extends Keyword {
           return false;
         }
         if (!object.has(name.getAsString())) {
+          context.addAnnotation(
+              "error",
+              new ValidationResult(
+                  false,
+                  "dependent property \"" + Strings.jsonString(name.getAsString()) +
+                  "\" not found"));
           return false;
         }
         index++;

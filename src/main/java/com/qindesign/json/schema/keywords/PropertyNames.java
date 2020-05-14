@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -30,6 +32,11 @@ public class PropertyNames extends Keyword {
 
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", new JsonPrimitive(name), name)) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(
+                false,
+                "property name \"" + Strings.jsonString(name) + "\" not valid"));
         return false;
       }
     }

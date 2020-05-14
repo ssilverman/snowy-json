@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
@@ -38,10 +39,15 @@ public class UniqueItems extends Keyword {
     }
 
     Set<JsonElement> set = new HashSet<>();
+    int index = 0;
     for (JsonElement e : instance.getAsJsonArray()) {
       if (!set.add(e)) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(false, "item " + index + " not unique"));
         return false;
       }
+      index++;
     }
     return true;
   }

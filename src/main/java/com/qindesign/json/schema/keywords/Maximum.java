@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
@@ -32,8 +33,15 @@ public class Maximum extends Keyword {
     if (!Validator.isNumber(instance)) {
       return true;
     }
+
     BigDecimal n = Numbers.valueOf(instance.getAsString());
     BigDecimal v = Numbers.valueOf(value.getAsString());
-    return n.compareTo(v) <= 0;
+    if (n.compareTo(v) > 0) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(false, "want at most " + v + ", got" + n));
+      return false;
+    }
+    return true;
   }
 }

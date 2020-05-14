@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.Map;
 
@@ -52,6 +53,9 @@ public class AdditionalItems extends Keyword {
     JsonArray array = instance.getAsJsonArray();
     for (int i = processedCount; i < array.size(); i++) {
       if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(false, "additional item " + i + " not valid"));
         return false;
       }
     }

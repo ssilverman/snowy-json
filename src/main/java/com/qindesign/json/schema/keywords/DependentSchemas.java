@@ -8,6 +8,8 @@ import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -42,6 +44,11 @@ public class DependentSchemas extends Keyword {
         continue;
       }
       if (!context.apply(e.getValue(), e.getKey(), instance, "")) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(
+                false,
+                "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid"));
         return false;
       }
     }

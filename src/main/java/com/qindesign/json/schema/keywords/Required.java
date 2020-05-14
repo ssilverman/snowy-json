@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
@@ -42,6 +44,11 @@ public class Required extends Keyword {
         return false;
       }
       if (!object.has(e.getAsString())) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(
+                false,
+                "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found"));
         return false;
       }
       index++;

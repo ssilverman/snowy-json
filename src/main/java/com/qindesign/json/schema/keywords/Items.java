@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
@@ -41,6 +42,9 @@ public class Items extends Keyword {
       for (int i = 0; i < limit; i++) {
         if (!context.apply(schemaArray.get(i), Integer.toString(i),
                            array.get(i), Integer.toString(i))) {
+          context.addAnnotation(
+              "error",
+              new ValidationResult(false, "item " + i + " not valid in array"));
           return false;
         }
       }
@@ -48,9 +52,13 @@ public class Items extends Keyword {
     } else {
       int index = 0;
       for (JsonElement e : array) {
-        if (!context.apply(value, "", e, Integer.toString(index++))) {
+        if (!context.apply(value, "", e, Integer.toString(index))) {
+          context.addAnnotation(
+              "error",
+              new ValidationResult(false, "item " + index + " not valid"));
           return false;
         }
+        index++;
       }
       context.addAnnotation(Items.NAME, true);
     }

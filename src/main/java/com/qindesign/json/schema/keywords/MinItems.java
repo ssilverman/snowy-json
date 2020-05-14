@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
@@ -40,7 +41,14 @@ public class MinItems extends Keyword {
     if (!instance.isJsonArray()) {
       return true;
     }
+
     BigDecimal v = BigDecimal.valueOf(instance.getAsJsonArray().size());
-    return n.compareTo(v) <= 0;
+    if (n.compareTo(v) > 0) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(false, "want at least " + n + " items, got" + v));
+      return false;
+    }
+    return true;
   }
 }

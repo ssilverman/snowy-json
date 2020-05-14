@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -36,6 +37,12 @@ public class AnyOf extends Keyword {
       if (context.apply(e, Integer.toString(index++), instance, "")) {
         retval = true;
       }
+    }
+
+    if (!retval) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(false, "no items valid"));
     }
     return retval;
   }

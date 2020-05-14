@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -30,9 +31,13 @@ public class AllOf extends Keyword {
 
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
-      if (!context.apply(e, Integer.toString(index++), instance, "")) {
+      if (!context.apply(e, Integer.toString(index), instance, "")) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(false, "item " + index + " not valid"));
         return false;
       }
+      index++;
     }
     return true;
   }

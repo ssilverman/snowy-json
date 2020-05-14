@@ -9,6 +9,7 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.Map;
 import java.util.function.Function;
@@ -84,6 +85,9 @@ public class UnevaluatedItems extends Keyword {
     JsonArray array = instance.getAsJsonArray();
     for (int i = max; i < array.size(); i++) {
       if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
+        context.addAnnotation(
+            "error",
+            new ValidationResult(false, "unevaluated item " + i + " not valid"));
         return false;
       }
     }

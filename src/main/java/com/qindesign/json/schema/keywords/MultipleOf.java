@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
@@ -37,6 +38,14 @@ public class MultipleOf extends Keyword {
     if (!Validator.isNumber(instance)) {
       return true;
     }
-    return Numbers.valueOf(instance.getAsString()).remainder(n).signum() == 0;
+
+    BigDecimal v = Numbers.valueOf(instance.getAsString());
+    if (v.remainder(n).signum() != 0) {
+      context.addAnnotation(
+          "error",
+          new ValidationResult(false, v + " not a multiple of " + n));
+      return false;
+    }
+    return true;
   }
 }
