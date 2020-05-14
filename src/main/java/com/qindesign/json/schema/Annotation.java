@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Holds all the information needed to describe an annotation.
  */
-public class Annotation {
+public final class Annotation {
   public final String name;
   public String instanceLocation;
   public String keywordLocation;
