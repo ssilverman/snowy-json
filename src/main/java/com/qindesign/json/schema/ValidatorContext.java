@@ -156,7 +156,7 @@ public final class ValidatorContext {
   }
 
   /** Stores the validation options. */
-  private Options options = new Options();
+  private final Options options = new Options();
 
   /** Vocabularies in use. */
   private final Map<URI, Boolean> vocabularies = new HashMap<>();
