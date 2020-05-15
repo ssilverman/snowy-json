@@ -6,7 +6,11 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Numbers;
+import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
+import java.math.BigDecimal;
 
 /**
  * Implements the "contains" applicator.
@@ -36,7 +40,23 @@ public class Contains extends Keyword {
         validCount++;
       }
     }
-    context.addAnnotation("contains", validCount);
-    return validCount > 0;
+
+    // Special handling if there's a minContains == 0
+    boolean allowZero = false;
+    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+      JsonElement minContains = context.parentObject().get(MinContains.NAME);
+      if (minContains != null && Validator.isNumber(minContains)) {
+        BigDecimal n = Numbers.valueOf(minContains.getAsString());
+        if (n.signum() == 0) {
+          allowZero = true;
+        }
+      }
+    }
+
+    if (allowZero || validCount > 0) {
+      context.addAnnotation("contains", validCount);
+      return true;
+    }
+    return false;
   }
 }
