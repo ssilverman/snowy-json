@@ -264,6 +264,25 @@ public final class ValidatorContext {
   }
 
   /**
+   * Returns the option value, first consulting the option for the current
+   * specification, and then consulting the non-specification-specific options
+   * and defaults. This may return {@code null} if the option was not found.
+   * <p>
+   * It is up to the caller to use a sensible default if this
+   * returns {@code null}.
+   *
+   * @param opt the option to retrieve
+   * @return the option value or {@code null} if it was not found.
+   */
+  public Object option(Option opt) {
+    Object val = options.getForSpecification(opt, specification());
+    if (val == null) {
+      val = options.get(opt);
+    }
+    return val;
+  }
+
+  /**
    * Returns all the known resources.
    */
   public Map<URI, URL> knownURLs() {
