@@ -38,7 +38,7 @@ public class AllOf extends Keyword {
         }
         context.addError(false, "item " + index + " not valid");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
       index++;
     }

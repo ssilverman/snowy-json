@@ -48,7 +48,7 @@ public class Items extends Keyword {
           }
           context.addError(false, "item " + i + " not valid in array");
           retval = false;
-          context.setCollectAnnotations(false);
+          context.setCollectSubAnnotations(false);
         }
       }
       context.addAnnotation(Items.NAME, limit);
@@ -61,7 +61,7 @@ public class Items extends Keyword {
           }
           context.addError(false, "item " + index + " not valid");
           retval = false;
-          context.setCollectAnnotations(false);
+          context.setCollectSubAnnotations(false);
         }
         index++;
       }

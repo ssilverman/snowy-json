@@ -52,7 +52,7 @@ public class Properties extends Keyword {
         }
         context.addError(false, "property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
       validated.add(e.getKey());
     }

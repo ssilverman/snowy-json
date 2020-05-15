@@ -451,12 +451,13 @@ public final class ValidatorContext {
   }
 
   /**
-   * Sets whether to collect annotations. This is an optimization that can be
-   * called when a keyword knows no further annotations should be collected.
+   * Sets whether to collect annotations in subschemas. This is an optimization
+   * that can be called when a keyword knows no further annotations should
+   * be collected.
    *
    * @param flag the new state
    */
-  public void setCollectAnnotations(boolean flag) {
+  public void setCollectSubAnnotations(boolean flag) {
     state.isCollectAnnotations = flag;
   }
 

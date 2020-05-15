@@ -74,7 +74,7 @@ public class DependentRequired extends Keyword {
               false,
               "dependent property \"" + Strings.jsonString(name.getAsString()) + "\" not found");
           retval = false;
-          context.setCollectAnnotations(false);
+          context.setCollectSubAnnotations(false);
         }
         index++;
       }

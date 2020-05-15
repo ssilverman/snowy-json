@@ -21,7 +21,7 @@ public class Not extends Keyword {
   @Override
   protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
       throws MalformedSchemaException {
-    context.setCollectAnnotations(false);
+    context.setCollectSubAnnotations(false);
     return !context.apply(value, "", instance, "");
   }
 }

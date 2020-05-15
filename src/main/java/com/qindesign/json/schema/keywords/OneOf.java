@@ -35,7 +35,7 @@ public class OneOf extends Keyword {
         validCount++;
       }
       if (validCount > 1) {
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
     }
 

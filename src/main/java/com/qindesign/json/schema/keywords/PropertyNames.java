@@ -38,7 +38,7 @@ public class PropertyNames extends Keyword {
         }
         context.addError(false, "property name \"" + Strings.jsonString(name) + "\" not valid");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
     }
     return retval;

@@ -91,7 +91,7 @@ public class UnevaluatedItems extends Keyword {
         }
         context.addError(false, "unevaluated item " + i + " not valid");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
     }
 

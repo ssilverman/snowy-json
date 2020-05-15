@@ -48,7 +48,7 @@ public class UniqueItems extends Keyword {
         }
         context.addError(false, "item " + index + " not unique");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
       index++;
     }

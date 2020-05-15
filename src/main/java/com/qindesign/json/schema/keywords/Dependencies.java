@@ -58,7 +58,7 @@ public class Dependencies extends Keyword {
               false,
               "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
           retval = false;
-          context.setCollectAnnotations(false);
+          context.setCollectSubAnnotations(false);
         }
       } else if (e.getValue().isJsonArray()) {
         if (!object.has(e.getKey())) {
@@ -86,7 +86,7 @@ public class Dependencies extends Keyword {
                 "dependent property \"" + Strings.jsonString(name.getAsString()) +
                 "\" not found");
             retval = false;
-            context.setCollectAnnotations(false);
+            context.setCollectSubAnnotations(false);
           }
           index++;
         }

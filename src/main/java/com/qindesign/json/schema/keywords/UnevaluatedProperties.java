@@ -79,7 +79,7 @@ public class UnevaluatedProperties extends Keyword {
               false,
               "unevaluated property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
           retval = false;
-          context.setCollectAnnotations(false);
+          context.setCollectSubAnnotations(false);
         }
         thisValidated.add(e.getKey());
       }

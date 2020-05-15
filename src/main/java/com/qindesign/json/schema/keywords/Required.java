@@ -52,7 +52,7 @@ public class Required extends Keyword {
             false,
             "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
       index++;
     }

@@ -59,7 +59,7 @@ public class AdditionalItems extends Keyword {
         }
         context.addError(false, "additional item " + i + " not valid");
         retval = false;
-        context.setCollectAnnotations(false);
+        context.setCollectSubAnnotations(false);
       }
     }
 
