@@ -123,7 +123,13 @@ public class Validator {
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
       throws MalformedSchemaException
   {
-    Specification spec = determineSpecification(schema, defaultSpec);
+    // First, determine the schema specification
+    Specification spec = determineSpecification(schema);
+    boolean isDefaultSpec = (spec == null);
+    spec = defaultSpec;
+
+    // Prepare the schema and instance
+    // This is so we have a ValidatorContext we can use during schema validation
     var ids = scanIDs(baseURI, schema, spec);
     if (knownIDs != null) {
       knownIDs.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
@@ -133,8 +139,83 @@ public class Validator {
     }
     ValidatorContext context =
         new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet());
+
+    // If the spec is known, the $schema keyword will process it
+    // Next, validate the schema if it's unknown
+    // Use the default specification
+    if (isDefaultSpec) {
+      JsonElement metaSchema = loadResource(spec.id());
+      // Ignore an unknown meta-schema
+      // The whole point here, after all, is to get the vocabularies
+      if (metaSchema != null) {
+        try {
+          Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
+          ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,
+                                                          Collections.singleton(spec.id()));
+          if (!context2.apply(metaSchema, "", schema, "")) {
+            throw new MalformedSchemaException("schema does not validate: " + spec.id(), baseURI);
+          }
+          context2.vocabularies().forEach(context::setVocabulary);
+        } catch (MalformedSchemaException ex) {
+          // Ignore a bad meta-schema
+        }
+      }
+    }
+    // TODO: I don't love the duplicate code in CoreSchema
+
     return context.apply(schema, "", instance, "");
   }
+
+//  /**
+//   * Validates a schema against its or a default meta-schema. If the meta-schema
+//   * could not be found or is not valid then this will return {@code true}.
+//   * <p>
+//   * This uses the default specification if the schema does not proclaim one.
+//   *
+//   * @param schema the schema to validate
+//   * @param defaultSpec the default specification
+//   * @return whether the given schema validates.
+//   */
+//  public static boolean validateSchema(JsonElement schema, Specification defaultSpec)
+//      throws MalformedSchemaException
+//  {
+//    // First, determine the schema specification
+//    // Use all the things we know about $schema
+//    Specification spec = null;
+//    if (schema.isJsonObject()) {
+//      JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
+//      if (schemaVal != null && isString(schemaVal)) {
+//        try {
+//          URI uri = new URI(schemaVal.getAsString());
+//          if (uri.isAbsolute() && uri.normalize().equals(uri)) {
+//            spec = Specification.of(URIs.stripFragment(uri));
+//          }
+//        } catch (URISyntaxException ex) {
+//          // Ignore
+//        }
+//      }
+//    }
+//
+//    // If the spec is known, the $schema keyword will process it
+//    if (spec != null) {
+//      return true;
+//    }
+//
+//    // Next, validate the schema if it's unknown
+//    // Use the default specification
+//    JsonElement metaSchema = loadResource(spec.id());
+//    if (metaSchema == null) {
+//      return true;
+//    }
+//
+//    Map<Id, JsonElement> ids;
+//    try {
+//      ids = Validator.scanIDs(spec.id(), metaSchema, spec);
+//    } catch (MalformedSchemaException ex) {
+//      // Assume a bad known schema validates
+//      return true;
+//    }
+//  }
 
   /**
    * Loads a resource as JSON. This returns {@code null} if the resource could
@@ -169,22 +250,25 @@ public class Validator {
    * <li>Examine any $schema keyword to see if the value is valid and known</li>
    * </ul>
    * <p>
-   * This returns {@code defaultSpec} if a specification could not otherwise
+   * This returns {@code null} if a specification could not otherwise
    * be identified.
    *
    * @param schema the schema object
-   * @param defaultSpec the spec to be returned as a default
-   * @return the specification or the default if one could not be determined.
+   * @return the specification, or {@code null} if one could not be determined.
    */
-  public static Specification determineSpecification(JsonElement schema,
-                                                     Specification defaultSpec) {
+  public static Specification determineSpecification(JsonElement schema) {
     if (!schema.isJsonObject()) {
-      return defaultSpec;
+      return null;
     }
+
+    // TODO: More heuristics
+
+    // Use all the things we know about $schema
     JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
     if (schemaVal == null || !isString(schemaVal)) {
-      return defaultSpec;
+      return null;
     }
+
     try {
       URI uri = new URI(schemaVal.getAsString());
       if (uri.isAbsolute() && uri.normalize().equals(uri)) {
@@ -193,7 +277,8 @@ public class Validator {
     } catch (URISyntaxException ex) {
       // Ignore
     }
-    return defaultSpec;
+
+    return null;
   }
 
   /**
@@ -206,7 +291,7 @@ public class Validator {
    * <p>
    * The given specification is the one used for processing. It can be
    * identified by the caller via a call to
-   * {@link #determineSpecification(JsonElement, Specification)}.
+   * {@link #determineSpecification(JsonElement)}.
    *
    * @param baseURI the base URI
    * @param e the JSON document
@@ -214,7 +299,7 @@ public class Validator {
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
-   * @see #determineSpecification(JsonElement, Specification)
+   * @see #determineSpecification(JsonElement)
    */
   public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {
