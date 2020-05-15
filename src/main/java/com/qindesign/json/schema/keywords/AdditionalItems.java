@@ -63,8 +63,9 @@ public class AdditionalItems extends Keyword {
       }
     }
 
-    context.addAnnotation(NAME, true);
-
+    if (retval) {
+      context.addAnnotation(NAME, true);
+    }
     return retval;
   }
 }

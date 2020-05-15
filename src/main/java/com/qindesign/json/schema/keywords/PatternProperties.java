@@ -80,8 +80,9 @@ public class PatternProperties extends Keyword {
       }
     }
 
-    context.addAnnotation(NAME, validated);
-
+    if (retval) {
+      context.addAnnotation(NAME, validated);
+    }
     return retval;
   }
 }

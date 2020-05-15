@@ -51,7 +51,9 @@ public class Items extends Keyword {
           context.setCollectSubAnnotations(false);
         }
       }
-      context.addAnnotation(Items.NAME, limit);
+      if (retval) {
+        context.addAnnotation(Items.NAME, limit);
+      }
     } else {
       int index = 0;
       for (JsonElement e : array) {
@@ -65,7 +67,9 @@ public class Items extends Keyword {
         }
         index++;
       }
-      context.addAnnotation(Items.NAME, true);
+      if (retval) {
+        context.addAnnotation(Items.NAME, true);
+      }
     }
 
     return retval;

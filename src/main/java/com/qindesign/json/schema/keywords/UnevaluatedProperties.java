@@ -85,8 +85,9 @@ public class UnevaluatedProperties extends Keyword {
       }
     }
 
-    context.addAnnotation(NAME, thisValidated);
-
+    if (retval) {
+      context.addAnnotation(NAME, thisValidated);
+    }
     return retval;
   }
 }

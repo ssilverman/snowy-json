@@ -57,8 +57,9 @@ public class Properties extends Keyword {
       validated.add(e.getKey());
     }
 
-    context.addAnnotation(NAME, validated);
-
+    if (retval) {
+      context.addAnnotation(NAME, validated);
+    }
     return retval;
   }
 }
