@@ -272,7 +272,7 @@ public final class ValidatorContext {
    * returns {@code null}.
    *
    * @param opt the option to retrieve
-   * @return the option value or {@code null} if it was not found.
+   * @return the option value, or {@code null} if it was not found.
    */
   public Object option(Option opt) {
     Object val = options.getForSpecification(opt, specification());
@@ -440,7 +440,7 @@ public final class ValidatorContext {
    * other known resources.
    *
    * @param id the id
-   * @return the element having the given ID or {@code null} if there's no
+   * @return the element having the given ID, or {@code null} if there's no
    *         such element.
    */
   public JsonElement findAndSetRoot(URI id) {
@@ -706,7 +706,7 @@ public final class ValidatorContext {
    * @param baseURI the starting point for any new base URI
    * @param e the element to traverse
    * @param ptr the JSON pointer
-   * @return the specified sub-element or {@code null} if not found.
+   * @return the specified sub-element, or {@code null} if not found.
    * @throws MalformedSchemaException if an invalid $id was encountered
    */
   public JsonElement followPointer(URI baseURI, JsonElement e, String ptr)
