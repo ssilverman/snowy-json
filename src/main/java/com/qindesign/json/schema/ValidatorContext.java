@@ -802,6 +802,9 @@ public final class ValidatorContext {
    * @param schemaPath the schema path
    * @param instance the instance element
    * @param instancePath the instance path
+   * @throws MalformedSchemaException if the schema is not valid. This could be
+   *         because it doesn't validate against any declared meta-schema or
+   *         because internal validation is failing.
    */
   public boolean apply(JsonElement schema, String schemaPath,
                        JsonElement instance, String instancePath)
