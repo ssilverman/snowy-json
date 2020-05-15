@@ -20,7 +20,7 @@ public enum Specification {
   DRAFT_2019_09("https://json-schema.org/draft/2019-09/schema")
   ;
 
-  private static Map<URI, Specification> specs = Stream.of(
+  private static final Map<URI, Specification> specs = Stream.of(
       values()).collect(Collectors.toMap(Specification::id, Function.identity()));
 
   /**
@@ -35,7 +35,7 @@ public enum Specification {
     return specs.get(id);
   }
 
-  private URI id;
+  private final URI id;
 
   private Specification(String uri) {
     Objects.requireNonNull(uri, "uri");

@@ -18,7 +18,7 @@ public enum Vocabulary {
   CONTENT("https://json-schema.org/draft/2019-09/vocab/content")
   ;
 
-  private URI id;
+  private final URI id;
 
   private Vocabulary(String id) {
     Objects.requireNonNull(id);
