@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 /**
  * Validator tools.
  */
-public class Validator {
+public final class Validator {
   private static final Class<?> CLASS = Validator.class;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 
@@ -55,6 +55,9 @@ public class Validator {
    */
   public static final java.util.regex.Pattern ANCHOR_PATTERN =
       java.util.regex.Pattern.compile("[A-Z_a-z][-A-Z_a-z.0-9]*");
+
+  private Validator() {
+  }
 
   /**
    * Convenience method that checks if a JSON element is a Boolean.
@@ -151,7 +154,7 @@ public class Validator {
         try {
           Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
           ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,
-                                                          Collections.singleton(spec.id()));
+                                                           Collections.singleton(spec.id()));
           context2.setOption(Option.FORMAT, false);
           context2.setOption(Option.COLLECT_ANNOTATIONS, false);
           context2.setOption(Option.COLLECT_ERRORS, false);
