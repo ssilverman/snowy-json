@@ -196,6 +196,11 @@ public final class ValidatorContext {
    */
   private final Set<URI> validatedSchemas;
 
+  // Options
+  private boolean failFast;
+  private boolean collectAnnotations;
+  private boolean collectErrors;
+
   /**
    * Creates a new schema context. Given is an absolute URI from where the
    * schema was obtained. The URI will be normalized.
@@ -251,6 +256,11 @@ public final class ValidatorContext {
     state.absKeywordLocation = baseURI;
     state.instanceLocation = "";
     state.isCollectAnnotations = true;
+
+    // Options
+    collectAnnotations = Boolean.TRUE.equals(option(Option.COLLECT_ANNOTATIONS));
+    collectErrors = Boolean.TRUE.equals(option(Option.COLLECT_ERRORS));
+    failFast = !collectAnnotations && !collectErrors;
   }
 
   /**
@@ -259,8 +269,28 @@ public final class ValidatorContext {
    * @return all the options.
    * @link Options
    */
-  public Options options() {
+  Options options() {
     return options;
+  }
+
+  /**
+   * Sets an option. The value must be the correct type for the option.
+   *
+   * @param opt the option
+   * @param value the value
+   */
+  public void setOption(Option opt, Object value) {
+    options.set(opt, value);
+    switch (opt) {
+      case COLLECT_ANNOTATIONS:
+        failFast = Boolean.TRUE.equals(value) &&
+                   Boolean.TRUE.equals(option(Option.COLLECT_ERRORS));
+        break;
+      case COLLECT_ERRORS:
+        failFast = Boolean.TRUE.equals(value) &&
+                   Boolean.TRUE.equals(option(Option.COLLECT_ANNOTATIONS));
+        break;
+    }
   }
 
   /**
@@ -270,6 +300,13 @@ public final class ValidatorContext {
    * <p>
    * It is up to the caller to use a sensible default if this
    * returns {@code null}.
+   * <p>
+   * Note: the following expression will return {@code false} when the option
+   * is {@code false} and {@code true} when the option is {@code true} or
+   * {@code null}:
+   * <pre>!Boolean.FALSE.equals(retval)</pre>
+   * <p>
+   * It will also return {@code true} for any other object, so be cautious.
    *
    * @param opt the option to retrieve
    * @return the option value, or {@code null} if it was not found.
@@ -424,6 +461,13 @@ public final class ValidatorContext {
   }
 
   /**
+   * Returns whether we can fail fast when processing a keyword.
+   */
+  public boolean isFailFast() {
+    return failFast;
+  }
+
+  /**
    * Finds the element associated with the given ID. If there is no such element
    * having the ID then this returns {@code null}. If the returned element was
    * from a new resource and is a schema then the current state will be set as
@@ -507,7 +551,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
-    if (!state.isCollectAnnotations) {
+    if (!collectAnnotations || !state.isCollectAnnotations) {
       return;
     }
 
@@ -539,6 +583,10 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addError(boolean result, String message) throws MalformedSchemaException {
+    if (!collectErrors) {
+      return;
+    }
+
     Annotation a = new Annotation("error");
     a.instanceLocation = state.instanceLocation;
     a.keywordLocation = state.keywordLocation;
