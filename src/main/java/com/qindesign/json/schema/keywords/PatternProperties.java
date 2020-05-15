@@ -55,6 +55,8 @@ public class PatternProperties extends Keyword {
       context.checkValidSchema(e.getValue(), e.getKey());
     }
 
+    boolean retval = true;
+
     Set<String> validated = new HashSet<>();
     for (var e : object.entrySet()) {
       // For each that matches, check the schema
@@ -68,7 +70,8 @@ public class PatternProperties extends Keyword {
               false,
               "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
               Strings.jsonString(p.pattern()) + "\"");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
         validated.add(e.getKey());
       }
@@ -76,6 +79,6 @@ public class PatternProperties extends Keyword {
 
     context.addAnnotation(NAME, validated);
 
-    return true;
+    return retval;
   }
 }

@@ -28,14 +28,17 @@ public class AllOf extends Keyword {
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema
 
+    boolean retval = true;
     int index = 0;
+
     for (JsonElement e : value.getAsJsonArray()) {
       if (!context.apply(e, Integer.toString(index), instance, "")) {
         context.addError(false, "item " + index + " not valid");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
       index++;
     }
-    return true;
+    return retval;
   }
 }

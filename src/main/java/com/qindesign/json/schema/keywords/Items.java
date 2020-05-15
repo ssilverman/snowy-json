@@ -34,6 +34,7 @@ public class Items extends Keyword {
       return true;
     }
 
+    boolean retval = true;
     JsonArray array = instance.getAsJsonArray();
 
     if (value.isJsonArray()) {
@@ -43,7 +44,8 @@ public class Items extends Keyword {
         if (!context.apply(schemaArray.get(i), Integer.toString(i),
                            array.get(i), Integer.toString(i))) {
           context.addError(false, "item " + i + " not valid in array");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
       }
       context.addAnnotation(Items.NAME, limit);
@@ -52,13 +54,14 @@ public class Items extends Keyword {
       for (JsonElement e : array) {
         if (!context.apply(value, "", e, Integer.toString(index))) {
           context.addError(false, "item " + index + " not valid");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
         index++;
       }
       context.addAnnotation(Items.NAME, true);
     }
 
-    return true;
+    return retval;
   }
 }

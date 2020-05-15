@@ -63,6 +63,8 @@ public class UnevaluatedProperties extends Keyword {
     f.accept(context.getAnnotations(AdditionalProperties.NAME));
     f.accept(context.getAnnotations(NAME));
 
+    boolean retval = true;
+
     Set<String> thisValidated = new HashSet<>();
     if (validated.size() < object.size()) {
       for (var e : object.entrySet()) {
@@ -73,7 +75,8 @@ public class UnevaluatedProperties extends Keyword {
           context.addError(
               false,
               "unevaluated property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
         thisValidated.add(e.getKey());
       }
@@ -81,6 +84,6 @@ public class UnevaluatedProperties extends Keyword {
 
     context.addAnnotation(NAME, thisValidated);
 
-    return true;
+    return retval;
   }
 }

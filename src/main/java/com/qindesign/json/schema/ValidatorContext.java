@@ -836,6 +836,9 @@ public final class ValidatorContext {
       state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
       if (!k.apply(m.getValue(), instance, this)) {
         // Remove all subschema annotations that aren't errors
+        // Note that this is still necessary even with the setCollectAnnotations
+        // optimization because it either may not be used or not used
+        // early enough
         annotations.getOrDefault(instanceLocation, Collections.emptyMap())
             .values()
             .forEach(

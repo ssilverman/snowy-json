@@ -42,6 +42,8 @@ public class Dependencies extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     JsonObject object = instance.getAsJsonObject();
     for (var e : value.getAsJsonObject().entrySet()) {
       if (Validator.isSchema(e.getValue())) {
@@ -52,7 +54,8 @@ public class Dependencies extends Keyword {
           context.addError(
               false,
               "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
       } else if (e.getValue().isJsonArray()) {
         if (!object.has(e.getKey())) {
@@ -76,7 +79,8 @@ public class Dependencies extends Keyword {
                 false,
                 "dependent property \"" + Strings.jsonString(name.getAsString()) +
                 "\" not found");
-            return false;
+            retval = false;
+            context.setCollectAnnotations(false);
           }
           index++;
         }
@@ -86,6 +90,6 @@ public class Dependencies extends Keyword {
       }
     }
 
-    return true;
+    return retval;
   }
 }

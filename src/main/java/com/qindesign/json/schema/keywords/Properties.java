@@ -39,6 +39,8 @@ public class Properties extends Keyword {
     JsonObject schemaObject = value.getAsJsonObject();
     JsonObject object = instance.getAsJsonObject();
 
+    boolean retval = true;
+
     Set<String> validated = new HashSet<>();
     for (var e : object.entrySet()) {
       if (!schemaObject.has(e.getKey())) {
@@ -46,13 +48,14 @@ public class Properties extends Keyword {
       }
       if (!context.apply(schemaObject.get(e.getKey()), e.getKey(), e.getValue(), e.getKey())) {
         context.addError(false, "property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
       validated.add(e.getKey());
     }
 
     context.addAnnotation(NAME, validated);
 
-    return true;
+    return retval;
   }
 }

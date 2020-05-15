@@ -29,12 +29,15 @@ public class PropertyNames extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", new JsonPrimitive(name), name)) {
         context.addError(false, "property name \"" + Strings.jsonString(name) + "\" not valid");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
     }
-    return true;
+    return retval;
   }
 }

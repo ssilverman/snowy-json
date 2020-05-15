@@ -35,6 +35,8 @@ public class Required extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     JsonObject object = instance.getAsJsonObject();
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
@@ -46,10 +48,11 @@ public class Required extends Keyword {
         context.addError(
             false,
             "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
       index++;
     }
-    return true;
+    return retval;
   }
 }

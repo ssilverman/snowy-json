@@ -42,6 +42,8 @@ public class DependentRequired extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     JsonObject object = instance.getAsJsonObject();
     for (var e : value.getAsJsonObject().entrySet()) {
       if (!e.getValue().isJsonArray()) {
@@ -68,11 +70,12 @@ public class DependentRequired extends Keyword {
           context.addError(
               false,
               "dependent property \"" + Strings.jsonString(name.getAsString()) + "\" not found");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
         index++;
       }
     }
-    return true;
+    return retval;
   }
 }

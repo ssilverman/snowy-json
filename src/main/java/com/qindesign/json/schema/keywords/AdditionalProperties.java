@@ -50,6 +50,8 @@ public class AdditionalProperties extends Keyword {
       validated.addAll((Set<String>) a.value);
     }
 
+    boolean retval = true;
+
     JsonObject object = instance.getAsJsonObject();
     Set<String> thisValidated = new HashSet<>();
     if (validated.size() < object.size()) {
@@ -62,7 +64,8 @@ public class AdditionalProperties extends Keyword {
               false,
               "additional property \"" + Strings.jsonString(e.getKey()) +
               "\" not valid");
-          return false;
+          retval = false;
+          context.setCollectAnnotations(false);
         }
         thisValidated.add(e.getKey());
       }
@@ -70,6 +73,6 @@ public class AdditionalProperties extends Keyword {
 
     context.addAnnotation(NAME, thisValidated);
 
-    return true;
+    return retval;
   }
 }

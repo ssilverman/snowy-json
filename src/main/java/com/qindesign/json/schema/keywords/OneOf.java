@@ -34,11 +34,15 @@ public class OneOf extends Keyword {
       if (context.apply(e, Integer.toString(index++), instance, "")) {
         validCount++;
       }
+      if (validCount > 1) {
+        context.setCollectAnnotations(false);
+      }
     }
 
     if (validCount != 1) {
       context.addError(false, "want 1 item valid, got " + validCount + " items valid");
+      return false;
     }
-    return validCount == 1;
+    return true;
   }
 }

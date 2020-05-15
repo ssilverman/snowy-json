@@ -37,6 +37,8 @@ public class DependentSchemas extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     JsonObject object = instance.getAsJsonObject();
     for (var e : value.getAsJsonObject().entrySet()) {
       if (!object.has(e.getKey())) {
@@ -46,9 +48,10 @@ public class DependentSchemas extends Keyword {
         context.addError(
             false,
             "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
     }
-    return true;
+    return retval;
   }
 }

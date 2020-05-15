@@ -37,15 +37,18 @@ public class UniqueItems extends Keyword {
       return true;
     }
 
+    boolean retval = true;
+
     Set<JsonElement> set = new HashSet<>();
     int index = 0;
     for (JsonElement e : instance.getAsJsonArray()) {
       if (!set.add(e)) {
         context.addError(false, "item " + index + " not unique");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
       index++;
     }
-    return true;
+    return retval;
   }
 }

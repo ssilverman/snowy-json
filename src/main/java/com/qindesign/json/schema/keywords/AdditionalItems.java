@@ -49,14 +49,19 @@ public class AdditionalItems extends Keyword {
       }
     }
 
+    boolean retval = true;
+
     JsonArray array = instance.getAsJsonArray();
     for (int i = processedCount; i < array.size(); i++) {
       if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
         context.addError(false, "additional item " + i + " not valid");
-        return false;
+        retval = false;
+        context.setCollectAnnotations(false);
       }
     }
+
     context.addAnnotation(NAME, true);
-    return true;
+
+    return retval;
   }
 }
