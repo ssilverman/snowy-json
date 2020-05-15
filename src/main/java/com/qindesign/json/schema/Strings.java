@@ -63,7 +63,7 @@ public final class Strings {
           if (c < 0x20) {
             sb.append(String.format("\\u%04x", c));
           } else {
-            sb.append(c);
+            sb.append((char) c);
           }
       }
     });
