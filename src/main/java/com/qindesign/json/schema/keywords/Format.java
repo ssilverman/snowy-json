@@ -221,13 +221,21 @@ public class Format extends Keyword {
       return false;
     }
 
-    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-      Boolean vocab = context.vocabularies().get(Vocabulary.FORMAT.id());
-      Object opt = context.options().get(Option.FORMAT);
-      if (Boolean.FALSE.equals(vocab) && Boolean.FALSE.equals(opt)) {
-        context.addAnnotation(NAME, value.getAsString());
-        return true;
+    Boolean vocab = false;
+    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+      vocab = context.vocabularies().get(Vocabulary.FORMAT.id());
+      if (vocab == null) {
+        vocab = false;
       }
+    }
+
+    Object opt = context.option(Option.FORMAT);
+    if (opt == null) {
+      opt = false;
+    }
+    if (Boolean.FALSE.equals(vocab) && Boolean.FALSE.equals(opt)) {
+      context.addAnnotation(NAME, value.getAsString());
+      return true;
     }
 
     switch (value.getAsString()) {
