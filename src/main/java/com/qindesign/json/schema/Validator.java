@@ -152,6 +152,9 @@ public class Validator {
           Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
           ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,
                                                           Collections.singleton(spec.id()));
+          context2.setOption(Option.FORMAT, false);
+          context2.setOption(Option.COLLECT_ANNOTATIONS, false);
+          context2.setOption(Option.COLLECT_ERRORS, false);
           if (!context2.apply(metaSchema, "", schema, "")) {
             throw new MalformedSchemaException("schema does not validate: " + spec.id(), baseURI);
           }

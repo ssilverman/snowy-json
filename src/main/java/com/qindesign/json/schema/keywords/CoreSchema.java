@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
@@ -92,6 +93,9 @@ public class CoreSchema extends Keyword {
       return false;
     }
     ValidatorContext context2 = new ValidatorContext(id, spec, ids, context.knownURLs(), validated);
+    context2.setOption(Option.FORMAT, false);
+    context2.setOption(Option.COLLECT_ANNOTATIONS, false);
+    context2.setOption(Option.COLLECT_ERRORS, false);
     if (!context2.apply(e, "", context.parentObject(), "")) {
       context.schemaError("does not validate");
       return false;
