@@ -229,11 +229,7 @@ public class Format extends Keyword {
       }
     }
 
-    Object opt = context.option(Option.FORMAT);
-    if (opt == null) {
-      opt = false;
-    }
-    if (Boolean.FALSE.equals(vocab) && Boolean.FALSE.equals(opt)) {
+    if (Boolean.FALSE.equals(vocab) && !context.isFormat()) {
       context.addAnnotation(NAME, value.getAsString());
       return true;
     }

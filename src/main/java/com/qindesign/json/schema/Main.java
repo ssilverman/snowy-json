@@ -80,8 +80,10 @@ public class Main {
     instance = parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
 
+    Options opts = new Options();
     boolean result = Validator.validate(schema, instance, schemaID, spec,
-                                        Collections.emptyMap(), Collections.emptyMap());
+                                        Collections.emptyMap(), Collections.emptyMap(),
+                                        opts);
     logger.info("Validation result: " + result);
   }
 

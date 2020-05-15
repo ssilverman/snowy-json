@@ -95,7 +95,7 @@ public final class ValidatorContext {
     String instanceLocation;
 
     /** Flag that indicates whether to collect annotations, an optimization. */
-    boolean isCollectAnnotations;
+    boolean isCollectSubAnnotations;
 
     @Override
     protected Object clone() {
@@ -158,9 +158,6 @@ public final class ValidatorContext {
     }
   }
 
-  /** Stores the validation options. */
-  private final Options options = new Options();
-
   /** Vocabularies in use. */
   private final Map<URI, Boolean> vocabularies = new HashMap<>();
 
@@ -197,9 +194,10 @@ public final class ValidatorContext {
   private final Set<URI> validatedSchemas;
 
   // Options
-  private boolean failFast;
-  private boolean collectAnnotations;
-  private boolean collectErrors;
+  private final boolean isFailFast;
+  private final boolean isCollectAnnotations;
+  private final boolean isCollectErrors;
+  private final boolean isFormat;
 
   /**
    * Creates a new schema context. Given is an absolute URI from where the
@@ -212,17 +210,19 @@ public final class ValidatorContext {
    * @param knownIDs known JSON contents
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
+   * @param options any options
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
    */
   public ValidatorContext(URI baseURI, Specification spec,
                           Map<Id, JsonElement> knownIDs, Map<URI, URL> knownURLs,
-                          Set<URI> validatedSchemas) {
+                          Set<URI> validatedSchemas, Options options) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(knownURLs, "knownURLs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
+    Objects.requireNonNull(options, "options");
 
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
@@ -255,68 +255,31 @@ public final class ValidatorContext {
     state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
     state.instanceLocation = "";
-    state.isCollectAnnotations = true;
+    state.isCollectSubAnnotations = true;
 
     // Options
-    collectAnnotations = Boolean.TRUE.equals(option(Option.COLLECT_ANNOTATIONS));
-    collectErrors = Boolean.TRUE.equals(option(Option.COLLECT_ERRORS));
-    failFast = !collectAnnotations && !collectErrors;
-  }
-
-  /**
-   * Returns all the options. Use this to modify or retrieve any options.
-   *
-   * @return all the options.
-   * @link Options
-   */
-  Options options() {
-    return options;
-  }
-
-  /**
-   * Sets an option. The value must be the correct type for the option.
-   *
-   * @param opt the option
-   * @param value the value
-   */
-  public void setOption(Option opt, Object value) {
-    options.set(opt, value);
-    switch (opt) {
-      case COLLECT_ANNOTATIONS:
-        failFast = Boolean.TRUE.equals(value) &&
-                   Boolean.TRUE.equals(option(Option.COLLECT_ERRORS));
-        break;
-      case COLLECT_ERRORS:
-        failFast = Boolean.TRUE.equals(value) &&
-                   Boolean.TRUE.equals(option(Option.COLLECT_ANNOTATIONS));
-        break;
-    }
-  }
-
-  /**
-   * Returns the option value, first consulting the option for the current
-   * specification, and then consulting the non-specification-specific options
-   * and defaults. This may return {@code null} if the option was not found.
-   * <p>
-   * It is up to the caller to use a sensible default if this
-   * returns {@code null}.
-   * <p>
-   * Note: the following expression will return {@code false} when the option
-   * is {@code false} and {@code true} when the option is {@code true} or
-   * {@code null}:
-   * <pre>!Boolean.FALSE.equals(retval)</pre>
-   * <p>
-   * It will also return {@code true} for any other object, so be cautious.
-   *
-   * @param opt the option to retrieve
-   * @return the option value, or {@code null} if it was not found.
-   */
-  public Object option(Option opt) {
-    Object val = options.getForSpecification(opt, specification());
+    Object val = options.getForSpecification(Option.FORMAT, specification());
     if (val == null) {
-      val = options.get(opt);
+      val = options.get(Option.FORMAT);
     }
-    return val;
+    isFormat = Boolean.TRUE.equals(val);
+    isCollectAnnotations = Boolean.TRUE.equals(options.get(Option.COLLECT_ANNOTATIONS));
+    isCollectErrors = Boolean.TRUE.equals(options.get(Option.COLLECT_ERRORS));
+    isFailFast = !isCollectAnnotations && !isCollectErrors;
+  }
+
+  /**
+   * Returns whether the "format" option is enabled.
+   */
+  public boolean isFormat() {
+    return isFormat;
+  }
+
+  /**
+   * Returns whether we can fail fast when processing a keyword.
+   */
+  public boolean isFailFast() {
+    return isFailFast;
   }
 
   /**
@@ -458,14 +421,7 @@ public final class ValidatorContext {
    * @param flag the new state
    */
   public void setCollectSubAnnotations(boolean flag) {
-    state.isCollectAnnotations = flag;
-  }
-
-  /**
-   * Returns whether we can fail fast when processing a keyword.
-   */
-  public boolean isFailFast() {
-    return failFast;
+    state.isCollectSubAnnotations = flag;
   }
 
   /**
@@ -552,7 +508,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
-    if (!collectAnnotations || !state.isCollectAnnotations) {
+    if (!isCollectAnnotations || !state.isCollectSubAnnotations) {
       return;
     }
 
@@ -584,7 +540,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addError(boolean result, String message) throws MalformedSchemaException {
-    if (!collectErrors) {
+    if (!isCollectErrors) {
       return;
     }
 

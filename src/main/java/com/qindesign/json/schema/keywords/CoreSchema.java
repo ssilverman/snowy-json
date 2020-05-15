@@ -8,6 +8,7 @@ import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Option;
+import com.qindesign.json.schema.Options;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
@@ -92,10 +93,11 @@ public class CoreSchema extends Keyword {
       context.schemaError("malformed schema: " + id + ": " + ex.getMessage());
       return false;
     }
-    ValidatorContext context2 = new ValidatorContext(id, spec, ids, context.knownURLs(), validated);
-    context2.setOption(Option.FORMAT, false);
-    context2.setOption(Option.COLLECT_ANNOTATIONS, false);
-    context2.setOption(Option.COLLECT_ERRORS, false);
+    Options opts2 = new Options();
+    opts2.set(Option.FORMAT, false);
+    opts2.set(Option.COLLECT_ANNOTATIONS, false);
+    opts2.set(Option.COLLECT_ERRORS, false);
+    ValidatorContext context2 = new ValidatorContext(id, spec, ids, context.knownURLs(), validated, opts2);
     if (!context2.apply(e, "", context.parentObject(), "")) {
       context.schemaError("does not validate");
       return false;

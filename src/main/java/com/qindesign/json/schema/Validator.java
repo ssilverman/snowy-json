@@ -118,12 +118,14 @@ public final class Validator {
    * @param defaultSpec the default specification to use
    * @param knownIDs any known JSON contents, searched first
    * @param knownURLs any known resources, searched second
+   * @param opts any options
    * @return the validation result.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
                                  URI baseURI, Specification defaultSpec,
-                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
+                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
+                                 Options opts)
       throws MalformedSchemaException
   {
     // First, determine the schema specification
@@ -140,8 +142,11 @@ public final class Validator {
     if (knownURLs == null) {
       knownURLs = Collections.emptyMap();
     }
+    if (opts == null) {
+      opts = new Options();
+    }
     ValidatorContext context =
-        new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet());
+        new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet(), opts);
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
@@ -153,11 +158,13 @@ public final class Validator {
       if (metaSchema != null) {
         try {
           Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
+          Options opts2 = new Options();
+          opts2.set(Option.FORMAT, false);
+          opts2.set(Option.COLLECT_ANNOTATIONS, false);
+          opts2.set(Option.COLLECT_ERRORS, false);
           ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,
-                                                           Collections.singleton(spec.id()));
-          context2.setOption(Option.FORMAT, false);
-          context2.setOption(Option.COLLECT_ANNOTATIONS, false);
-          context2.setOption(Option.COLLECT_ERRORS, false);
+                                                           Collections.singleton(spec.id()),
+                                                           opts2);
           if (!context2.apply(metaSchema, "", schema, "")) {
             throw new MalformedSchemaException("schema does not validate: " + spec.id(), baseURI);
           }

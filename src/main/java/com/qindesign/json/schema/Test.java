@@ -161,9 +161,13 @@ public class Test {
 
         // Validate the test
         logger.fine("Validating test suite: " + file);
+        Options opts = new Options();
+        opts.set(Option.FORMAT, false);
+        opts.set(Option.COLLECT_ANNOTATIONS, false);
+        opts.set(Option.COLLECT_ERRORS, false);
         try {
           if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec,
-                                  knownIDs, knownURLs)) {
+                                  knownIDs, knownURLs, opts)) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
           }
@@ -226,8 +230,10 @@ public class Test {
 
         suiteResult.total++;
         logger.fine("Testing " + uri);
+        Options opts = new Options();
+        opts.set(Option.FORMAT, true);
         try {
-          boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs);
+          boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs, opts);
           if (result != valid) {
             logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
                         ": got=" + result + " want=" + valid);

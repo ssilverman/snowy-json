@@ -39,7 +39,10 @@ public final class Options {
     defaults.put(Option.COLLECT_ERRORS, true);
   }
 
-  Options() {
+  /**
+   * Creates a new Options object.
+   */
+  public Options() {
   }
 
   /**
