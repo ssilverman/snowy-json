@@ -7,7 +7,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 

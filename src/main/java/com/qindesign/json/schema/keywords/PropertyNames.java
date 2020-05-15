@@ -8,7 +8,6 @@ import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Strings;
-import com.qindesign.json.schema.ValidationResult;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
