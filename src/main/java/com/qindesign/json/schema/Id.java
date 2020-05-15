@@ -62,7 +62,7 @@ public final class Id {
    * @return the test result.
    */
   public boolean isAnchor() {
-    return Validator.hasNonEmptyFragment(id);
+    return URIs.hasNonEmptyFragment(id);
   }
 
   /**

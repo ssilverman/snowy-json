@@ -8,6 +8,7 @@ import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -60,7 +61,7 @@ public class CoreSchema extends Keyword {
 
     // Strip off any fragment
     // TODO: Warning?
-    id = Validator.stripFragment(id);
+    id = URIs.stripFragment(id);
 
     // Check if we should validate the schema
     Set<URI> validated = context.validatedSchemas();

@@ -222,7 +222,7 @@ public final class ValidatorContext {
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
     }
-    if (Validator.hasNonEmptyFragment(baseURI)) {
+    if (URIs.hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("baseURI has a non-empty fragment");
     }
     if (baseURI.getRawFragment() == null) {
@@ -431,7 +431,7 @@ public final class ValidatorContext {
     }
 
     // Strip off the fragment, but after we know we don't know about it
-    id = Validator.stripFragment(id);
+    id = URIs.stripFragment(id);
 
     // Walk backwards until we find a matching resource or we hit the beginning
     StringBuilder sb = new StringBuilder();
@@ -740,7 +740,7 @@ public final class ValidatorContext {
           return null;
         }
 
-        if (Validator.hasNonEmptyFragment(uri)) {
+        if (URIs.hasNonEmptyFragment(uri)) {
           if (specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
             schemaError("has a non-empty fragment", path.toString() + "/" + CoreId.NAME);
             return null;
@@ -755,7 +755,7 @@ public final class ValidatorContext {
             newBase = newBase.resolve(uri);
           }
         } else {
-          newBase = newBase.resolve(Validator.stripFragment(uri));
+          newBase = newBase.resolve(URIs.stripFragment(uri));
         }
       }
 

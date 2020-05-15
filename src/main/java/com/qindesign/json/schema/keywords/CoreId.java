@@ -9,6 +9,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
+import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -40,7 +41,7 @@ public class CoreId extends Keyword {
       return false;
     }
 
-    if (Validator.hasNonEmptyFragment(id)) {
+    if (URIs.hasNonEmptyFragment(id)) {
       if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
         context.schemaError("has a non-empty fragment");
         return false;
@@ -55,7 +56,7 @@ public class CoreId extends Keyword {
         context.setBaseURI(id);
       }
     } else {
-      id = Validator.stripFragment(id);
+      id = URIs.stripFragment(id);
       context.setBaseURI(id);
     }
 

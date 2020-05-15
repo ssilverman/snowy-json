@@ -6,6 +6,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -45,7 +46,7 @@ public class CoreRecursiveRef extends Keyword {
         return false;
       }
     }
-    if (Validator.hasNonEmptyFragment(uri)) {
+    if (URIs.hasNonEmptyFragment(uri)) {
       context.schemaError("has a non-empty fragment");
       return false;
     }

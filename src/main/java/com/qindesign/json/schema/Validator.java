@@ -99,36 +99,6 @@ public class Validator {
   }
 
   /**
-   * Checks if the given URI has a non-empty fragment.
-   *
-   * @param uri the URI to check
-   * @return whether the URI has a non-empty fragment.
-   */
-  public static boolean hasNonEmptyFragment(URI uri) {
-    return (uri.getRawFragment() != null) && !uri.getRawFragment().isEmpty();
-  }
-
-  /**
-   * Strips any fragment off the given URI. If there is no fragment, even an
-   * empty one, then this returns the original URI.
-   *
-   * @param uri the URI
-   * @return a fragment-stripped URI.
-   * @throws IllegalArgumentException if there was an unexpected error creating
-   *         the new URI. This shouldn't normally need to be caught.
-   */
-  public static URI stripFragment(URI uri) {
-    if (uri.getRawFragment() == null) {
-      return uri;
-    }
-    try {
-      return new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null);
-    } catch (URISyntaxException ex) {
-      throw new IllegalArgumentException("Unexpected bad URI: " + uri, ex);
-    }
-  }
-
-  /**
    * Validates an instance against a schema. Known JSON contents and resources
    * can be added, however the IDs in the schema will override those resources
    * if there are duplicates.
@@ -218,7 +188,7 @@ public class Validator {
     try {
       URI uri = new URI(schemaVal.getAsString());
       if (uri.isAbsolute() && uri.normalize().equals(uri)) {
-        return Specification.of(stripFragment(uri));
+        return Specification.of(URIs.stripFragment(uri));
       }
     } catch (URISyntaxException ex) {
       // Ignore
@@ -248,10 +218,10 @@ public class Validator {
    */
   public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {
-    if (hasNonEmptyFragment(baseURI)) {
+    if (URIs.hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI has a non-empty fragment");
     }
-    baseURI = stripFragment(baseURI).normalize();
+    baseURI = URIs.stripFragment(baseURI).normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
     URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids, spec);
@@ -337,7 +307,7 @@ public class Validator {
                                              Strings.jsonPointerToURI(path));
         }
 
-        if (hasNonEmptyFragment(uri)) {
+        if (URIs.hasNonEmptyFragment(uri)) {
           if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
             throw new MalformedSchemaException("has a non-empty fragment",
                                                Strings.jsonPointerToURI(path));
@@ -361,7 +331,7 @@ public class Validator {
                 Strings.jsonPointerToURI(newParentID));
           }
         } else {
-          uri = stripFragment(uri);
+          uri = URIs.stripFragment(uri);
 
           Id id = new Id(baseURI.resolve(uri));
           id.value = value.getAsString();

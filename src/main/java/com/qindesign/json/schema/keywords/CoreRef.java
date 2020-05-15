@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Strings;
+import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
@@ -45,7 +46,7 @@ public class CoreRef extends Keyword {
     JsonElement e;
     String fragment = uri.getRawFragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
-      uri = Validator.stripFragment(uri);
+      uri = URIs.stripFragment(uri);
       e = context.findAndSetRoot(uri);
       if (e != null) {
         e = context.followPointer(uri, e, Strings.fragmentToJSONPointer(fragment));
