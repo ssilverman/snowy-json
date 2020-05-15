@@ -104,7 +104,7 @@ public class Test {
                                        Result specResult, Map<String, Result> results) {
     System.out.println("Results for specification: " + spec);
 
-    int maxLen = results.keySet().stream().mapToInt(String::length).max().getAsInt();
+    int maxLen = results.keySet().stream().mapToInt(String::length).max().orElse(1);
     System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s  %-9s\n", "Name", "Pass", "Fail", "Total", "Duration");
     IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
     System.out.println();
