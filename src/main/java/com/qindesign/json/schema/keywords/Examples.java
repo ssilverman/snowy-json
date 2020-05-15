@@ -27,6 +27,6 @@ public class Examples extends Keyword {
     }
 
     context.addAnnotation(NAME, value.getAsJsonArray());
-    return false;
+    return true;
   }
 }
