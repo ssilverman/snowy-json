@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /**
  * Represents a validation result. It contains a Boolean value and an optional
- * associated message.
+ * associated message. These are associated with "error"s.
  */
 public final class ValidationResult {
   public final boolean result;
@@ -37,6 +37,6 @@ public final class ValidationResult {
     if (message == null) {
       return Boolean.toString(result);
     }
-    return result + ":" + message;
+    return result + ": " + message;
   }
 }
