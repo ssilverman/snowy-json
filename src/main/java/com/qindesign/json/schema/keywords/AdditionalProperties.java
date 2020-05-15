@@ -60,6 +60,9 @@ public class AdditionalProperties extends Keyword {
           continue;
         }
         if (!context.apply(value, "", e.getValue(), e.getKey())) {
+          if (context.isFailFast()) {
+            return false;
+          }
           context.addError(
               false,
               "additional property \"" + Strings.jsonString(e.getKey()) +

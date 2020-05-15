@@ -45,6 +45,9 @@ public class Required extends Keyword {
         return false;
       }
       if (!object.has(e.getAsString())) {
+        if (context.isFailFast()) {
+          return false;
+        }
         context.addError(
             false,
             "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found");

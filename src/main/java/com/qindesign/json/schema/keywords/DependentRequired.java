@@ -67,6 +67,9 @@ public class DependentRequired extends Keyword {
           return false;
         }
         if (!object.has(name.getAsString())) {
+          if (context.isFailFast()) {
+            return false;
+          }
           context.addError(
               false,
               "dependent property \"" + Strings.jsonString(name.getAsString()) + "\" not found");

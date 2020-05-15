@@ -66,6 +66,9 @@ public class PatternProperties extends Keyword {
         }
         if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
                            e.getValue(), e.getKey())) {
+          if (context.isFailFast()) {
+            return false;
+          }
           context.addError(
               false,
               "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +

@@ -51,6 +51,9 @@ public class Dependencies extends Keyword {
           continue;
         }
         if (!context.apply(e.getValue(), e.getKey(), instance, "")) {
+          if (context.isFailFast()) {
+            return false;
+          }
           context.addError(
               false,
               "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
@@ -75,6 +78,9 @@ public class Dependencies extends Keyword {
             return false;
           }
           if (!object.has(name.getAsString())) {
+            if (context.isFailFast()) {
+              return false;
+            }
             context.addError(
                 false,
                 "dependent property \"" + Strings.jsonString(name.getAsString()) +

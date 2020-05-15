@@ -47,6 +47,9 @@ public class Properties extends Keyword {
         continue;
       }
       if (!context.apply(schemaObject.get(e.getKey()), e.getKey(), e.getValue(), e.getKey())) {
+        if (context.isFailFast()) {
+          return false;
+        }
         context.addError(false, "property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
         retval = false;
         context.setCollectAnnotations(false);

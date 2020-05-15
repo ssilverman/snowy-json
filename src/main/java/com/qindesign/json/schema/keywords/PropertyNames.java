@@ -33,6 +33,9 @@ public class PropertyNames extends Keyword {
 
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", new JsonPrimitive(name), name)) {
+        if (context.isFailFast()) {
+          return false;
+        }
         context.addError(false, "property name \"" + Strings.jsonString(name) + "\" not valid");
         retval = false;
         context.setCollectAnnotations(false);

@@ -43,6 +43,9 @@ public class UniqueItems extends Keyword {
     int index = 0;
     for (JsonElement e : instance.getAsJsonArray()) {
       if (!set.add(e)) {
+        if (context.isFailFast()) {
+          return false;
+        }
         context.addError(false, "item " + index + " not unique");
         retval = false;
         context.setCollectAnnotations(false);
