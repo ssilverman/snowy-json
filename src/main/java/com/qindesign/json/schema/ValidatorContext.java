@@ -573,11 +573,14 @@ public final class ValidatorContext {
   }
 
   /**
-   * Adds an error "annotation" to the current instance location. This throws a
+   * Adds an error annotation to the current instance location. This throws a
    * {@link MalformedSchemaException} if the value is not unique. This helps
    * detect infinite loops.
    * <p>
    * The message can be {@code null} to indicate no message.
+   * <p>
+   * The annotation will be named "error" for failed validations and
+   * "annotation" for successful validations.
    *
    * @param result the validation result
    * @param message the error message, may be {@code null}
@@ -588,7 +591,7 @@ public final class ValidatorContext {
       return;
     }
 
-    Annotation a = new Annotation("error");
+    Annotation a = new Annotation(result ? "annotation" : "error");
     a.instanceLocation = state.instanceLocation;
     a.keywordLocation = state.keywordLocation;
     a.absKeywordLocation = state.absKeywordLocation;
