@@ -65,8 +65,8 @@ public final class ValidatorContext {
   /**
    * Tracks context state.
    */
-  private static final class State implements Cloneable {
-    private State() {
+  private static final class State {
+    State() {
     }
 
     /**
@@ -97,14 +97,23 @@ public final class ValidatorContext {
     /** Flag that indicates whether to collect annotations, an optimization. */
     boolean isCollectSubAnnotations;
 
-    @Override
-    protected Object clone() {
-      try {
-        return super.clone();
-      } catch (CloneNotSupportedException ex) {
-        logger.log(Level.SEVERE, "Unexpected", ex);
-        throw new RuntimeException("Unexpected", ex);
-      }
+    /**
+     * Copies and returns the object.
+     */
+    State copy() {
+      State copy = new State();
+      copy.schemaObject = this.schemaObject;
+      copy.isRoot = this.isRoot;
+      copy.baseURI = this.baseURI;
+      copy.spec = this.spec;
+      copy.prevRecursiveBaseURI = this.prevRecursiveBaseURI;
+      copy.recursiveBaseURI = this.recursiveBaseURI;
+      copy.keywordParentLocation = this.keywordParentLocation;
+      copy.keywordLocation = this.keywordLocation;
+      copy.absKeywordLocation = this.absKeywordLocation;
+      copy.instanceLocation = this.instanceLocation;
+      copy.isCollectSubAnnotations = this.isCollectSubAnnotations;
+      return copy;
     }
   }
 
@@ -833,8 +842,7 @@ public final class ValidatorContext {
     String instanceLocation = resolvePointer(state.instanceLocation, instancePath);
 
     State parentState = state;
-    state = (State) state.clone();
-    assert state != null;
+    state = state.copy();
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
     state.keywordParentLocation = keywordLocation;
