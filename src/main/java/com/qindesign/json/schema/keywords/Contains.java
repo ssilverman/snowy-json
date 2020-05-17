@@ -54,7 +54,8 @@ public class Contains extends Keyword {
     }
 
     if (allowZero || validCount > 0) {
-      context.addAnnotation("contains", validCount);
+      context.addAnnotation(NAME, validCount);
+      context.addLocalAnnotation(NAME, validCount);
       return true;
     }
     return false;

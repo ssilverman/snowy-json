@@ -98,7 +98,14 @@ public final class ValidatorContext {
     boolean isCollectSubAnnotations;
 
     /**
-     * Copies and returns the object.
+     * Annotations local only to this schema instance and none of
+     * its descendants.
+     */
+    Map<String, Object> localAnnotations = new HashMap<>();
+
+    /**
+     * Copies and returns the object. This does not copy anything that needs to
+     * remain "local".
      */
     State copy() {
       State copy = new State();
@@ -282,6 +289,13 @@ public final class ValidatorContext {
    */
   public boolean isFormat() {
     return isFormat;
+  }
+
+  /**
+   * Returns whether annotations are being collected.
+   */
+  public boolean isCollectAnnotations() {
+    return isCollectAnnotations;
   }
 
   /**
@@ -511,6 +525,9 @@ public final class ValidatorContext {
    * Adds an annotation to the current instance location. This throws a
    * {@link MalformedSchemaException} if the value is not unique. This helps
    * detect infinite loops.
+   * <p>
+   * This does not add the annotations if the context is not configured to
+   * do so.
    *
    * @param name the annotation name
    * @param value the annotation value
@@ -533,6 +550,24 @@ public final class ValidatorContext {
         .putIfAbsent(state.keywordLocation, a);
     if (oldA != null) {
       throw new MalformedSchemaException("annotation not unique: possible infinite loop",
+                                         state.absKeywordLocation);
+    }
+  }
+
+  /**
+   * Adds an annotation whether annotation collection is disabled or not, and
+   * local only to the current schema instance and not any of its descendants.
+   * <p>
+   * Some keywords depend on the presence of "local" annotations that apply to
+   * the current schema.
+   *
+   * @param name the annotation name
+   * @param value the annotation value
+   * @throws MalformedSchemaException if the addition is not unique.
+   */
+  public void addLocalAnnotation(String name, Object value) throws MalformedSchemaException {
+    if (state.localAnnotations.putIfAbsent(name, value) != null) {
+      throw new MalformedSchemaException("local annotation not unique: possible infinite loop",
                                          state.absKeywordLocation);
     }
   }
@@ -596,13 +631,25 @@ public final class ValidatorContext {
    * the given name.
    *
    * @param name the annotation name
-   * @return a map keyed by schema location
+   * @return a map keyed by schema location.
    */
-  public Map<String, Annotation> getAnnotations(String name) {
+  public Map<String, Annotation> annotations(String name) {
     return Collections.unmodifiableMap(
         annotations
             .getOrDefault(state.instanceLocation, Collections.emptyMap())
             .getOrDefault(name, Collections.emptyMap()));
+  }
+
+  /**
+   * Gets the local annotation having the given name. This returns {@code null}
+   * if the annotation does not exist.
+   *
+   * @param name the annotation name
+   * @return the local annotation, or {@code null} if there's no annotation by
+   *         that name.
+   */
+  public Object localAnnotation(String name) {
+    return state.localAnnotations.get(name);
   }
 
   /**

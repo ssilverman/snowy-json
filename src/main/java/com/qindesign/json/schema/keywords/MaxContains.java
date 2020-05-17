@@ -49,13 +49,12 @@ public class MaxContains extends Keyword {
       return true;
     }
 
-    Map<String, Annotation> contains = context.getAnnotations(Contains.NAME);
-    Annotation a = contains.get(context.schemaParentLocation() + "/" + Contains.NAME);//))=-;
-    if (a == null) {
+    Object containsA = context.localAnnotation(Contains.NAME);
+    if (!(containsA instanceof Integer)) {
       return true;
     }
 
-    BigDecimal v = BigDecimal.valueOf(((Integer) a.value).longValue());
+    BigDecimal v = BigDecimal.valueOf(((Integer) containsA).longValue());
     if (n.compareTo(v) < 0) {
       context.addError(false, "want at most " + n + " contains, got" + v);
       return false;

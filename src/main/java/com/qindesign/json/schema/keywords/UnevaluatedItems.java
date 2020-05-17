@@ -29,6 +29,10 @@ public class UnevaluatedItems extends Keyword {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
     }
+    if (!context.isCollectAnnotations()) {
+      context.schemaError("annotations are not being collected");
+      return false;
+    }
 
     context.checkValidSchema(value);
 
@@ -56,15 +60,15 @@ public class UnevaluatedItems extends Keyword {
       return false;
     };
 
-    if (f.apply(context.getAnnotations(AdditionalItems.NAME))) {
+    if (f.apply(context.annotations(AdditionalItems.NAME))) {
       return true;
     }
-    if (f.apply(context.getAnnotations(UnevaluatedItems.NAME))) {
+    if (f.apply(context.annotations(UnevaluatedItems.NAME))) {
       return true;
     }
 
     // "items"
-    Map<String, Annotation> annotations = context.getAnnotations(Items.NAME);
+    Map<String, Annotation> annotations = context.annotations(Items.NAME);
     for (var e : annotations.entrySet()) {
       if (!e.getKey().startsWith(loc)) {
         continue;

@@ -5,13 +5,11 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,17 +35,15 @@ public class AdditionalProperties extends Keyword {
     Set<String> validated = new HashSet<>();
 
     // "properties"
-    Map<String, Annotation> annotations = context.getAnnotations(Properties.NAME);
-    Annotation a = annotations.get(context.schemaParentLocation() + "/" + Properties.NAME);
-    if (a != null && a.value instanceof Set<?>) {
-      validated.addAll((Set<String>) a.value);
+    Object propsA = context.localAnnotation(Properties.NAME);
+    if (propsA instanceof Set<?>) {
+      validated.addAll((Set<String>) propsA);
     }
 
     // "patternProperties"
-    annotations = context.getAnnotations(PatternProperties.NAME);
-    a = annotations.get(context.schemaParentLocation() + "/" + PatternProperties.NAME);
-    if (a != null && a.value instanceof Set<?>) {
-      validated.addAll((Set<String>) a.value);
+    propsA = context.localAnnotation(PatternProperties.NAME);
+    if (propsA instanceof Set<?>) {
+      validated.addAll((Set<String>) propsA);
     }
 
     boolean retval = true;

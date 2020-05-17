@@ -82,6 +82,7 @@ public class PatternProperties extends Keyword {
 
     if (retval) {
       context.addAnnotation(NAME, validated);
+      context.addLocalAnnotation(NAME, validated);
     }
     return retval;
   }

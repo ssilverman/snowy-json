@@ -5,11 +5,9 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
-import java.util.Map;
 
 /**
  * Implements the "additionalItems" applicator.
@@ -30,28 +28,21 @@ public class AdditionalItems extends Keyword {
     if (items == null || items.isJsonObject()) {
       return true;
     }
+    if (!items.isJsonArray()) {
+      // Let the Items keyword validate
+      return true;
+    }
 
     if (!instance.isJsonArray()) {
       return true;
     }
 
-    int processedCount = 0;
+    JsonArray schemaArray = items.getAsJsonArray();
+    JsonArray array = instance.getAsJsonArray();
 
-    Map<String, Annotation> annotations = context.getAnnotations(Items.NAME);
-    Annotation a = annotations.get(context.schemaParentLocation() + "/" + Items.NAME);
-    if (a != null) {
-      if (a.value instanceof Boolean) {
-        if ((Boolean) a.value) {
-          return true;
-        }
-      } else if (a.value instanceof Integer) {
-        processedCount = (Integer) a.value;
-      }
-    }
-
+    int processedCount = Math.min(schemaArray.size(), array.size());
     boolean retval = true;
 
-    JsonArray array = instance.getAsJsonArray();
     for (int i = processedCount; i < array.size(); i++) {
       if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
         if (context.isFailFast()) {
@@ -64,7 +55,11 @@ public class AdditionalItems extends Keyword {
     }
 
     if (retval) {
-      context.addAnnotation(NAME, true);
+      // Don't produce annotations if this keyword is not applied
+      // TODO: Verify this restriction
+      if (processedCount < array.size()) {
+        context.addAnnotation(NAME, true);
+      }
     }
     return retval;
   }

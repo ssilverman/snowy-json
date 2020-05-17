@@ -33,6 +33,10 @@ public class UnevaluatedProperties extends Keyword {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
     }
+    if (!context.isCollectAnnotations()) {
+      context.schemaError("annotations are not being collected");
+      return false;
+    }
 
     context.checkValidSchema(value);
 
@@ -58,10 +62,10 @@ public class UnevaluatedProperties extends Keyword {
       }
     };
 
-    f.accept(context.getAnnotations(Properties.NAME));
-    f.accept(context.getAnnotations(PatternProperties.NAME));
-    f.accept(context.getAnnotations(AdditionalProperties.NAME));
-    f.accept(context.getAnnotations(NAME));
+    f.accept(context.annotations(Properties.NAME));
+    f.accept(context.annotations(PatternProperties.NAME));
+    f.accept(context.annotations(AdditionalProperties.NAME));
+    f.accept(context.annotations(NAME));
 
     boolean retval = true;
 
