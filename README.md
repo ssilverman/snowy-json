@@ -1,6 +1,6 @@
 # Snow, a JSON Validator
 
-Version: 0.3.0
+Version: 0.4.0
 
 The main goal of this project is to be a reference JSON validator.
 
@@ -24,6 +24,7 @@ This project has the following features:
 7. There's rudimentary infinite loop detection, but only if error or annotation
    collection is enabled. It works by detecting that a previous keyword has been
    applied to the same instance location.
+8. Specification detection heuristics for when there's no $schema declared.
 
 I'd love to say this: "The validator isn't wrong, the spec is ambiguous."™
 Realistic? No, but fun to say anyway.
