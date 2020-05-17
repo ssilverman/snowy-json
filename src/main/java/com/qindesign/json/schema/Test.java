@@ -56,13 +56,13 @@ public class Test {
       return;
     }
 
-    File root = new File(args[0]);
-    if (!root.isDirectory()) {
+    Path root = Path.of(args[0]);
+    if (!root.toFile().isDirectory()) {
       logger.severe("Not a directory: " + args[0]);
       System.exit(1);
     }
 
-    File testSchemaFile = root.toPath().resolve(TEST_SCHEMA).toFile();
+    File testSchemaFile = root.resolve(TEST_SCHEMA).toFile();
 
     // Load the test schema
     JsonElement testSchema = JSON.parse(testSchemaFile);
@@ -70,7 +70,7 @@ public class Test {
 
     Map<URI, JsonElement> knownIDs = Collections.emptyMap();
     Map<URI, URL> knownURLs = Map.of(URI.create("http://localhost:1234"),
-                                     root.toPath().resolve("remotes").toUri().toURL());
+                                     root.resolve("remotes").toUri().toURL());
 
     for (Specification spec : Specification.values()) {
       if (!testDirs.containsKey(spec)) {
@@ -79,15 +79,15 @@ public class Test {
 
       System.out.println();
 
-      File testDir = root.toPath().resolve("tests/" + testDirs.get(spec)).toFile();
-      if (!testDir.isDirectory()) {
+      Path testDir = root.resolve("tests/" + testDirs.get(spec));
+      if (!testDir.toFile().isDirectory()) {
         logger.severe("Not a directory: " + testDir);
         continue;
       }
 
       logger.info("Running tests: " + spec);
       Map<String, Result> results = new TreeMap<>();
-      Result specResult = runSpec(testDir, testSchema, testSchemaFile, results, spec,
+      Result specResult = runSpec(root, testDir, testSchema, testSchemaFile, results, spec,
                                   knownIDs, knownURLs);
       printSpecResults(spec, specResult, results);
     }
@@ -146,7 +146,7 @@ public class Test {
    * @param knownURLs any known resources
    * @return the test results.
    */
-  private static Result runSpec(File dir, JsonElement testSchema, File testSchemaFile,
+  private static Result runSpec(Path root, Path dir, JsonElement testSchema, File testSchemaFile,
                                 Map<String, Result> results, Specification spec,
                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
       throws IOException {
@@ -154,7 +154,7 @@ public class Test {
     long start = System.currentTimeMillis();
 
     // Validate and test as we go
-    Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<>() {
+    Files.walkFileTree(dir, new SimpleFileVisitor<>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         JsonElement instance = JSON.parse(file.toFile());
@@ -177,11 +177,11 @@ public class Test {
         }
 
         // Run the suite
-        Result r = runSuite(file, instance.getAsJsonArray(), spec, knownIDs, knownURLs);
+        Result r = runSuite(root, file, instance.getAsJsonArray(), spec, knownIDs, knownURLs);
         result.total += r.total;
         result.passed += r.passed;
         result.duration += r.duration;
-        results.put(dir.toPath().relativize(file).toString(), r);
+        results.put(dir.relativize(file).toString(), r);
 
         return FileVisitResult.CONTINUE;
       }
@@ -194,6 +194,7 @@ public class Test {
   /**
    * Runs a set of tests.
    *
+   * @param root the test root, for better error printing
    * @param file the suite file
    * @param suite the suite JSON tree
    * @param spec the specification
@@ -201,7 +202,7 @@ public class Test {
    * @param knownURLs any known resources
    * @return the suite results.
    */
-  private static Result runSuite(Path file, JsonArray suite, Specification spec,
+  private static Result runSuite(Path root, Path file, JsonArray suite, Specification spec,
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs) {
     Result suiteResult = new Result();
     long start = System.currentTimeMillis();
@@ -235,14 +236,16 @@ public class Test {
         try {
           boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs, opts);
           if (result != valid) {
-            logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
+            logger.info(root.toUri().relativize(uri) + ": Bad result: " +
+                        groupDescription + ": " + description +
                         ": got=" + result + " want=" + valid);
           } else {
             suiteResult.passed++;
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
-            logger.info(uri + ": Bad result: " + groupDescription + ": " + description +
+            logger.info(root.toUri().relativize(uri) + ": Bad result: " +
+                        groupDescription + ": " + description +
                         ": got=Malformed schema: " + ex.getMessage());
           } else {
             suiteResult.passed++;
