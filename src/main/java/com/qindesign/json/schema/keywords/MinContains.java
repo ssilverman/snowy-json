@@ -4,7 +4,6 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
-import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
@@ -12,7 +11,6 @@ import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * Implements the "minContains" assertion.
