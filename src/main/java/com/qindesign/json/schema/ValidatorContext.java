@@ -101,7 +101,7 @@ public final class ValidatorContext {
      * Annotations local only to this schema instance and none of
      * its descendants.
      */
-    Map<String, Object> localAnnotations = new HashMap<>();
+    final Map<String, Object> localAnnotations = new HashMap<>();
 
     /**
      * Copies and returns the object. This does not copy anything that needs to
