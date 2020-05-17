@@ -81,7 +81,7 @@ public class UnevaluatedItems extends Keyword {
         return true;
       }
       if (v instanceof Integer) {
-        max = Math.max(max, (Integer) v);
+        max = Math.max(max, (Integer) v + 1);
       }
     }
 

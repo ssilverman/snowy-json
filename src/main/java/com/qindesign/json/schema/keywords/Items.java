@@ -52,9 +52,9 @@ public class Items extends Keyword {
         }
       }
       if (retval) {
-        if (limit < array.size()) {
-          // NOTE: The spec expects the largest index, but we're using the count
-          context.addAnnotation(NAME, limit);
+        // TODO: Produce an annotation if items is empty?
+        if (0 < limit && limit < array.size()) {
+          context.addAnnotation(NAME, limit - 1);
         } else {
           context.addAnnotation(NAME, true);
         }
