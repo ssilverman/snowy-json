@@ -71,7 +71,11 @@ public class AdditionalProperties extends Keyword {
     }
 
     if (retval) {
-      context.addAnnotation(NAME, thisValidated);
+      // There's a good chance that no annotation should be collected if the
+      // keyword is not applied
+      if (thisValidated.size() > 0) {
+        context.addAnnotation(NAME, thisValidated);
+      }
     }
     return retval;
   }
