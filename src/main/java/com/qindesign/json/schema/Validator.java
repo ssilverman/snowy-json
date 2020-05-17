@@ -3,22 +3,30 @@
  */
 package com.qindesign.json.schema;
 
+import com.google.common.graph.Traverser;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreSchema;
+import com.qindesign.json.schema.keywords.Format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Validator tools.
@@ -49,6 +57,45 @@ public final class Validator {
             }
             return url;
           }));
+
+  private static final Set<String> NEW_KEYWORDS_DRAFT_2019_09 = Set.of(
+      "$anchor",
+      "$defs",
+      "$recursiveAnchor",
+      "$recursiveRef",
+      "$vocabulary",
+      "dependentSchemas",
+      "unevaluatedItems",
+      "unevaluatedProperties",
+      "dependentRequired",
+      "maxContains",
+      "minContains",
+      "contentSchema",
+      "deprecated");
+  private static final Set<String> OLD_KEYWORDS_DRAFT_2019_09 = Set.of(
+      "definitions",
+      "dependencies");
+  private static final Set<String> NEW_FORMATS_DRAFT_2019_09 = Set.of(
+      "duration",
+      "uuid");
+  private static final Set<String> NEW_KEYWORDS_DRAFT_07 = Set.of(
+      "$comment",
+      "if",
+      "then",
+      "else",
+      "readOnly",
+      "writeOnly",
+      "contentMediaType",
+      "contentEncoding");
+  private static final Set<String> NEW_FORMATS_DRAFT_07 = Set.of(
+      "iri",
+      "iri-reference",
+      "idn-email",
+      "idn-hostname",
+      "relative-json-pointer",
+      "regex",
+      "date",
+      "time");
 
   /**
    * @see <a href="https://www.w3.org/TR/2006/REC-xml-names11-20060816/#NT-NCName">Namespaces in XML 1.1 (Second Edition): NCName</a>
@@ -261,14 +308,17 @@ public final class Validator {
    * Determines the specification of a schema. The heuristics are:
    * <ul>
    * <li>Examine any $schema keyword to see if the value is valid and known</li>
+   * <li>Keywords present in only one of the specs</li>
+   * <li>Formats present in only one of the specs</li>
    * </ul>
    * <p>
-   * This returns {@code null} if a specification could not otherwise
-   * be identified.
+   * This returns {@code null} if a specification could not be identified or if
+   * none of the specifications are likely to be valid.
    *
    * @param schema the schema object
    * @return the specification, or {@code null} if one could not be determined.
    */
+  @SuppressWarnings("UnstableApiUsage")
   public static Specification determineSpecification(JsonElement schema) {
     if (!schema.isJsonObject()) {
       return null;
@@ -278,20 +328,160 @@ public final class Validator {
 
     // Use all the things we know about $schema
     JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
-    if (schemaVal == null || !isString(schemaVal)) {
-      return null;
-    }
-
-    try {
-      URI uri = new URI(schemaVal.getAsString());
-      if (uri.isAbsolute() && uri.normalize().equals(uri)) {
-        return Specification.of(URIs.stripFragment(uri));
+    if (schemaVal != null && isString(schemaVal)) {
+      try {
+        URI uri = new URI(schemaVal.getAsString());
+        // Don't check if it's normalized because it may become a valid spec
+        if (uri.isAbsolute()) {
+          return Specification.of(URIs.stripFragment(uri.normalize()));
+        }
+      } catch (URISyntaxException ex) {
+        // Ignore and continue
       }
-    } catch (URISyntaxException ex) {
-      // Ignore
     }
 
-    return null;
+    // Heuristics
+
+    // New keywords in Draft 2019-09:
+    // * Core
+    //   * $anchor
+    //   * $defs
+    //   * $recursiveAnchor
+    //   * $recursiveRef
+    //   * $vocabulary
+    // * Applicator
+    //   * dependentSchemas
+    //   * unevaluatedItems
+    //   * unevaluatedProperties
+    // * Validation
+    //   * dependentRequired
+    //   * maxContains
+    //   * minContains
+    // * Content
+    //   * contentSchema
+    // * Meta-data
+    //   * deprecated
+    //
+    // Formats; may have been used flexibly
+    // * "duration"
+    // * "uuid"
+    //
+    // Semantic changes:
+    // * No plain name fragments in $id
+    //   * May be erroneously present
+    // * $ref allows siblings
+    //   * May be erroneously in earlier drafts
+
+    // Keywords removed from Draft-07
+    // * definitions
+    //   * May erroneously be in later drafts
+    // * dependencies
+
+    // New keywords in Draft-07:
+    // * Core
+    //   * $comment
+    // * Validation
+    //   * if, then, else
+    //   * readOnly
+    //   * writeOnly
+    //   * contentMediaType
+    //   * contentEncoding
+    //
+    // Formats; may have been used flexibly
+    // * "iri"
+    // * "iri-reference"
+    // * "idn-email"
+    // * "idn-hostname"
+    // * "relative-json-pointer"
+    // * "regex"
+    // * "date"
+    // * "time"
+
+    Set<Specification> couldBe = new HashSet<>();
+    Set<Specification> cantBe = new HashSet<>();
+
+    int specsSize = Specification.values().length;
+
+    // Collect everything into "could be" and "can't be" sets
+    Traverser<JsonObject> traverser = Traverser.forTree(
+        node ->
+            node.entrySet().stream()
+                .filter(e -> e.getValue().isJsonObject())
+                .map(e -> e.getValue().getAsJsonObject())
+                .collect(Collectors.toUnmodifiableList()));
+    StreamSupport
+        .stream(traverser.depthFirstPreOrder(schema.getAsJsonObject()).spliterator(), false)
+        .flatMap(o -> o.entrySet().stream())
+        .allMatch(e -> {
+          // Look into the keyword
+          switch (e.getKey()) {
+            case CoreId.NAME:
+              if (isString(e.getValue())) {
+                try {
+                  if (URIs.hasNonEmptyFragment(new URI(e.getValue().getAsString()))) {
+                    cantBe.add(Specification.DRAFT_2019_09);
+                    couldBe.add(Specification.DRAFT_07);
+                    couldBe.add(Specification.DRAFT_06);
+                  } else {
+                    couldBe.add(Specification.DRAFT_2019_09);
+                    couldBe.add(Specification.DRAFT_07);
+                    couldBe.add(Specification.DRAFT_06);
+                  }
+                } catch (URISyntaxException ex) {
+                  // Ignore and continue
+                }
+              }
+              break;
+
+            case Format.NAME:
+              if (isString(e.getValue())) {
+                String format = e.getValue().getAsString();
+                if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
+                  couldBe.add(Specification.DRAFT_2019_09);
+                  cantBe.add(Specification.DRAFT_07);
+                  cantBe.add(Specification.DRAFT_06);
+                } else if (NEW_FORMATS_DRAFT_07.contains(format)) {
+                  couldBe.add(Specification.DRAFT_2019_09);
+                  couldBe.add(Specification.DRAFT_07);
+                  cantBe.add(Specification.DRAFT_06);
+                } else {
+                  couldBe.add(Specification.DRAFT_2019_09);
+                  couldBe.add(Specification.DRAFT_07);
+                  couldBe.add(Specification.DRAFT_06);
+                }
+              }
+              break;
+
+            default:
+              if (NEW_KEYWORDS_DRAFT_2019_09.contains(e.getKey())) {
+                // Ignore if there are old keywords because they'll get ignored
+                // during processing
+                couldBe.add(Specification.DRAFT_2019_09);
+                cantBe.add(Specification.DRAFT_07);
+                cantBe.add(Specification.DRAFT_06);
+              } else if (NEW_KEYWORDS_DRAFT_07.contains(e.getKey())) {
+                couldBe.add(Specification.DRAFT_2019_09);
+                couldBe.add(Specification.DRAFT_07);
+                cantBe.add(Specification.DRAFT_06);
+              } else if (OLD_KEYWORDS_DRAFT_2019_09.contains(e.getKey())) {
+                cantBe.add(Specification.DRAFT_2019_09);
+                couldBe.add(Specification.DRAFT_07);
+                couldBe.add(Specification.DRAFT_06);
+              } else {
+                couldBe.add(Specification.DRAFT_2019_09);
+                couldBe.add(Specification.DRAFT_07);
+                couldBe.add(Specification.DRAFT_06);
+              }
+          }
+
+          // Don't continue if it can't be any of the specs
+          return (cantBe.size() < specsSize);
+        });
+
+    // Remove all the "can't be" values from the "could be" set
+    return couldBe.stream()
+        .filter(spec -> !cantBe.contains(spec))
+        .max(Comparator.naturalOrder()).orElse(null);
   }
 
   /**
