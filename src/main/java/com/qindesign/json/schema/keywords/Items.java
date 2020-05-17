@@ -52,7 +52,12 @@ public class Items extends Keyword {
         }
       }
       if (retval) {
-        context.addAnnotation(Items.NAME, limit);
+        if (limit < array.size()) {
+          // NOTE: The spec expects the largest index, but we're using the count
+          context.addAnnotation(NAME, limit);
+        } else {
+          context.addAnnotation(NAME, true);
+        }
       }
     } else {
       int index = 0;
@@ -68,7 +73,7 @@ public class Items extends Keyword {
         index++;
       }
       if (retval) {
-        context.addAnnotation(Items.NAME, true);
+        context.addAnnotation(NAME, true);
       }
     }
 
