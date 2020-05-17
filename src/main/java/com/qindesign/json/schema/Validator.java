@@ -247,7 +247,7 @@ public final class Validator {
         return null;
       }
       try {
-        return Main.parse(in);
+        return JSON.parse(in);
       } catch (JsonParseException ex) {
         logger.log(Level.SEVERE, "Error parsing resource: " + uri, ex);
       }

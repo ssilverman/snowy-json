@@ -65,7 +65,7 @@ public class Test {
     File testSchemaFile = root.toPath().resolve(TEST_SCHEMA).toFile();
 
     // Load the test schema
-    JsonElement testSchema = Main.parse(testSchemaFile);
+    JsonElement testSchema = JSON.parse(testSchemaFile);
     logger.info("Loaded test schema");
 
     Map<URI, JsonElement> knownIDs = Collections.emptyMap();
@@ -157,7 +157,7 @@ public class Test {
     Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        JsonElement instance = Main.parse(file.toFile());
+        JsonElement instance = JSON.parse(file.toFile());
 
         // Validate the test
         logger.fine("Validating test suite: " + file);

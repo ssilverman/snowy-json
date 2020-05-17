@@ -486,7 +486,7 @@ public final class ValidatorContext {
       if (url != null) {
         try (InputStream in = new URL(url.toString() + sb.toString()).openStream()) {
           state.schemaObject = null;
-          return Main.parse(in);
+          return JSON.parse(in);
         } catch (IOException | JsonParseException ex) {
           // Ignore and try next
         }
