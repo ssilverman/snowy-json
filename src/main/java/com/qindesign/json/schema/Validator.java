@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.keywords.CoreId;
+import com.qindesign.json.schema.keywords.CoreRef;
 import com.qindesign.json.schema.keywords.CoreSchema;
 import com.qindesign.json.schema.keywords.Format;
 import java.io.IOException;
@@ -315,6 +316,9 @@ public final class Validator {
    * Determines the specification of a schema. The heuristics are:
    * <ul>
    * <li>Examine any $schema keyword to see if the value is valid and known</li>
+   * <li>
+   *   Examine any $ref to see if the value is valid and known as a schema
+   * </li>
    * <li>Keywords present in only one of the specs</li>
    * <li>Formats present in only one of the specs</li>
    * </ul>
@@ -338,6 +342,20 @@ public final class Validator {
     if (schemaVal != null && isString(schemaVal)) {
       try {
         URI uri = new URI(schemaVal.getAsString());
+        // Don't check if it's normalized because it may become a valid spec
+        if (uri.isAbsolute()) {
+          return Specification.of(URIs.stripFragment(uri.normalize()));
+        }
+      } catch (URISyntaxException ex) {
+        // Ignore and continue
+      }
+    }
+
+    // See if there's a $ref to a schema
+    JsonElement refVal = schema.getAsJsonObject().get(CoreRef.NAME);
+    if (refVal != null && isString(refVal)) {
+      try {
+        URI uri = new URI(refVal.getAsString());
         // Don't check if it's normalized because it may become a valid spec
         if (uri.isAbsolute()) {
           return Specification.of(URIs.stripFragment(uri.normalize()));
