@@ -12,13 +12,12 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
-import java.io.ByteArrayInputStream;
+import com.qindesign.json.schema.util.Base64InputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.regex.Matcher;
 
 /**
@@ -54,37 +53,38 @@ public class ContentMediaType extends Keyword {
     }
 
     if (context.isOption(Option.CONTENT)) {
-      // First look at the encoding
-      byte[] b = null;
-      JsonElement encoding = context.parentObject().get(ContentEncoding.NAME);
-      if (encoding != null && Validator.isString(encoding)) {
-        if (encoding.getAsString().equalsIgnoreCase("base64")) {
-          try {
-            b = Base64.getDecoder().decode(instance.getAsString());
-          } catch (IllegalArgumentException ex) {
-            context.addError(false, "bad base64 encoding");
-            return false;
-          }
-        }
-      }
-
       // Next look at the media type
       Matcher m = CONTENT_TYPE.matcher(value.getAsString());
       if (m.matches()) {
         String contentType = m.group("mediaType");
         if (contentType.equalsIgnoreCase("application/json")) {
-          Reader content;
-          if (b == null) {
-            content = new StringReader(instance.getAsString());
-          } else {
-            content =
-                new InputStreamReader(new ByteArrayInputStream(b), StandardCharsets.ISO_8859_1);
+          // Determine if Base64-encoded
+          boolean base64 = false;
+          JsonElement encoding = context.parentObject().get(ContentEncoding.NAME);
+          if (encoding != null && Validator.isString(encoding)) {
+            if (encoding.getAsString().equalsIgnoreCase("base64")) {
+              base64 = true;
+            }
           }
+
+          Reader content;
+          if (base64) {
+            content = new InputStreamReader(new Base64InputStream(instance.getAsString()),
+                                            StandardCharsets.UTF_8);
+          } else {
+            content = new StringReader(instance.getAsString());
+          }
+
           try (Reader r = content) {
             JSON.parse(r);
-          } catch (IOException | JsonParseException ex) {
-            // Ignore and fail
-            context.addError(false, "does not validate against application/json");
+          } catch (JsonParseException ex) {
+            if (ex.getCause() instanceof IOException) {
+              context.addError(false, "bad base64 encoding");
+            } else {
+              context.addError(false, "does not validate against application/json");
+            }
+            return false;
+          } catch (IOException ex) {
             return false;
           }
         }
