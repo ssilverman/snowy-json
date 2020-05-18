@@ -249,6 +249,9 @@ public class Test {
         Options opts = new Options();
         opts.set(Option.FORMAT, true);
         opts.set(Option.CONTENT, true);
+        opts.set(Option.COLLECT_ERRORS, false);  // Don't collect errors because
+                                                 // we may be validating against
+                                                 // $recursiveRefs
         try {
           boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs, opts);
           if (result != valid) {
