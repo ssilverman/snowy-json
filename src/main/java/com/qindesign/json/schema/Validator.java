@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -192,8 +193,13 @@ public final class Validator {
     if (opts == null) {
       opts = new Options();
     }
+
+    // Assume all the specs have been validated
+    Set<URI> validatedSchemas = Arrays.stream(Specification.values())
+        .map(Specification::id)
+        .collect(Collectors.toSet());
     ValidatorContext context =
-        new ValidatorContext(baseURI, spec, ids, knownURLs, Collections.emptySet(), opts);
+        new ValidatorContext(baseURI, spec, ids, knownURLs, validatedSchemas, opts);
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
