@@ -25,6 +25,8 @@ This project has the following features:
    collection is enabled. It works by detecting that a previous keyword has been
    applied to the same instance location.
 8. Specification detection heuristics for when there's no $schema declared.
+9. Content validation support for the "base64" encoding and "application/json"
+   media type.
 
 I'd love to say this: "The validator isn't wrong, the spec is ambiguous."™
 Realistic? No, but fun to say anyway.

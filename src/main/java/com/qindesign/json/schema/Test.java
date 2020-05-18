@@ -163,6 +163,7 @@ public class Test {
         logger.fine("Validating test suite: " + file);
         Options opts = new Options();
         opts.set(Option.FORMAT, false);
+        opts.set(Option.CONTENT, false);
         opts.set(Option.COLLECT_ANNOTATIONS, false);
         opts.set(Option.COLLECT_ERRORS, false);
         try {
@@ -233,6 +234,7 @@ public class Test {
         logger.fine("Testing " + uri);
         Options opts = new Options();
         opts.set(Option.FORMAT, true);
+        opts.set(Option.CONTENT, true);
         try {
           boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs, opts);
           if (result != valid) {

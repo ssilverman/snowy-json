@@ -37,6 +37,7 @@ public final class Options {
     defaults.put(Option.SPECIFICATION, Specification.DRAFT_2019_09);
     defaults.put(Option.COLLECT_ANNOTATIONS, true);
     defaults.put(Option.COLLECT_ERRORS, true);
+    defaults.put(Option.CONTENT, false);
   }
 
   /**

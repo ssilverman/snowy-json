@@ -95,6 +95,7 @@ public class CoreSchema extends Keyword {
     }
     Options opts2 = new Options();
     opts2.set(Option.FORMAT, false);
+    opts2.set(Option.CONTENT, false);
     opts2.set(Option.COLLECT_ANNOTATIONS, false);
     opts2.set(Option.COLLECT_ERRORS, false);
     ValidatorContext context2 = new ValidatorContext(id, spec, ids, context.knownURLs(), validated, opts2);

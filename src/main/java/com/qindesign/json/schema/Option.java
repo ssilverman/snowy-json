@@ -25,7 +25,10 @@ public enum Option {
    * Whether to collect errors, including both valid and invalid results,
    * a {@link Boolean}.
    */
-  COLLECT_ERRORS(Boolean.class)
+  COLLECT_ERRORS(Boolean.class),
+
+  /** Whether to validate content, a {@link Boolean}. */
+  CONTENT(Boolean.class)
   ;
 
   private final Class<?> type;

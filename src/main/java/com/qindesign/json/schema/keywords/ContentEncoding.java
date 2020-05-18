@@ -9,6 +9,7 @@ import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
+import java.util.Base64;
 
 /**
  * Implements the "contentEncoding" annotation.
@@ -34,6 +35,17 @@ public class ContentEncoding extends Keyword {
 
     if (!Validator.isString(instance)) {
       return true;
+    }
+
+    if (context.isValidateContent()) {
+      if (value.getAsString().equalsIgnoreCase("base64")) {
+        try {
+          // TODO: Don't allocate
+          Base64.getDecoder().decode(instance.getAsString());
+        } catch (IllegalArgumentException ex) {
+          return false;
+        }
+      }
     }
 
     context.addAnnotation(NAME, value.getAsString());

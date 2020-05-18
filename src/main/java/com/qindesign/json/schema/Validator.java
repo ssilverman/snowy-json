@@ -207,6 +207,7 @@ public final class Validator {
           Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
           Options opts2 = new Options();
           opts2.set(Option.FORMAT, false);
+          opts2.set(Option.CONTENT, false);
           opts2.set(Option.COLLECT_ANNOTATIONS, false);
           opts2.set(Option.COLLECT_ERRORS, false);
           ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,

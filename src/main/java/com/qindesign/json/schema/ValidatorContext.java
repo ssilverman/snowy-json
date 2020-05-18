@@ -214,6 +214,7 @@ public final class ValidatorContext {
   private final boolean isCollectAnnotations;
   private final boolean isCollectErrors;
   private final boolean isFormat;
+  private final boolean isValidateContent;
 
   /**
    * Creates a new schema context. Given is an absolute URI from where the
@@ -279,6 +280,11 @@ public final class ValidatorContext {
       val = options.get(Option.FORMAT);
     }
     isFormat = Boolean.TRUE.equals(val);
+    val = options.getForSpecification(Option.CONTENT, specification());
+    if (val == null) {
+      val = options.get(Option.CONTENT);
+    }
+    isValidateContent = Boolean.TRUE.equals(val);
     isCollectAnnotations = Boolean.TRUE.equals(options.get(Option.COLLECT_ANNOTATIONS));
     isCollectErrors = Boolean.TRUE.equals(options.get(Option.COLLECT_ERRORS));
     isFailFast = !isCollectAnnotations && !isCollectErrors;
@@ -289,6 +295,13 @@ public final class ValidatorContext {
    */
   public boolean isFormat() {
     return isFormat;
+  }
+
+  /**
+   * Returns whether the "content" option is enabled.
+   */
+  public boolean isValidateContent() {
+    return isValidateContent;
   }
 
   /**
