@@ -82,6 +82,8 @@ public class Main {
     logger.info("Guessed spec=" + Validator.determineSpecification(schema));
 
     Options opts = new Options();
+    opts.set(Option.FORMAT, true);
+    opts.set(Option.CONTENT, true);
     boolean result = Validator.validate(schema, instance, schemaID, spec,
                                         Collections.emptyMap(), Collections.emptyMap(),
                                         opts);
