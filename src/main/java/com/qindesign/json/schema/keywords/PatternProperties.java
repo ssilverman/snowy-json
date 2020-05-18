@@ -46,7 +46,7 @@ public class PatternProperties extends Keyword {
     List<java.util.regex.Pattern> patterns = new ArrayList<>(schemaObject.size());
     for (var e : schemaObject.entrySet()) {
       try {
-        patterns.add(java.util.regex.Pattern.compile(e.getKey()));
+        patterns.add(context.patternCache().access(e.getKey()));
       } catch (PatternSyntaxException ex) {
         // Technically, this is a "SHOULD" and not a "MUST"
         context.schemaError("not a valid pattern", e.getKey());

@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreRef;
+import com.qindesign.json.schema.util.LRUCache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -215,6 +216,11 @@ public final class ValidatorContext {
   private final boolean isCollectAnnotations;
   private final boolean isCollectErrors;
 
+  // Pattern cache
+  private static final int MAX_PATTERN_CACHE_SIZE = 20;
+  private LRUCache<String, java.util.regex.Pattern> patternCache =
+      new LRUCache<>(MAX_PATTERN_CACHE_SIZE, java.util.regex.Pattern::compile);
+
   /**
    * Creates a new schema context. Given is an absolute URI from where the
    * schema was obtained. The URI will be normalized.
@@ -324,6 +330,13 @@ public final class ValidatorContext {
    */
   public boolean isFailFast() {
     return isFailFast;
+  }
+
+  /**
+   * Returns the pattern cache.
+   */
+  public LRUCache<String, java.util.regex.Pattern> patternCache() {
+    return patternCache;
   }
 
   /**

@@ -31,7 +31,7 @@ public class Pattern extends Keyword {
 
     java.util.regex.Pattern p;
     try {
-      p = java.util.regex.Pattern.compile(value.getAsString());
+      p = context.patternCache().access(value.getAsString());
     } catch (PatternSyntaxException ex) {
       // Technically, this is a "SHOULD" and not a "MUST"
       context.schemaError("not a valid pattern");
