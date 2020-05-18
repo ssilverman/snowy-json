@@ -6,6 +6,7 @@ package com.qindesign.json.schema;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -65,7 +66,14 @@ public class Test {
     File testSchemaFile = root.resolve(TEST_SCHEMA).toFile();
 
     // Load the test schema
-    JsonElement testSchema = JSON.parse(testSchemaFile);
+    JsonElement testSchema;
+    try {
+      testSchema = JSON.parse(testSchemaFile);
+    } catch (JsonParseException ex) {
+      logger.log(Level.SEVERE, "Could not parse test schema: " + testSchemaFile, ex);
+      System.exit(1);
+      return;
+    }
     logger.info("Loaded test schema");
 
     Map<URI, JsonElement> knownIDs = Collections.emptyMap();
@@ -157,7 +165,13 @@ public class Test {
     Files.walkFileTree(dir, new SimpleFileVisitor<>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        JsonElement instance = JSON.parse(file.toFile());
+        JsonElement instance;
+        try {
+          instance = JSON.parse(file.toFile());
+        } catch (JsonParseException ex) {
+          logger.log(Level.WARNING, "Could not parse test suite: " + file, ex);
+          return FileVisitResult.CONTINUE;
+        }
 
         // Validate the test
         logger.fine("Validating test suite: " + file);
