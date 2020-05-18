@@ -6,6 +6,7 @@ package com.qindesign.json.schema;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -181,5 +182,87 @@ public final class Strings {
     }
 
     return sb.toString();
+  }
+
+  private static final char[] BASE64_ALPHABET = {
+      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+      'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+      'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
+  };
+
+  /**
+   * Base64 alphabet bits. -1 means not defined and -2 is the padding character.
+   * Each value is otherwise the 6-bit Base64 value. This includes the URL and
+   * filename safe alphabet, where '-' and '_' represent the values 62 and
+   * 63, respectively.
+   */
+  public static final int[] BASE64_BITS = new int[256];
+
+  static {
+    Arrays.fill(BASE64_BITS, -1);
+    for (int i = 0; i < BASE64_ALPHABET.length; i++) {
+      BASE64_BITS[BASE64_ALPHABET[i]] = i;
+    }
+    // Add the URL-safe characters
+    BASE64_BITS['-'] = 62;
+    BASE64_BITS['_'] = 63;
+    // Add the padding
+    BASE64_BITS['='] = -2;
+  }
+
+  /**
+   * Checks if a string is a valid Base64 value. Note that this allows a padding
+   * value of "====". This allows both regular Base64 and URl and filename
+   * safe Base64.
+   *
+   * @param s the Base64 string
+   * @return whether the string is a valid Base64 value.
+   */
+  public static boolean isBase64(String s) {
+    if ((s.length() & 0x03) != 0) {
+      return false;
+    }
+    char[] buf = new char[4];
+    boolean end = false;
+    for (int i = 0; i < s.length(); i += 4) {
+      if (end) {
+        return false;
+      }
+      s.getChars(i, i + 4, buf, 0);
+
+      // Check that the high bytes are all zero
+      if ((buf[0] | buf[1] | buf[2] | buf[3]) > 0xff) {
+        return false;
+      }
+      int b0 = BASE64_BITS[buf[0]];
+      int b1 = BASE64_BITS[buf[1]];
+      int b2 = BASE64_BITS[buf[2]];
+      int b3 = BASE64_BITS[buf[3]];
+      if ((b0 | b1 | b2 | b3) < 0) {
+        if (b0 < 0 || b1 < 0) {
+          // Allow "====" as a padding
+          if (b0 != -2 || b1 != -2 || b2 != -2 || b3 != -2) {
+            return false;
+          }
+        } else if (b2 < 0) {
+          if (b2 == -2) {
+            if (b3 != -2) {
+              return false;
+            }
+            // 8 bits
+          } else {
+            return false;
+          }
+        } else if (b3 != -2) {
+          return false;
+        }
+        // 16 bits
+        end = true;
+      }
+    }
+
+    return true;
   }
 }
