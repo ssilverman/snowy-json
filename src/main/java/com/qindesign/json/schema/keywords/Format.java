@@ -228,7 +228,7 @@ public class Format extends Keyword {
       }
     }
 
-    if (Boolean.FALSE.equals(vocab) && !context.isFormat()) {
+    if (Boolean.FALSE.equals(vocab) && !context.isValidateFormat()) {
       context.addAnnotation(NAME, value.getAsString());
       return true;
     }

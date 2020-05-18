@@ -213,7 +213,7 @@ public final class ValidatorContext {
   private final boolean isFailFast;
   private final boolean isCollectAnnotations;
   private final boolean isCollectErrors;
-  private final boolean isFormat;
+  private final boolean isValidateFormat;
   private final boolean isValidateContent;
 
   /**
@@ -279,7 +279,7 @@ public final class ValidatorContext {
     if (val == null) {
       val = options.get(Option.FORMAT);
     }
-    isFormat = Boolean.TRUE.equals(val);
+    isValidateFormat = Boolean.TRUE.equals(val);
     val = options.getForSpecification(Option.CONTENT, specification());
     if (val == null) {
       val = options.get(Option.CONTENT);
@@ -293,8 +293,8 @@ public final class ValidatorContext {
   /**
    * Returns whether the "format" option is enabled.
    */
-  public boolean isFormat() {
-    return isFormat;
+  public boolean isValidateFormat() {
+    return isValidateFormat;
   }
 
   /**
