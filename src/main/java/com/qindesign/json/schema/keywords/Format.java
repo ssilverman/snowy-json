@@ -8,6 +8,7 @@ import com.google.common.net.InternetDomainName;
 import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
@@ -228,7 +229,7 @@ public class Format extends Keyword {
       }
     }
 
-    if (Boolean.FALSE.equals(vocab) && !context.isValidateFormat()) {
+    if (Boolean.FALSE.equals(vocab) && !context.isOption(Option.FORMAT)) {
       context.addAnnotation(NAME, value.getAsString());
       return true;
     }

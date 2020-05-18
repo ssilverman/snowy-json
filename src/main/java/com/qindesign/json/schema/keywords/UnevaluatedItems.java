@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class UnevaluatedItems extends Keyword {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
     }
-    if (!context.isCollectAnnotations()) {
+    if (!context.isOption(Option.COLLECT_ANNOTATIONS)) {
       context.schemaError("annotations are not being collected");
       return false;
     }

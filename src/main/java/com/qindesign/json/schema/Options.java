@@ -21,8 +21,8 @@ import java.util.Objects;
  * {@code null} then {@link #get(Option)} can be used to find that default.
  */
 public final class Options {
-  static final Map<Specification, Map<Option, Object>> specDefaults = new HashMap<>();
-  static final Map<Option, Object> defaults = new HashMap<>();
+  private static final Map<Specification, Map<Option, Object>> specDefaults = new HashMap<>();
+  private static final Map<Option, Object> defaults = new HashMap<>();
 
   private final Map<Option, Object> options = new HashMap<>();
 
@@ -87,8 +87,9 @@ public final class Options {
    * returns {@code null} if the option was not found.
    * <p>
    * Note that this consults the non-specification defaults if the option has
-   * not been set. To get the option or the default for a specific
-   * specification, see {@link #getForSpecification(Option, Specification)}.
+   * not been set. To first get the option or the default for a specific
+   * specification before consulting the non-specification defaults, see
+   * {@link #getForSpecification(Option, Specification)}.
    *
    * @param option the option to retrieve
    * @return the option, or {@code null} if not set.
@@ -102,11 +103,9 @@ public final class Options {
 
   /**
    * Returns the value of the specified option or, if it's not set, the default
-   * for the given specification. This may return {@code null} if the option was
-   * not found.
-   * <p>
-   * The option may have a non-specification-specific default so it's worth also
-   * consulting {@link #get(Option)} if this returns {@code null}.
+   * for the given specification. If that's not set then this searches the
+   * non-specification-specific defaults. This may return {@code null} if the
+   * option was not found.
    *
    * @param option the option to retrieve
    * @param spec the specification for which to get the default
@@ -118,7 +117,17 @@ public final class Options {
 
     return options.getOrDefault(
         option,
-        specDefaults.getOrDefault(spec, Collections.emptyMap())
-            .get(option));
+        specDefaults
+            .getOrDefault(spec, Collections.emptyMap())
+            .getOrDefault(option, defaults.get(option)));
+  }
+
+  /**
+   * Returns a copy of these options.
+   */
+  public Options copy() {
+    Options copy = new Options();
+    copy.options.putAll(this.options);
+    return copy;
   }
 }

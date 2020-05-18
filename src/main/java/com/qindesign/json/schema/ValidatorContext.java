@@ -210,11 +210,10 @@ public final class ValidatorContext {
   private final Set<URI> validatedSchemas;
 
   // Options
+  private final Options options;
   private final boolean isFailFast;
   private final boolean isCollectAnnotations;
   private final boolean isCollectErrors;
-  private final boolean isValidateFormat;
-  private final boolean isValidateContent;
 
   /**
    * Creates a new schema context. Given is an absolute URI from where the
@@ -275,40 +274,49 @@ public final class ValidatorContext {
     state.isCollectSubAnnotations = true;
 
     // Options
-    Object val = options.getForSpecification(Option.FORMAT, specification());
-    if (val == null) {
-      val = options.get(Option.FORMAT);
-    }
-    isValidateFormat = Boolean.TRUE.equals(val);
-    val = options.getForSpecification(Option.CONTENT, specification());
-    if (val == null) {
-      val = options.get(Option.CONTENT);
-    }
-    isValidateContent = Boolean.TRUE.equals(val);
-    isCollectAnnotations = Boolean.TRUE.equals(options.get(Option.COLLECT_ANNOTATIONS));
-    isCollectErrors = Boolean.TRUE.equals(options.get(Option.COLLECT_ERRORS));
+    this.options = options.copy();
+    isCollectAnnotations = isOption(Option.COLLECT_ANNOTATIONS);
+    isCollectErrors = isOption(Option.COLLECT_ERRORS);
     isFailFast = !isCollectAnnotations && !isCollectErrors;
   }
 
   /**
-   * Returns whether the "format" option is enabled.
+   * Returns the option value, first consulting the option for the current
+   * specification, and then consulting the non-specification-specific options
+   * and defaults. This may return {@code null} if the option was not found.
+   * <p>
+   * It is up to the caller to use a sensible default if this
+   * returns {@code null}.
+   * <p>
+   * The following expression will return {@code false} when the option
+   * is {@code false} and {@code true} when the option is {@code true} or
+   * {@code null} (and will return {@code true} for any other object):
+   * <pre>!Boolean.FALSE.equals(retval)</pre>
+   * <p>
+   * The following expression will return {@code true} when the option is
+   * {@code true} and {@code false} otherwise:
+   * <pre>Boolean.TRUE.equals(retval)</pre>
+   * <p>
+   * The difference is in the behaviour when the option is absent. The first
+   * expression will default to {@code true} and the second expression will
+   * default to {@code false}.
+   *
+   * @param opt the option to retrieve
+   * @return the option value, or {@code null} if it was not found.
    */
-  public boolean isValidateFormat() {
-    return isValidateFormat;
+  public Object option(Option opt) {
+    return options.getForSpecification(opt, specification());
   }
 
   /**
-   * Returns whether the "content" option is enabled.
+   * Returns {@code true} if the option is present and equal to Boolean true,
+   * and {@code false} otherwise.
+   *
+   * @param opt the option to test
+   * @return {@code true} if the option is Boolean true.
    */
-  public boolean isValidateContent() {
-    return isValidateContent;
-  }
-
-  /**
-   * Returns whether annotations are being collected.
-   */
-  public boolean isCollectAnnotations() {
-    return isCollectAnnotations;
+  public boolean isOption(Option opt) {
+    return Boolean.TRUE.equals(option(opt));
   }
 
   /**

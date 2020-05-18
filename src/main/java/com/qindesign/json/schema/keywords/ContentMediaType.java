@@ -8,6 +8,7 @@ import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
+import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
@@ -52,7 +53,7 @@ public class ContentMediaType extends Keyword {
       return true;
     }
 
-    if (context.isValidateContent()) {
+    if (context.isOption(Option.CONTENT)) {
       // First look at the encoding
       byte[] b = null;
       JsonElement encoding = context.parentObject().get(ContentEncoding.NAME);
