@@ -180,8 +180,9 @@ public class Test {
         opts.set(Option.CONTENT, false);
         opts.set(Option.COLLECT_ANNOTATIONS, false);
         opts.set(Option.COLLECT_ERRORS, false);
+        opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
-          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(), spec,
+          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(),
                                   knownIDs, knownURLs, opts)) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
@@ -252,8 +253,9 @@ public class Test {
         opts.set(Option.COLLECT_ERRORS, false);  // Don't collect errors because
                                                  // we may be validating against
                                                  // $recursiveRefs
+        opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
-          boolean result = Validator.validate(schema, data, uri, spec, knownIDs, knownURLs, opts);
+          boolean result = Validator.validate(schema, data, uri, knownIDs, knownURLs, opts);
           if (result != valid) {
             logger.info(root.toUri().relativize(uri) + ": Bad result: " +
                         groupDescription + ": " + description +

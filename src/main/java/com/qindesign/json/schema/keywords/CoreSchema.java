@@ -98,7 +98,8 @@ public class CoreSchema extends Keyword {
     opts2.set(Option.CONTENT, false);
     opts2.set(Option.COLLECT_ANNOTATIONS, false);
     opts2.set(Option.COLLECT_ERRORS, false);
-    ValidatorContext context2 = new ValidatorContext(id, spec, ids, context.knownURLs(), validated, opts2);
+    opts2.set(Option.DEFAULT_SPECIFICATION, spec);
+    ValidatorContext context2 = new ValidatorContext(id, ids, context.knownURLs(), validated, opts2);
     if (!context2.apply(e, "", context.parentObject(), "")) {
       context.schemaError("does not validate");
       return false;

@@ -64,12 +64,13 @@ public class Main {
     schema = JSON.parse(new File(args[0]));
     instance = JSON.parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
-    logger.info("Guessed spec=" + Validator.determineSpecification(schema));
+    logger.info("Guessed spec=" + Validator.determineSpecification(schema, true));
 
     Options opts = new Options();
     opts.set(Option.FORMAT, true);
     opts.set(Option.CONTENT, true);
-    boolean result = Validator.validate(schema, instance, schemaID, spec,
+    opts.set(Option.DEFAULT_SPECIFICATION, spec);
+    boolean result = Validator.validate(schema, instance, schemaID,
                                         Collections.emptyMap(), Collections.emptyMap(),
                                         opts);
     logger.info("Validation result: " + result);

@@ -164,7 +164,6 @@ public final class Validator {
    * @param schema the schema
    * @param instance the instance
    * @param baseURI the schema's base URI
-   * @param defaultSpec the default specification to use
    * @param knownIDs any known JSON contents, searched first
    * @param knownURLs any known resources, searched second
    * @param opts any options
@@ -172,15 +171,21 @@ public final class Validator {
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
-                                 URI baseURI, Specification defaultSpec,
+                                 URI baseURI,
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
                                  Options opts)
       throws MalformedSchemaException
   {
+    if (opts == null) {
+      opts = new Options();
+    }
+
     // First, determine the schema specification
-    Specification spec = determineSpecification(schema);
+    Specification spec = determineSpecification(schema, false);
     boolean isDefaultSpec = (spec == null);
-    spec = defaultSpec;
+    if (isDefaultSpec) {
+      spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+    }
 
     // Prepare the schema and instance
     // This is so we have a ValidatorContext we can use during schema validation
@@ -191,16 +196,13 @@ public final class Validator {
     if (knownURLs == null) {
       knownURLs = Collections.emptyMap();
     }
-    if (opts == null) {
-      opts = new Options();
-    }
 
     // Assume all the specs have been validated
     Set<URI> validatedSchemas = Arrays.stream(Specification.values())
         .map(Specification::id)
         .collect(Collectors.toSet());
     ValidatorContext context =
-        new ValidatorContext(baseURI, spec, ids, knownURLs, validatedSchemas, opts);
+        new ValidatorContext(baseURI, ids, knownURLs, validatedSchemas, opts);
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
@@ -217,7 +219,8 @@ public final class Validator {
           opts2.set(Option.CONTENT, false);
           opts2.set(Option.COLLECT_ANNOTATIONS, false);
           opts2.set(Option.COLLECT_ERRORS, false);
-          ValidatorContext context2 = new ValidatorContext(spec.id(), spec, ids2, knownURLs,
+          opts2.set(Option.DEFAULT_SPECIFICATION, spec);
+          ValidatorContext context2 = new ValidatorContext(spec.id(), ids2, knownURLs,
                                                            Collections.singleton(spec.id()),
                                                            opts2);
           if (!context2.apply(metaSchema, "", schema, "")) {
@@ -325,12 +328,17 @@ public final class Validator {
    * <p>
    * This returns {@code null} if a specification could not be identified or if
    * none of the specifications are likely to be valid.
+   * <p>
+   * The {@code doGuessing} parameter indicates whether this should guess the
+   * specification if it will require more than just looking at any
+   * $schema value.
    *
    * @param schema the schema object
+   * @param doGuessing whether to guess beyond simple analysis
    * @return the specification, or {@code null} if one could not be determined.
    */
   @SuppressWarnings("UnstableApiUsage")
-  public static Specification determineSpecification(JsonElement schema) {
+  public static Specification determineSpecification(JsonElement schema, boolean doGuessing) {
     if (!schema.isJsonObject()) {
       return null;
     }
@@ -519,7 +527,7 @@ public final class Validator {
    * <p>
    * The given specification is the one used for processing. It can be
    * identified by the caller via a call to
-   * {@link #determineSpecification(JsonElement)}.
+   * {@link #determineSpecification(JsonElement, boolean)}.
    *
    * @param baseURI the base URI
    * @param e the JSON document
@@ -527,7 +535,7 @@ public final class Validator {
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
-   * @see #determineSpecification(JsonElement)
+   * @see #determineSpecification(JsonElement, boolean)
    */
   public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {

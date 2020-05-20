@@ -15,7 +15,17 @@ public enum Option {
    */
   FORMAT(Boolean.class),
 
-  /** Which specification to follow, a {@link Specification}. */
+  /**
+   * The default specification to follow, a {@link Specification}. This is used
+   * when no other specification could be determined.
+   */
+  DEFAULT_SPECIFICATION(Specification.class),
+
+  /**
+   * The specification used when a schema has not declared which specification
+   * it's using. This value is used instead of any heuristic determination. The
+   * value is a {@link Specification}.
+   */
   SPECIFICATION(Specification.class),
 
   /** Whether to collect annotations, a {@link Boolean}. */
