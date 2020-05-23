@@ -51,7 +51,7 @@ public class DependentSchemas extends Keyword {
         }
         context.addError(
             false,
-            "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
+            "dependent property '" + Strings.jsonString(e.getKey()) + "' not valid");
         retval = false;
         context.setCollectSubAnnotations(false);
       }

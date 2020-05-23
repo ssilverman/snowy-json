@@ -62,8 +62,8 @@ public class AdditionalProperties extends Keyword {
           }
           context.addError(
               false,
-              "additional property \"" + Strings.jsonString(e.getKey()) +
-              "\" not valid");
+              "additional property '" + Strings.jsonString(e.getKey()) +
+              "' not valid");
           retval = false;
           context.setCollectSubAnnotations(false);
         }

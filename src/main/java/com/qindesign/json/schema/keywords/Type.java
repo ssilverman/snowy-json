@@ -88,11 +88,11 @@ public class Type extends Keyword {
     }
 
     if (Validator.isString(value)) {
-      context.addError(false, "value not a \"" + Strings.jsonString(value.getAsString()) + "\"");
+      context.addError(false, "value not a '" + Strings.jsonString(value.getAsString()) + "'");
     } else {
       StringBuilder sb = new StringBuilder();
       value.getAsJsonArray()
-          .forEach(e -> sb.append(", \"").append(Strings.jsonString(e.getAsString())).append('\"'));
+          .forEach(e -> sb.append(", '").append(Strings.jsonString(e.getAsString())).append('\''));
       if (sb.length() == 0) {
         sb.append("[]");
       } else {

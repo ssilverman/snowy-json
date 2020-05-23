@@ -51,7 +51,7 @@ public class Properties extends Keyword {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
+        context.addError(false, "property '" + Strings.jsonString(e.getKey()) + "' not valid");
         retval = false;
         context.setCollectSubAnnotations(false);
       }

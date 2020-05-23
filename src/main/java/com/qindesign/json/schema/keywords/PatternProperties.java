@@ -72,8 +72,8 @@ public class PatternProperties extends Keyword {
           }
           context.addError(
               false,
-              "property \"" + Strings.jsonString(e.getKey()) + "\" not valid for pattern \"" +
-              Strings.jsonString(p.pattern()) + "\"");
+              "property '" + Strings.jsonString(e.getKey()) + "' not valid for pattern '" +
+              Strings.jsonString(p.pattern()) + "'");
           retval = false;
           context.setCollectSubAnnotations(false);
         }

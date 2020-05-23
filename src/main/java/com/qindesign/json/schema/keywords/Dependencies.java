@@ -57,7 +57,7 @@ public class Dependencies extends Keyword {
           }
           context.addError(
               false,
-              "dependent property \"" + Strings.jsonString(e.getKey()) + "\" not valid");
+              "dependent property '" + Strings.jsonString(e.getKey()) + "' not valid");
           retval = false;
           context.setCollectSubAnnotations(false);
         }
@@ -74,7 +74,7 @@ public class Dependencies extends Keyword {
             return false;
           }
           if (!names.add(name.getAsString())) {
-            context.schemaError("\"" + Strings.jsonString(name.getAsString()) + "\": not unique",
+            context.schemaError("'" + Strings.jsonString(name.getAsString()) + "': not unique",
                                 e.getKey() + "/" + index);
             return false;
           }
@@ -84,8 +84,8 @@ public class Dependencies extends Keyword {
             }
             context.addError(
                 false,
-                "dependent property \"" + Strings.jsonString(name.getAsString()) +
-                "\" not found");
+                "dependent property '" + Strings.jsonString(name.getAsString()) +
+                "' not found");
             retval = false;
             context.setCollectSubAnnotations(false);
           }

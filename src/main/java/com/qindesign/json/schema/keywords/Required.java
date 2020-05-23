@@ -51,7 +51,7 @@ public class Required extends Keyword {
         }
         context.addError(
             false,
-            "required property \"" + Strings.jsonString(e.getAsString()) + "\" not found");
+            "required property '" + Strings.jsonString(e.getAsString()) + "' not found");
         retval = false;
         context.setCollectSubAnnotations(false);
       }
