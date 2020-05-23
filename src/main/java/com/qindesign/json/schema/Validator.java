@@ -61,6 +61,10 @@ public final class Validator {
             return url;
           }));
 
+  private static final Set<URI> KNOWN_SCHEMAS = Arrays.stream(Specification.values())
+      .map(Specification::id)
+      .collect(Collectors.toUnmodifiableSet());
+
   private static final Set<String> NEW_KEYWORDS_DRAFT_2019_09 = Set.of(
       "$anchor",
       "$defs",
@@ -205,11 +209,7 @@ public final class Validator {
     }
 
     // Assume all the known specs have been validated
-    Set<URI> validatedSchemas = Arrays.stream(Specification.values())
-        .map(Specification::id)
-        .collect(Collectors.toSet());
-    ValidatorContext context =
-        new ValidatorContext(baseURI, ids, knownURLs, validatedSchemas, opts);
+    ValidatorContext context = new ValidatorContext(baseURI, ids, knownURLs, KNOWN_SCHEMAS, opts);
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
