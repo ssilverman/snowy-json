@@ -228,7 +228,7 @@ public final class ValidatorContext {
 
   // Pattern cache
   private static final int MAX_PATTERN_CACHE_SIZE = 20;
-  private LRUCache<String, java.util.regex.Pattern> patternCache =
+  private final LRUCache<String, java.util.regex.Pattern> patternCache =
       new LRUCache<>(MAX_PATTERN_CACHE_SIZE, java.util.regex.Pattern::compile);
 
   /**
