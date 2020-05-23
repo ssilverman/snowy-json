@@ -25,7 +25,8 @@ public enum Specification {
 
   /**
    * Returns the specification having the given ID, a {@link URI}. This will
-   * return {@code null} if the ID is unknown.
+   * return {@code null} if the ID is unknown. This does not first normalize
+   * the value.
    *
    * @param id the ID for which to find the specification
    * @return the specification for the given ID, or {@code null} for an
