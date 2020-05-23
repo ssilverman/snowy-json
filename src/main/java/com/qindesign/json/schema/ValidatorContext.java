@@ -233,7 +233,7 @@ public final class ValidatorContext {
 
   /**
    * Creates a new schema context. Given is an absolute URI from where the
-   * schema was obtained. The URI will be normalized.
+   * schema was obtained. The URI will be normalized if it is not already.
    * <p>
    * Only empty fragments are allowed in the base URI, if present.
    * <p>
