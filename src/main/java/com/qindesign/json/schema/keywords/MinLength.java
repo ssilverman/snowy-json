@@ -47,7 +47,7 @@ public class MinLength extends Keyword {
     BigDecimal v = BigDecimal.valueOf(
         instance.getAsString().codePointCount(0, instance.getAsString().length()));
     if (n.compareTo(v) > 0) {
-      context.addError(false, "want at least " + n + " characters, got" + v);
+      context.addError(false, "want at least " + n + " characters, got " + v);
       return false;
     }
     return true;

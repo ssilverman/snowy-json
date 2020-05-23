@@ -38,7 +38,7 @@ public class Maximum extends Keyword {
     BigDecimal n = Numbers.valueOf(instance.getAsString());
     BigDecimal v = Numbers.valueOf(value.getAsString());
     if (n.compareTo(v) > 0) {
-      context.addError(false, "want at most " + v + ", got" + n);
+      context.addError(false, "want at most " + v + ", got " + n);
       return false;
     }
     return true;

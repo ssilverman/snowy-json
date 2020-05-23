@@ -56,7 +56,7 @@ public class MaxContains extends Keyword {
 
     BigDecimal v = BigDecimal.valueOf(((Integer) containsA).longValue());
     if (n.compareTo(v) < 0) {
-      context.addError(false, "want at most " + n + " contains, got" + v);
+      context.addError(false, "want at most " + n + " contains, got " + v);
       return false;
     }
     return true;

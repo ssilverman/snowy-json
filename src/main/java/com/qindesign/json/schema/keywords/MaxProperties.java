@@ -46,7 +46,7 @@ public class MaxProperties extends Keyword {
 
     BigDecimal v = BigDecimal.valueOf(instance.getAsJsonObject().size());
     if (n.compareTo(v) < 0) {
-      context.addError(false, "want at most " + n + " properties, got" + v);
+      context.addError(false, "want at most " + n + " properties, got " + v);
       return false;
     }
     return true;
