@@ -163,8 +163,16 @@ public final class Validator {
    * When searching for resources, {@code knownIDs} is searched first and
    * {@code knownURLs} is searched second.
    * <p>
-   * The default specification is given, but if one can be determined from the
-   * schema then that is used instead.
+   * The order for determining the specification to use when processing the
+   * schema is as follows. Subsequent steps are only followed if a step fails to
+   * find something.
+   * <ol>
+   * <li>$schema value</li>
+   * <li>{@link Option#SPECIFICATION SPECIFICATION} option or any default</li>
+   * <li>Guessed by heuristics</li>
+   * <li>{@link Option#DEFAULT_SPECIFICATION DEFAULT_SPECIFICATION} option or
+   *     any default</li>
+   * </ol>
    *
    * @param schema the schema
    * @param instance the instance
@@ -192,9 +200,12 @@ public final class Validator {
     // on the default specification
     boolean isDefaultSpec = (spec == null);
     if (isDefaultSpec) {
-      spec = guessSpecification(schema);
+      spec = (Specification) opts.get(Option.SPECIFICATION);
       if (spec == null) {
-        spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+        spec = guessSpecification(schema);
+        if (spec == null) {
+          spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+        }
       }
     }
 
