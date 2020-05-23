@@ -21,14 +21,14 @@ public class If extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     context.checkValidSchema(value);
     if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
       return true;
     }
 
-    JsonObject parent = context.parentObject();
     JsonElement thenElem = parent.get("then");
     if (thenElem != null) {
       context.checkValidSchema(thenElem, "../then");

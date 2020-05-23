@@ -4,6 +4,7 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
@@ -30,7 +31,8 @@ public class CoreSchema extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
@@ -56,7 +58,7 @@ public class CoreSchema extends Keyword {
       return false;
     }
 
-    if (!context.isRootSchema() && !context.parentObject().has(CoreId.NAME)) {
+    if (!context.isRootSchema() && !parent.has(CoreId.NAME)) {
       context.schemaError("appearance in non-resource subschema");
       return false;
     }
@@ -100,7 +102,7 @@ public class CoreSchema extends Keyword {
     opts2.set(Option.COLLECT_ERRORS, false);
     opts2.set(Option.DEFAULT_SPECIFICATION, spec);
     ValidatorContext context2 = new ValidatorContext(id, ids, context.knownURLs(), validated, opts2);
-    if (!context2.apply(e, "", context.parentObject(), "")) {
+    if (!context2.apply(e, "", parent, "")) {
       context.schemaError("does not validate");
       return false;
     }

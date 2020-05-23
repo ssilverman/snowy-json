@@ -4,6 +4,7 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
@@ -37,7 +38,8 @@ public class ContentMediaType extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
       return true;
@@ -60,7 +62,7 @@ public class ContentMediaType extends Keyword {
         if (contentType.equalsIgnoreCase("application/json")) {
           // Determine if Base64-encoded
           boolean base64 = false;
-          JsonElement encoding = context.parentObject().get(ContentEncoding.NAME);
+          JsonElement encoding = parent.get(ContentEncoding.NAME);
           if (encoding != null && Validator.isString(encoding)) {
             if (encoding.getAsString().equalsIgnoreCase("base64")) {
               base64 = true;

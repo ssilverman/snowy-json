@@ -4,6 +4,7 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
@@ -21,7 +22,8 @@ public class CoreRecursiveAnchor extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
@@ -32,7 +34,7 @@ public class CoreRecursiveAnchor extends Keyword {
       return false;
     }
 
-    if (value.getAsBoolean() && context.parentObject().has(CoreId.NAME)) {
+    if (value.getAsBoolean() && parent.has(CoreId.NAME)) {
       context.setRecursiveBaseURI();
     }
     return true;

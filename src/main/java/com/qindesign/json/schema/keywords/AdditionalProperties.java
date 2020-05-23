@@ -24,7 +24,8 @@ public class AdditionalProperties extends Keyword {
 
   @Override
   @SuppressWarnings("unchecked")
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 

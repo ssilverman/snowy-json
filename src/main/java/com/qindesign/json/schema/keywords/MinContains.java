@@ -4,6 +4,7 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
@@ -23,7 +24,8 @@ public class MinContains extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
@@ -43,7 +45,7 @@ public class MinContains extends Keyword {
       return false;
     }
 
-    if (!context.parentObject().has(Contains.NAME)) {
+    if (!parent.has(Contains.NAME)) {
       return true;
     }
 

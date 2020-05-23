@@ -29,7 +29,8 @@ public class UnevaluatedProperties extends Keyword {
 
   @Override
   @SuppressWarnings("unchecked")
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;

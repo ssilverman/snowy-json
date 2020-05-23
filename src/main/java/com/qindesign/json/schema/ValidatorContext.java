@@ -431,13 +431,6 @@ public final class ValidatorContext {
   }
 
   /**
-   * Returns the parent object of the current keyword.
-   */
-  public JsonObject parentObject() {
-    return state.schemaObject;
-  }
-
-  /**
    * Returns whether the parent object of the current keyword is the
    * root schema.
    */
@@ -952,7 +945,7 @@ public final class ValidatorContext {
 
       state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
       state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
-      if (!k.apply(m.getValue(), instance, this)) {
+      if (!k.apply(m.getValue(), instance, state.schemaObject, this)) {
         // Remove all subschema annotations that aren't errors
         // Note that this is still necessary even with the setCollectAnnotations
         // optimization because it either may not be used or not used

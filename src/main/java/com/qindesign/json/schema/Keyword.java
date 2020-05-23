@@ -4,6 +4,7 @@
 package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.logging.Logger;
 
 /**
@@ -35,10 +36,11 @@ public abstract class Keyword {
    *
    * @param value the keyword's value
    * @param instance the instance to which the keyword is applied
+   * @param parent the keyword's parent object
    * @param context the current context
    * @return whether the keyword application was a success.
    */
-  protected abstract boolean apply(JsonElement value, JsonElement instance,
+  protected abstract boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                                    ValidatorContext context)
       throws MalformedSchemaException;
 

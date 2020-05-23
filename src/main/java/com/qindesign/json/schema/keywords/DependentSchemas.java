@@ -22,7 +22,8 @@ public class DependentSchemas extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;

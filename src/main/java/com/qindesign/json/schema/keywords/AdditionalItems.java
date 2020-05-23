@@ -5,6 +5,7 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.ValidatorContext;
@@ -20,11 +21,12 @@ public class AdditionalItems extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, ValidatorContext context)
+  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                          ValidatorContext context)
       throws MalformedSchemaException {
     context.checkValidSchema(value);
 
-    JsonElement items = context.parentObject().get(Items.NAME);
+    JsonElement items = parent.get(Items.NAME);
     if (items == null || items.isJsonObject()) {
       return true;
     }
