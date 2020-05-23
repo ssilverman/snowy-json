@@ -49,7 +49,7 @@ public final class Validator {
       { "https://json-schema.org/draft/2019-09/meta/content", "/draft-2019-09/content.json" },
       { "http://json-schema.org/draft-07/schema", "/draft-07/schema.json" },
       { "http://json-schema.org/draft-06/schema", "/draft-06/schema.json" },
-      }).collect(Collectors.toMap(
+      }).collect(Collectors.toUnmodifiableMap(
           data -> URI.create((String) data[0]),
           data -> {
             URL url = CLASS.getResource((String) data[1]);

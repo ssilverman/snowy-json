@@ -20,8 +20,8 @@ public enum Specification {
   DRAFT_2019_09("https://json-schema.org/draft/2019-09/schema")
   ;
 
-  private static final Map<URI, Specification> specs = Stream.of(
-      values()).collect(Collectors.toMap(Specification::id, Function.identity()));
+  private static final Map<URI, Specification> SPECS = Stream.of(
+      values()).collect(Collectors.toUnmodifiableMap(Specification::id, Function.identity()));
 
   /**
    * Returns the specification having the given ID, a {@link URI}. This will
@@ -32,7 +32,7 @@ public enum Specification {
    *         unknown ID.
    */
   public static Specification of(URI id) {
-    return specs.get(id);
+    return SPECS.get(id);
   }
 
   private final URI id;

@@ -60,7 +60,7 @@ public final class ValidatorContext {
           "unevaluatedItems",
           "unevaluatedProperties"));
 
-  private static final Map<String, Keyword> keywords = new HashMap<>();
+  private static final Map<String, Keyword> keywords;
   private static final Map<String, Integer> keywordClasses;
 
   /**
@@ -127,31 +127,39 @@ public final class ValidatorContext {
 
   static {
     // First, load all the known keywords
+    Map<String, Keyword> words;
     try {
-      findKeywords();
+      words = Collections.unmodifiableMap(findKeywords());
     } catch (IOException ex) {
+      words = Collections.emptyMap();
       logger.log(Level.SEVERE, "Error finding keywords", ex);
     }
+    keywords = words;
     // The 'keywords' set now contains all the keywords
 
     // Fun with streams
     // Map each keyword to its "class number", so we can sort easily
-    keywordClasses = IntStream.range(0, KEYWORD_SETS.size())
+    var classes = IntStream.range(0, KEYWORD_SETS.size())
         .boxed()
         .flatMap(i -> KEYWORD_SETS.get(i).stream().map(name -> Map.entry(name, i)))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     int otherClass = KEYWORD_SETS.indexOf(EVERY_OTHER_KEYWORD);
-    keywords.keySet().forEach(name -> keywordClasses.putIfAbsent(name, otherClass));
+    keywords.keySet().forEach(name -> classes.putIfAbsent(name, otherClass));
+    keywordClasses = Collections.unmodifiableMap(classes);
   }
 
   /**
-   * Finds all the keyword implementations.
+   * Finds all the keyword implementations and returns a map mapping names to
+   * keyword implementations.
    */
   @SuppressWarnings("UnstableApiUsage")
-  private static void findKeywords() throws IOException {
+  private static Map<String, Keyword> findKeywords() throws IOException {
     ClassPath classPath = ClassPath.from(CLASS.getClassLoader());
     Set<ClassPath.ClassInfo> classes =
         classPath.getTopLevelClasses(CLASS.getPackage().getName() + ".keywords");
+
+    Map<String, Keyword> keywords = new HashMap<>();
+
     for (ClassPath.ClassInfo classInfo : classes) {
       Class<?> c = classInfo.load();
       if (!Keyword.class.isAssignableFrom(c)) {
@@ -173,6 +181,8 @@ public final class ValidatorContext {
         }
       }
     }
+
+    return keywords;
   }
 
   /** Vocabularies in use. */
@@ -226,6 +236,9 @@ public final class ValidatorContext {
    * schema was obtained. The URI will be normalized.
    * <p>
    * Only empty fragments are allowed in the base URI, if present.
+   * <p>
+   * This directly uses the arguments and does not copy them or wrap them in
+   * unmodifiable wrappers.
    *
    * @param baseURI the initial base URI
    * @param knownIDs known JSON contents
@@ -261,9 +274,9 @@ public final class ValidatorContext {
     }
 
     this.baseURI = baseURI.normalize();
-    this.knownIDs = Collections.unmodifiableMap(knownIDs);
-    this.knownURLs = Collections.unmodifiableMap(knownURLs);
-    this.validatedSchemas = Collections.unmodifiableSet(validatedSchemas);
+    this.knownIDs = knownIDs;
+    this.knownURLs = knownURLs;
+    this.validatedSchemas = validatedSchemas;
 
     state = new State();
     state.baseURI = baseURI;
@@ -342,17 +355,17 @@ public final class ValidatorContext {
    * Returns all the known resources.
    */
   public Map<URI, URL> knownURLs() {
-    return knownURLs;
+    return Collections.unmodifiableMap(knownURLs);
   }
 
   /**
    * Returns the set of schemas that have already been validated or are in the
-   * process of being validated. The set will be unmodifiable.
+   * process of being validated.
    *
    * @return the set of validated schemas.
    */
   public Set<URI> validatedSchemas() {
-    return validatedSchemas;
+    return Collections.unmodifiableSet(validatedSchemas);
   }
 
   /**

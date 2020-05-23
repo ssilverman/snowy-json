@@ -38,7 +38,8 @@ public class Test {
       { Specification.DRAFT_2019_09, "draft2019-09" },
       { Specification.DRAFT_07, "draft7" },
       { Specification.DRAFT_06, "draft6" },
-  }).collect(Collectors.toMap(data -> (Specification) data[0], data -> (String) data[1]));
+      }).collect(
+      Collectors.toUnmodifiableMap(data -> (Specification) data[0], data -> (String) data[1]));
 
   /**
    * Holds the results of one test.
