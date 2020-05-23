@@ -64,7 +64,8 @@ public class Main {
     schema = JSON.parse(new File(args[0]));
     instance = JSON.parse(new File(args[1]));
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
-    logger.info("Guessed spec=" + Validator.determineSpecification(schema, true));
+    logger.info("Actual spec=" + Validator.specificationFromSchema(schema));
+    logger.info("Guessed spec=" + Validator.guessSpecification(schema));
 
     Options opts = new Options();
     opts.set(Option.FORMAT, true);

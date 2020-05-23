@@ -7,6 +7,7 @@ import com.google.common.graph.Traverser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreRef;
 import com.qindesign.json.schema.keywords.CoreSchema;
@@ -181,10 +182,16 @@ public final class Validator {
     }
 
     // First, determine the schema specification
-    Specification spec = determineSpecification(schema, false);
+    Specification spec = specificationFromSchema(schema);
+
+    // If there's no explicit specification, try to guess it and then fall back
+    // on the default specification
     boolean isDefaultSpec = (spec == null);
     if (isDefaultSpec) {
-      spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+      spec = guessSpecification(schema);
+      if (spec == null) {
+        spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+      }
     }
 
     // Prepare the schema and instance
@@ -197,7 +204,7 @@ public final class Validator {
       knownURLs = Collections.emptyMap();
     }
 
-    // Assume all the specs have been validated
+    // Assume all the known specs have been validated
     Set<URI> validatedSchemas = Arrays.stream(Specification.values())
         .map(Specification::id)
         .collect(Collectors.toSet());
@@ -206,30 +213,17 @@ public final class Validator {
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
-    // Use the default specification
-    if (isDefaultSpec) {
-      JsonElement metaSchema = loadResource(spec.id());
-      // Ignore an unknown meta-schema
-      // The whole point here, after all, is to get the vocabularies
-      if (metaSchema != null) {
-        try {
-          Map<Id, JsonElement> ids2 = Validator.scanIDs(spec.id(), metaSchema, spec);
-          Options opts2 = new Options();
-          opts2.set(Option.FORMAT, false);
-          opts2.set(Option.CONTENT, false);
-          opts2.set(Option.COLLECT_ANNOTATIONS, false);
-          opts2.set(Option.COLLECT_ERRORS, false);
-          opts2.set(Option.DEFAULT_SPECIFICATION, spec);
-          ValidatorContext context2 = new ValidatorContext(spec.id(), ids2, knownURLs,
-                                                           Collections.singleton(spec.id()),
-                                                           opts2);
-          if (!context2.apply(metaSchema, "", schema, "")) {
-            throw new MalformedSchemaException("schema does not validate: " + spec.id(), baseURI);
-          }
-          context2.vocabularies().forEach(context::setVocabulary);
-        } catch (MalformedSchemaException ex) {
-          // Ignore a bad meta-schema
+    if (isDefaultSpec && schema.isJsonObject()) {
+      try {
+        if (!new CoreSchema()
+            .apply(new JsonPrimitive(spec.id().toString()), instance, schema.getAsJsonObject(),
+                   context)) {
+          throw new MalformedSchemaException("schema does not validate against " + spec.id(),
+                                             baseURI);
         }
+      } catch (MalformedSchemaException ex) {
+        // Ignore a bad or unknown meta-schema
+        // The whole point here, after all, is to get the vocabularies
       }
     }
     // TODO: I don't love the duplicate code in CoreSchema
@@ -316,34 +310,18 @@ public final class Validator {
   }
 
   /**
-   * Determines the specification of a schema. The heuristics are:
-   * <ul>
-   * <li>Examine any $schema keyword to see if the value is valid and known</li>
-   * <li>
-   *   Examine any $ref to see if the value is valid and known as a schema
-   * </li>
-   * <li>Keywords present in only one of the specs</li>
-   * <li>Formats present in only one of the specs</li>
-   * </ul>
-   * <p>
-   * This returns {@code null} if a specification could not be identified or if
-   * none of the specifications are likely to be valid.
-   * <p>
-   * The {@code doGuessing} parameter indicates whether this should guess the
-   * specification if it will require more than just looking at any
-   * $schema value.
+   * Examines the schema for any $schema keyword to see if the value is valid
+   * and known. This will return that value, or {@code null} if the valus is
+   * invalid or unknown. This will return {@code null} if the schema is not
+   * an object, i.e. for Boolean and non-object values.
    *
-   * @param schema the schema object
-   * @param doGuessing whether to guess beyond simple analysis
-   * @return the specification, or {@code null} if one could not be determined.
+   * @param schema the schema
+   * @return the valid and known $schema value, or {@code null} otherwise.
    */
-  @SuppressWarnings("UnstableApiUsage")
-  public static Specification determineSpecification(JsonElement schema, boolean doGuessing) {
+  public static Specification specificationFromSchema(JsonElement schema) {
     if (!schema.isJsonObject()) {
       return null;
     }
-
-    // TODO: More heuristics
 
     // Use all the things we know about $schema
     JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
@@ -358,6 +336,38 @@ public final class Validator {
         // Ignore and continue
       }
     }
+
+    return null;
+  }
+
+  /**
+   * Guesses the specification of a schema. This is for use after determining
+   * that a $schema value is neither available nor known; any existing $schema
+   * in the object is not used.
+   * <p>
+   * The heuristics are:
+   * <ul>
+   * <li>
+   *   Examine any $ref to see if the value is valid and known as a schema
+   * </li>
+   * <li>Keywords present in only one of the specs</li>
+   * <li>Formats present in only one of the specs</li>
+   * </ul>
+   * <p>
+   * This returns {@code null} if a specification could not be identified or if
+   * none of the specifications are likely to be valid.
+   *
+   * @param schema the schema object
+   * @return the specification, or {@code null} if one could not be determined.
+   * @see #specificationFromSchema(JsonElement)
+   */
+  @SuppressWarnings("UnstableApiUsage")
+  public static Specification guessSpecification(JsonElement schema) {
+    if (!schema.isJsonObject()) {
+      return null;
+    }
+
+    // TODO: Even more heuristics
 
     // See if there's a $ref to a schema
     JsonElement refVal = schema.getAsJsonObject().get(CoreRef.NAME);
@@ -527,7 +537,8 @@ public final class Validator {
    * <p>
    * The given specification is the one used for processing. It can be
    * identified by the caller via a call to
-   * {@link #determineSpecification(JsonElement, boolean)}.
+   * {@link #specificationFromSchema(JsonElement)} and
+   * {@link #guessSpecification(JsonElement)}
    *
    * @param baseURI the base URI
    * @param e the JSON document
@@ -535,7 +546,8 @@ public final class Validator {
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
-   * @see #determineSpecification(JsonElement, boolean)
+   * @see #specificationFromSchema(JsonElement)
+   * @see #guessSpecification(JsonElement)
    */
   public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
       throws MalformedSchemaException {

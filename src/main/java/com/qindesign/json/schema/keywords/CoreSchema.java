@@ -31,8 +31,8 @@ public class CoreSchema extends Keyword {
   }
 
   @Override
-  protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
-                          ValidatorContext context)
+  public boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                       ValidatorContext context)
       throws MalformedSchemaException {
     if (!Validator.isString(value)) {
       context.schemaError("not a string");
