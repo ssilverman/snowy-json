@@ -86,7 +86,7 @@ public class CoreSchema extends Keyword {
     }
 
     validated = new HashSet<>(validated);
-    validated.add(id);
+    validated.add(context.baseURI());
 
     Map<Id, JsonElement> ids;
     try {
