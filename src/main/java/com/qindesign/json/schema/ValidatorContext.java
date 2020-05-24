@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -210,6 +211,7 @@ public final class ValidatorContext {
   private State state;
 
   private final Map<Id, JsonElement> knownIDs;
+  private final Map<URI, Id> idsByURI;
   private final Map<URI, URL> knownURLs;
 
   /**
@@ -275,6 +277,8 @@ public final class ValidatorContext {
 
     this.baseURI = baseURI.normalize();
     this.knownIDs = knownIDs;
+    this.idsByURI = knownIDs.keySet().stream()
+        .collect(Collectors.toMap(id -> id.id, Function.identity()));
     this.knownURLs = knownURLs;
     this.validatedSchemas = validatedSchemas;
 
@@ -558,6 +562,19 @@ public final class ValidatorContext {
       state.schemaObject = null;
     }
     return e;
+  }
+
+  /**
+   * Finds the complete {@link Id} given a known ID URI. This is used to help
+   * transform an anchor to a canonical URI. To do this transformation, combine
+   * the base URI with the path as a fragment.
+   *
+   * @param id the ID URI
+   * @return the complete {@link Id} associated with the URI.
+   * @see Id
+   */
+  public Id findID(URI id) {
+    return idsByURI.get(id);
   }
 
   /**

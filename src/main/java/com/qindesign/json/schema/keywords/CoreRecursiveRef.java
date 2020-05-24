@@ -54,6 +54,7 @@ public class CoreRecursiveRef extends Keyword {
     }
 
     // First, look for a $recursiveAnchor
+    uri = URIs.stripFragment(uri);
     URI resolved = context.baseURI().resolve(uri);
     JsonElement e = context.findAndSetRoot(resolved);
     if (e == null) {

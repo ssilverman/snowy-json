@@ -5,6 +5,7 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Strings;
@@ -56,7 +57,18 @@ public class CoreRef extends Keyword {
       }
     } else {
       // Plain name
-      // TODO: Do I need to set the base to the closest ancestor's base?
+
+      // DONETODO: Do I need to set the base to the closest ancestor's base?
+      // I think the answer is yes because it's possible that canonical URIs
+      // don't have plain names
+      Id id = context.findID(uri);
+      try {
+        schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
+      } catch (URISyntaxException ex) {
+        context.schemaError("unexpected bad URI");
+        return false;
+      }
+
       e = context.findAndSetRoot(uri);
       if (e != null) {
         // Since we're following to another schema, CoreId will set the new base
