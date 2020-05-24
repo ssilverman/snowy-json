@@ -56,17 +56,19 @@ public class CoreRef extends Keyword {
         e = context.followPointer(uri, e, Strings.fragmentToJSONPointer(fragment));
       }
     } else {
-      // Plain name
+      // No fragment or plain name
 
       // DONETODO: Do I need to set the base to the closest ancestor's base?
       // I think the answer is yes because it's possible that canonical URIs
       // don't have plain names
-      Id id = context.findID(uri);
-      try {
-        schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
-      } catch (URISyntaxException ex) {
-        context.schemaError("unexpected bad URI");
-        return false;
+      if (fragment != null) {
+        Id id = context.findID(uri);
+        try {
+          schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
+        } catch (URISyntaxException ex) {
+          context.schemaError("unexpected bad URI");
+          return false;
+        }
       }
 
       e = context.findAndSetRoot(uri);
