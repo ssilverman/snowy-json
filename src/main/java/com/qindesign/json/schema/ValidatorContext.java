@@ -3,14 +3,22 @@
  */
 package com.qindesign.json.schema;
 
-import static com.qindesign.json.schema.Validator.ANCHOR_PATTERN;
-
 import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.qindesign.json.schema.keywords.AdditionalItems;
+import com.qindesign.json.schema.keywords.AdditionalProperties;
+import com.qindesign.json.schema.keywords.CoreAnchor;
 import com.qindesign.json.schema.keywords.CoreId;
+import com.qindesign.json.schema.keywords.CoreRecursiveAnchor;
 import com.qindesign.json.schema.keywords.CoreRef;
+import com.qindesign.json.schema.keywords.CoreSchema;
+import com.qindesign.json.schema.keywords.CoreVocabulary;
+import com.qindesign.json.schema.keywords.MaxContains;
+import com.qindesign.json.schema.keywords.MinContains;
+import com.qindesign.json.schema.keywords.UnevaluatedItems;
+import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.util.LRUCache;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,21 +53,21 @@ public final class ValidatorContext {
    * set's position in the list indicates the processing order.
    */
   private static final List<Set<String>> KEYWORD_SETS = List.of(
-      Set.of("$schema"),
-      Set.of("$id"),
+      Set.of(CoreSchema.NAME),
+      Set.of(CoreId.NAME),
       Set.of(
-          "$recursiveAnchor",
-          "$anchor",
-          "$vocabulary"),
+          CoreRecursiveAnchor.NAME,
+          CoreAnchor.NAME,
+          CoreVocabulary.NAME),
       EVERY_OTHER_KEYWORD,
       Set.of(
-          "additionalItems",
-          "additionalProperties",
-          "maxContains",
-          "minContains"),
+          AdditionalItems.NAME,
+          AdditionalProperties.NAME,
+          MaxContains.NAME,
+          MinContains.NAME),
       Set.of(
-          "unevaluatedItems",
-          "unevaluatedProperties"));
+          UnevaluatedItems.NAME,
+          UnevaluatedProperties.NAME));
 
   private static final Map<String, Keyword> keywords;
   private static final Map<String, Integer> keywordClasses;

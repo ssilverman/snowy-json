@@ -8,10 +8,32 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import com.qindesign.json.schema.keywords.ContentEncoding;
+import com.qindesign.json.schema.keywords.ContentMediaType;
+import com.qindesign.json.schema.keywords.ContentSchema;
+import com.qindesign.json.schema.keywords.CoreAnchor;
+import com.qindesign.json.schema.keywords.CoreComment;
+import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
+import com.qindesign.json.schema.keywords.CoreRecursiveAnchor;
+import com.qindesign.json.schema.keywords.CoreRecursiveRef;
 import com.qindesign.json.schema.keywords.CoreRef;
 import com.qindesign.json.schema.keywords.CoreSchema;
+import com.qindesign.json.schema.keywords.CoreVocabulary;
+import com.qindesign.json.schema.keywords.Definitions;
+import com.qindesign.json.schema.keywords.Dependencies;
+import com.qindesign.json.schema.keywords.DependentRequired;
+import com.qindesign.json.schema.keywords.DependentSchemas;
+import com.qindesign.json.schema.keywords.Deprecated;
 import com.qindesign.json.schema.keywords.Format;
+import com.qindesign.json.schema.keywords.If;
+import com.qindesign.json.schema.keywords.MaxContains;
+import com.qindesign.json.schema.keywords.MinContains;
+import com.qindesign.json.schema.keywords.Properties;
+import com.qindesign.json.schema.keywords.ReadOnly;
+import com.qindesign.json.schema.keywords.UnevaluatedItems;
+import com.qindesign.json.schema.keywords.UnevaluatedProperties;
+import com.qindesign.json.schema.keywords.WriteOnly;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -66,34 +88,34 @@ public final class Validator {
       .collect(Collectors.toUnmodifiableSet());
 
   private static final Set<String> NEW_KEYWORDS_DRAFT_2019_09 = Set.of(
-      "$anchor",
-      "$defs",
-      "$recursiveAnchor",
-      "$recursiveRef",
-      "$vocabulary",
-      "dependentSchemas",
-      "unevaluatedItems",
-      "unevaluatedProperties",
-      "dependentRequired",
-      "maxContains",
-      "minContains",
-      "contentSchema",
-      "deprecated");
+      CoreAnchor.NAME,
+      CoreDefs.NAME,
+      CoreRecursiveAnchor.NAME,
+      CoreRecursiveRef.NAME,
+      CoreVocabulary.NAME,
+      DependentSchemas.NAME,
+      UnevaluatedItems.NAME,
+      UnevaluatedProperties.NAME,
+      DependentRequired.NAME,
+      MaxContains.NAME,
+      MinContains.NAME,
+      ContentSchema.NAME,
+      Deprecated.NAME);
   private static final Set<String> OLD_KEYWORDS_DRAFT_2019_09 = Set.of(
-      "definitions",
-      "dependencies");
+      Definitions.NAME,
+      Dependencies.NAME);
   private static final Set<String> NEW_FORMATS_DRAFT_2019_09 = Set.of(
       "duration",
       "uuid");
   private static final Set<String> NEW_KEYWORDS_DRAFT_07 = Set.of(
-      "$comment",
-      "if",
+      CoreComment.NAME,
+      If.NAME,
       "then",
       "else",
-      "readOnly",
-      "writeOnly",
-      "contentMediaType",
-      "contentEncoding");
+      ReadOnly.NAME,
+      WriteOnly.NAME,
+      ContentMediaType.NAME,
+      ContentEncoding.NAME);
   private static final Set<String> NEW_FORMATS_DRAFT_07 = Set.of(
       "iri",
       "iri-reference",
@@ -678,15 +700,15 @@ public final class Validator {
     }
 
     // Don't look at the $id or $anchor values inside properties
-    boolean inProperties = name.equals("properties");
+    boolean inProperties = name.equals(Properties.NAME);
 
     // Process any "$id"
     JsonElement value;
 
     if (!inProperties) {
-      value = e.getAsJsonObject().get("$id");
+      value = e.getAsJsonObject().get(CoreId.NAME);
       if (value != null) {
-        String path = newParentID + "/$id";
+        String path = newParentID + "/" + CoreId.NAME;
 
         if (!isString(value)) {
           throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(path));
@@ -745,9 +767,9 @@ public final class Validator {
 
       // Process any "$anchor"
       if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-        value = e.getAsJsonObject().get("$anchor");
+        value = e.getAsJsonObject().get(CoreAnchor.NAME);
         if (value != null) {
-          String path = newParentID + "/$anchor";
+          String path = newParentID + "/" + CoreAnchor.NAME;
 
           if (!isString(value)) {
             throw new MalformedSchemaException("not a string",
@@ -778,7 +800,7 @@ public final class Validator {
     // Only process $id and $anchor if not inside properties
     for (var entry : e.getAsJsonObject().entrySet()) {
       if (!inProperties) {
-        if (entry.getKey().equals("$id") || entry.getKey().equals("$anchor")) {
+        if (entry.getKey().equals(CoreId.NAME) || entry.getKey().equals(CoreAnchor.NAME)) {
           continue;
         }
       }
