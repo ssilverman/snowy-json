@@ -30,21 +30,31 @@ public class AnyOf extends Keyword {
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema
 
-    boolean retval = false;
     int index = 0;
+
+    // Let's assume that there aren't an unreasonable number of subschemas
+    StringBuilder sb = new StringBuilder();
 
     // Apply all of them to collect all annotations
     for (JsonElement e : value.getAsJsonArray()) {
       String path = Integer.toString(index);
       if (context.apply(e, path, null, instance, "")) {
-        retval = true;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        } else {
+          sb.append("valid subschemas: ");
+        }
+        sb.append(index);
       }
       index++;
     }
 
-    if (!retval) {
-      context.addError(false, "no items valid");
+    if (sb.length() == 0) {
+      context.addError(false, "no valid subschemas");
+      return false;
     }
-    return retval;
+
+    context.addError(true, sb.toString());
+    return true;
   }
 }

@@ -69,7 +69,9 @@ public class UnevaluatedProperties extends Keyword {
     f.accept(context.annotations(AdditionalProperties.NAME));
     f.accept(context.annotations(NAME));
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     Set<String> thisValidated = new HashSet<>();
     if (validated.size() < object.size()) {
@@ -81,19 +83,24 @@ public class UnevaluatedProperties extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(
-              false,
-              "unevaluated property '" + Strings.jsonString(e.getKey()) + "' not valid");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", \"");
+          } else {
+            sb.append("invalid unevaluated properties: \"");
+          }
+          sb.append(Strings.jsonString(e.getKey())).append('\"');
           context.setCollectSubAnnotations(false);
         }
         thisValidated.add(e.getKey());
       }
     }
 
-    if (retval) {
-      context.addAnnotation(NAME, thisValidated);
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
-    return retval;
+
+    context.addAnnotation(NAME, thisValidated);
+    return true;
   }
 }

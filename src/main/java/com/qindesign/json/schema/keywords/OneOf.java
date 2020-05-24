@@ -30,12 +30,19 @@ public class OneOf extends Keyword {
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema
 
+    // Let's assume that there aren't an unreasonable number of subschemas
+    StringBuilder sb = new StringBuilder();
+
     int validCount = 0;
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
       String path = Integer.toString(index);
       if (context.apply(e, path, null, instance, "")) {
         validCount++;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        }
+        sb.append(index);
       }
       if (validCount > 1) {
         context.setCollectSubAnnotations(false);
@@ -44,7 +51,11 @@ public class OneOf extends Keyword {
     }
 
     if (validCount != 1) {
-      context.addError(false, "want 1 item valid, got " + validCount + " items valid");
+      if (sb.length() > 0) {
+        context.addError(false, "want 1 subschema valid, got " + validCount + ": " + sb);
+      } else {
+        context.addError(false, "want 1 subschema valid, got " + validCount);
+      }
       return false;
     }
     return true;

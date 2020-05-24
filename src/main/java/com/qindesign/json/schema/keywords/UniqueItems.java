@@ -39,7 +39,9 @@ public class UniqueItems extends Keyword {
       return true;
     }
 
-    boolean retval = true;
+    // Assume the number of items is not unreasonable
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     Set<JsonElement> set = new HashSet<>();
     int index = 0;
@@ -48,12 +50,21 @@ public class UniqueItems extends Keyword {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "item " + index + " not unique");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        } else {
+          sb.append("non-unique items: ");
+        }
+        sb.append(index);
         context.setCollectSubAnnotations(false);
       }
       index++;
     }
-    return retval;
+
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

@@ -30,8 +30,10 @@ public class AllOf extends Keyword {
     // Don't do all the schema validation here because it should have been
     // checked when validating the schema using the meta-schema
 
-    boolean retval = true;
     int index = 0;
+
+    // Let's assume that there aren't an unreasonable number of subschemas
+    StringBuilder sb = new StringBuilder();
 
     for (JsonElement e : value.getAsJsonArray()) {
       String path = Integer.toString(index);
@@ -39,12 +41,21 @@ public class AllOf extends Keyword {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "item " + index + " not valid");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        } else {
+          sb.append("invalid subschemas: ");
+        }
+        sb.append(index);
         context.setCollectSubAnnotations(false);
       }
       index++;
     }
-    return retval;
+
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

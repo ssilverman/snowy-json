@@ -43,26 +43,39 @@ public class AdditionalItems extends Keyword {
     JsonArray array = instance.getAsJsonArray();
 
     int processedCount = Math.min(schemaArray.size(), array.size());
-    boolean retval = true;
+
+    // Old: Use a count instead of collecting which items failed because we
+    // can't trust user input
+    // New: Should we trust user input not being too huge and collect all the
+    // invalid indexes?
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     for (int i = processedCount; i < array.size(); i++) {
       if (!context.apply(value, "", null, array.get(i), Integer.toString(i))) {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "additional item " + i + " not valid");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        } else {
+          sb.append("invalid additional items: ");
+        }
+        sb.append(i);
         context.setCollectSubAnnotations(false);
       }
     }
 
-    if (retval) {
-      // Don't produce annotations if this keyword is not applied
-      // TODO: Verify this restriction
-      if (processedCount < array.size()) {
-        context.addAnnotation(NAME, true);
-      }
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
-    return retval;
+
+    // Don't produce annotations if this keyword is not applied
+    // TODO: Verify this restriction
+    if (processedCount < array.size()) {
+      context.addAnnotation(NAME, true);
+    }
+    return true;
   }
 }

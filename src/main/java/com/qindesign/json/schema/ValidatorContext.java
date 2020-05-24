@@ -614,7 +614,8 @@ public final class ValidatorContext {
   /**
    * Adds an error annotation to the current instance location. This throws a
    * {@link MalformedSchemaException} if the value is not unique. This helps
-   * detect infinite loops.
+   * detect infinite loops. This should not be called more than once
+   * per keyword.
    * <p>
    * The message can be {@code null} to indicate no message.
    * <p>
@@ -994,12 +995,12 @@ public final class ValidatorContext {
             .forEach(
                 v -> v.entrySet().removeIf(e -> e.getKey().startsWith(state.keywordLocation)));
         if (!hasError()) {
-          addError(false, k.name());
+          addError(false, k.name() + " didn't validate");
         }
 
         // Don't escape early because we need to process all the keywords
         result = false;
-      } else {
+      } else if (!hasError()) {
         addError(true, k.name());
       }
     }

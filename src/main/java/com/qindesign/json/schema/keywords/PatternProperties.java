@@ -56,7 +56,8 @@ public class PatternProperties extends Keyword {
       context.checkValidSchema(e.getValue(), e.getKey());
     }
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    StringBuilder sb = new StringBuilder();
 
     Set<String> validated = new HashSet<>();
     for (var e : object.entrySet()) {
@@ -70,21 +71,26 @@ public class PatternProperties extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(
-              false,
-              "property '" + Strings.jsonString(e.getKey()) + "' not valid for pattern '" +
-              Strings.jsonString(p.pattern()) + "'");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", \"");
+          } else {
+            sb.append("invalid properties: \"");
+          }
+          sb.append(Strings.jsonString(e.getKey())).append("\" matches \"")
+              .append(Strings.jsonString(p.pattern())).append('\"');
           context.setCollectSubAnnotations(false);
         }
         validated.add(e.getKey());
       }
     }
 
-    if (retval) {
-      context.addAnnotation(NAME, validated);
-      context.addLocalAnnotation(NAME, validated);
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
-    return retval;
+
+    context.addAnnotation(NAME, validated);
+    context.addLocalAnnotation(NAME, validated);
+    return true;
   }
 }

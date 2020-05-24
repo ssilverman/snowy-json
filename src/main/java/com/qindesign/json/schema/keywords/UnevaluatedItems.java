@@ -88,7 +88,9 @@ public class UnevaluatedItems extends Keyword {
       }
     }
 
-    boolean retval = true;
+    // Assume the number of items is not unreasonable
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     JsonArray array = instance.getAsJsonArray();
     for (int i = max; i < array.size(); i++) {
@@ -96,15 +98,22 @@ public class UnevaluatedItems extends Keyword {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "unevaluated item " + i + " not valid");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", ");
+        } else {
+          sb.append("invalid unevaluated items: ");
+        }
+        sb.append(i);
         context.setCollectSubAnnotations(false);
       }
     }
 
-    if (retval) {
-      context.addAnnotation(NAME, true);
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
-    return retval;
+
+    context.addAnnotation(NAME, true);
+    return true;
   }
 }

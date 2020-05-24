@@ -47,7 +47,10 @@ public class AdditionalProperties extends Keyword {
       validated.addAll((Set<String>) propsA);
     }
 
-    boolean retval = true;
+    // Let's assume that there aren't an unreasonable number of additional
+    // properties in the user input, so track the bad ones
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     JsonObject object = instance.getAsJsonObject();
     Set<String> thisValidated = new HashSet<>();
@@ -60,24 +63,29 @@ public class AdditionalProperties extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(
-              false,
-              "additional property '" + Strings.jsonString(e.getKey()) +
-              "' not valid");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", \"");
+          } else {
+            sb.append("invalid additional properties: \"");
+          }
+          sb.append(Strings.jsonString(e.getKey())).append('\"');
           context.setCollectSubAnnotations(false);
         }
         thisValidated.add(e.getKey());
       }
     }
 
-    if (retval) {
-      // There's a good chance that no annotation should be collected if the
-      // keyword is not applied
-      if (thisValidated.size() > 0) {
-        context.addAnnotation(NAME, thisValidated);
-      }
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
-    return retval;
+
+    // There's a good chance that no annotation should be collected if the
+    // keyword is not applied
+    // TODO: Verify this
+    if (thisValidated.size() > 0) {
+      context.addAnnotation(NAME, thisValidated);
+    }
+    return true;
   }
 }

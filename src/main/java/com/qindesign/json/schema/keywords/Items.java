@@ -36,8 +36,12 @@ public class Items extends Keyword {
       return true;
     }
 
-    boolean retval = true;
     JsonArray array = instance.getAsJsonArray();
+
+    // Should we trust user input not being too huge and collect all the
+    // invalid indexes?
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     if (value.isJsonArray()) {
       JsonArray schemaArray = value.getAsJsonArray();
@@ -48,12 +52,16 @@ public class Items extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(false, "item " + i + " not valid in array");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", ");
+          } else {
+            sb.append("invalid items in array: ");
+          }
+          sb.append(i);
           context.setCollectSubAnnotations(false);
         }
       }
-      if (retval) {
+      if (sb.length() == 0) {
         // TODO: Produce an annotation if items is empty?
         if (0 < limit && limit < array.size()) {
           context.addAnnotation(NAME, limit - 1);
@@ -68,17 +76,25 @@ public class Items extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(false, "item " + index + " not valid");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", ");
+          } else {
+            sb.append("invalid items: ");
+          }
+          sb.append(index);
           context.setCollectSubAnnotations(false);
         }
         index++;
       }
-      if (retval) {
+      if (sb.length() == 0) {
         context.addAnnotation(NAME, true);
       }
     }
 
-    return retval;
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

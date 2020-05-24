@@ -43,7 +43,8 @@ public class DependentRequired extends Keyword {
       return true;
     }
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    StringBuilder sb = new StringBuilder();
 
     JsonObject object = instance.getAsJsonObject();
     for (var e : value.getAsJsonObject().entrySet()) {
@@ -71,15 +72,22 @@ public class DependentRequired extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(
-              false,
-              "dependent property '" + Strings.jsonString(name.getAsString()) + "' not found");
-          retval = false;
+          if (sb.length() > 0) {
+            sb.append(", \"");
+          } else {
+            sb.append("missing dependent properties: \"");
+          }
+          sb.append(Strings.jsonString(name.getAsString())).append('\"');
           context.setCollectSubAnnotations(false);
         }
         index++;
       }
     }
-    return retval;
+
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

@@ -31,18 +31,29 @@ public class PropertyNames extends Keyword {
       return true;
     }
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     for (String name : instance.getAsJsonObject().keySet()) {
       if (!context.apply(value, "", null, new JsonPrimitive(name), name)) {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(false, "property name '" + Strings.jsonString(name) + "' not valid");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", \"");
+        } else {
+          sb.append("invalid property names: \"");
+        }
+        sb.append(Strings.jsonString(name)).append('\"');
         context.setCollectSubAnnotations(false);
       }
     }
-    return retval;
+
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

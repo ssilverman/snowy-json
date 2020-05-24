@@ -36,7 +36,9 @@ public class Required extends Keyword {
       return true;
     }
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    // TODO: What should we do here, count or collect?
+    StringBuilder sb = new StringBuilder();
 
     JsonObject object = instance.getAsJsonObject();
     int index = 0;
@@ -49,14 +51,21 @@ public class Required extends Keyword {
         if (context.isFailFast()) {
           return false;
         }
-        context.addError(
-            false,
-            "required property '" + Strings.jsonString(e.getAsString()) + "' not found");
-        retval = false;
+        if (sb.length() > 0) {
+          sb.append(", \"");
+        } else {
+          sb.append("required properties not found: \"");
+        }
+        sb.append(Strings.jsonString(e.getAsString())).append('\"');
         context.setCollectSubAnnotations(false);
       }
       index++;
     }
-    return retval;
+
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
+    }
+    return true;
   }
 }

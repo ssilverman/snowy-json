@@ -43,7 +43,9 @@ public class Dependencies extends Keyword {
       return true;
     }
 
-    boolean retval = true;
+    // Assume the number of properties is not unreasonable
+    StringBuilder sbInvalid = new StringBuilder();
+    StringBuilder sbNotFound = new StringBuilder();
 
     JsonObject object = instance.getAsJsonObject();
     for (var e : value.getAsJsonObject().entrySet()) {
@@ -55,10 +57,12 @@ public class Dependencies extends Keyword {
           if (context.isFailFast()) {
             return false;
           }
-          context.addError(
-              false,
-              "dependent property '" + Strings.jsonString(e.getKey()) + "' not valid");
-          retval = false;
+          if (sbInvalid.length() > 0) {
+            sbInvalid.append(", \"");
+          } else {
+            sbInvalid.append("invalid dependent properties: \"");
+          }
+          sbInvalid.append(Strings.jsonString(e.getKey())).append('\"');
           context.setCollectSubAnnotations(false);
         }
       } else if (e.getValue().isJsonArray()) {
@@ -82,11 +86,12 @@ public class Dependencies extends Keyword {
             if (context.isFailFast()) {
               return false;
             }
-            context.addError(
-                false,
-                "dependent property '" + Strings.jsonString(name.getAsString()) +
-                "' not found");
-            retval = false;
+            if (sbNotFound.length() > 0) {
+              sbNotFound.append(", \"");
+            } else {
+              sbNotFound.append("missing dependent properties: \"");
+            }
+            sbNotFound.append(Strings.jsonString(name.getAsString())).append('\"');
             context.setCollectSubAnnotations(false);
           }
           index++;
@@ -97,6 +102,17 @@ public class Dependencies extends Keyword {
       }
     }
 
+    boolean retval = true;
+    if (sbInvalid.length() > 0 && sbNotFound.length() > 0) {
+      context.addError(false, sbInvalid + "; " + sbNotFound);
+      retval = false;
+    } else if (sbInvalid.length() > 0) {
+      context.addError(false, sbInvalid.toString());
+      retval = false;
+    } else if (sbNotFound.length() > 0) {
+      context.addError(false, sbNotFound.toString());
+      retval = false;
+    }
     return retval;
   }
 }
