@@ -54,8 +54,8 @@ public class CoreRecursiveRef extends Keyword {
     }
 
     // First, look for a $recursiveAnchor
-    uri = URIs.stripFragment(uri);
-    URI resolved = context.baseURI().resolve(uri);
+    // TODO: Possibly fix up the logic to be more consistent with CoreRef
+    URI resolved = URIs.stripFragment(context.baseURI().resolve(uri));
     JsonElement e = context.findAndSetRoot(resolved);
     if (e == null) {
       context.schemaError("unknown reference: " + value.getAsString());
