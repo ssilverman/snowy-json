@@ -33,12 +33,14 @@ public class OneOf extends Keyword {
     int validCount = 0;
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
-      if (context.apply(e, Integer.toString(index++), instance, "")) {
+      String path = Integer.toString(index);
+      if (context.apply(e, path, null, instance, "")) {
         validCount++;
       }
       if (validCount > 1) {
         context.setCollectSubAnnotations(false);
       }
+      index++;
     }
 
     if (validCount != 1) {

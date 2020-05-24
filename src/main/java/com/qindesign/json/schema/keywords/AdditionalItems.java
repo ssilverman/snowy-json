@@ -46,7 +46,7 @@ public class AdditionalItems extends Keyword {
     boolean retval = true;
 
     for (int i = processedCount; i < array.size(); i++) {
-      if (!context.apply(value, "", array.get(i), Integer.toString(i))) {
+      if (!context.apply(value, "", null, array.get(i), Integer.toString(i))) {
         if (context.isFailFast()) {
           return false;
         }

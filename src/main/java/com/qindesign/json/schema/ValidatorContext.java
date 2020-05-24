@@ -387,7 +387,7 @@ public final class ValidatorContext {
    */
   public void setBaseURI(URI uri) {
     state.baseURI = state.baseURI.resolve(uri);
-    state.absKeywordLocation = state.baseURI;
+    // Note: Don't set the state's absKeywordLocation here
   }
 
   /**
@@ -707,6 +707,9 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
+    if (path.startsWith("/")) {
+      return base.resolve("#" + path);
+    }
     String fragment = base.getRawFragment();
     if (fragment == null) {
       fragment = "";
@@ -852,32 +855,11 @@ public final class ValidatorContext {
         return null;
       }
 
-      JsonElement id = e.getAsJsonObject().get(CoreId.NAME);
-      if (i > 1 && id != null && Validator.isString(id)) {
-        URI uri;
-        try {
-          uri = new URI(id.getAsString()).normalize();
-        } catch (URISyntaxException ex) {
-          schemaError("not a valid URI-reference", path.toString() + "/" + CoreId.NAME);
-          return null;
-        }
-
-        if (URIs.hasNonEmptyFragment(uri)) {
-          if (specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-            schemaError("has a non-empty fragment", path.toString() + "/" + CoreId.NAME);
-            return null;
-          }
-          if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
-            schemaError("invalid plain name", path.toString() + "/" + CoreId.NAME);
-            return null;
-          }
-
-          // If it's not just a fragment then it represents a new base URI
-          if (uri.getScheme() != null || !uri.getRawSchemeSpecificPart().isEmpty()) {
-            newBase = newBase.resolve(uri);
-          }
-        } else {
-          newBase = newBase.resolve(URIs.stripFragment(uri));
+      JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
+      if (i > 1 && idElem != null && Validator.isString(idElem)) {
+        URI id = getID(idElem, path + "/" + CoreId.NAME);
+        if (id != null) {
+          newBase = newBase.resolve(id);
         }
       }
 
@@ -888,9 +870,24 @@ public final class ValidatorContext {
     }
     if (e != null) {
       state.baseURI = newBase;
-      state.absKeywordLocation = newBase;
+      // Note: Don't set the state's absKeywordLocation here
     }
     return e;
+  }
+
+  /**
+   * Gets and processes the given ID element. This returns a URI suitable for
+   * resolving against the current base URI. This will return {@code null} if
+   * the ID does not represent a new base, for example if it's an anchor.
+   *
+   * @param idElem the ID element
+   * @param path the relative path of the element, may be empty
+   * @return the processed ID, or {@code null} if it's not a new base.
+   * @throws MalformedSchemaException if the ID is malformed.
+   */
+  public URI getID(JsonElement idElem, String path) throws MalformedSchemaException {
+    return Validator.getID(idElem, specification(),
+                           resolveAbsolute(state.absKeywordLocation, path));
   }
 
   /**
@@ -900,16 +897,23 @@ public final class ValidatorContext {
    * <p>
    * This first checks that the schema is valid. A valid schema is either an
    * object or a Boolean.
+   * <p>
+   * The {@code absSchemaLoc} parameter is used as the new absolute keyword
+   * location, unless there's a declared $id, in which case that value is used.
+   * If there's no $id and the parameter is {@code null} then the location will
+   * be assigned the schema path resolved against the current location,
+   * as usual.
    *
    * @param schema the schema, an object or a Boolean
    * @param schemaPath the schema path
+   * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
    * @param instancePath the instance path
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or
    *         because internal validation is failing.
    */
-  public boolean apply(JsonElement schema, String schemaPath,
+  public boolean apply(JsonElement schema, String schemaPath, URI absSchemaLoc,
                        JsonElement instance, String instancePath)
       throws MalformedSchemaException
   {
@@ -917,10 +921,32 @@ public final class ValidatorContext {
       return schema.getAsBoolean();
     }
 
-    URI absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
+    URI absKeywordLocation = null;
+
+    // See if the absolute keyword location needs to change
+    if (schema.isJsonObject()) {
+      JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
+      if (idElem != null) {
+        URI id = getID(idElem, schemaPath + "/" + CoreId.NAME);
+        if (id != null) {
+          absKeywordLocation = baseURI.resolve(id);
+        }
+      }
+    }
+
+    if (absKeywordLocation == null) {
+      if (absSchemaLoc == null) {
+        absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
+      } else {
+        absKeywordLocation = absSchemaLoc;
+      }
+    }
     if (!schema.isJsonObject()) {
       throw new MalformedSchemaException("not a valid JSON schema", absKeywordLocation);
     }
+
+    // Set this here because callers may need this
+    state.absKeywordLocation = absKeywordLocation;
 
     JsonObject schemaObject = schema.getAsJsonObject();
     if (schemaObject.size() == 0) {  // Empty schemas always validate

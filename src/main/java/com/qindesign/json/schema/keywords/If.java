@@ -38,16 +38,17 @@ public class If extends Keyword {
       context.checkValidSchema(elseElem, "../else");
     }
 
-    if (context.apply(value, "", instance, "")) {
+    // TODO: Normalize the schema paths
+    if (context.apply(value, "", null, instance, "")) {
       if (thenElem == null) {
         return true;
       }
-      return context.apply(thenElem, "../then", instance, "");
+      return context.apply(thenElem, "../then", null, instance, "");
     } else {
       if (elseElem == null) {
         return true;
       }
-      return context.apply(elseElem, "../else", instance, "");
+      return context.apply(elseElem, "../else", null, instance, "");
     }
   }
 }

@@ -239,7 +239,13 @@ public final class Validator {
     }
     // TODO: I don't love the duplicate code in CoreSchema
 
-    return context.apply(schema, "", instance, "");
+    boolean retval = context.apply(schema, "", null, instance, "");
+    if (retval) {
+      context.addError(true, null);
+    } else {
+      context.addError(false, "schema didn't validate");
+    }
+    return retval;
   }
 
 //  /**
@@ -539,6 +545,49 @@ public final class Validator {
   }
 
   /**
+   * Gets and processes the given ID element. This returns a URI suitable for
+   * resolving against the current base URI. This will return {@code null} if
+   * the ID does not represent a new base, for example if it's an anchor.
+   *
+   * @param idElem the ID element
+   * @param loc the absolute path of the element
+   * @return the processed ID, or {@code null} if it's not a new base.
+   * @throws MalformedSchemaException if the ID is malformed.
+   */
+  public static URI getID(JsonElement idElem, Specification spec, URI loc)
+      throws MalformedSchemaException {
+    if (!Validator.isString(idElem)) {
+      throw new MalformedSchemaException("not a string", loc);
+    }
+
+    URI id;
+    try {
+      id = new URI(idElem.getAsString()).normalize();
+    } catch (URISyntaxException ex) {
+      throw new MalformedSchemaException("not a valid URI-reference", loc);
+    }
+
+    if (URIs.hasNonEmptyFragment(id)) {
+      if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        throw new MalformedSchemaException("has a non-empty fragment", loc);
+      }
+
+      if (!ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
+        throw new MalformedSchemaException("invalid plain name", loc);
+      }
+
+      // If it's not just a fragment then it represents a new base URI
+      if (id.getScheme() == null && id.getRawSchemeSpecificPart().isEmpty()) {
+        id = null;
+      }
+    } else {
+      id = URIs.stripFragment(id);
+    }
+
+    return id;
+  }
+
+  /**
    * Scans all the IDs in a JSON document starting from a given base URI. The
    * base URI is the initial known document resource ID. It will be normalized
    * and have any fragment, even an empty one, removed.
@@ -656,7 +705,6 @@ public final class Validator {
             throw new MalformedSchemaException("has a non-empty fragment",
                                                Strings.jsonPointerToURI(path));
           }
-
           if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
             throw new MalformedSchemaException("invalid plain name",
                                                Strings.jsonPointerToURI(path));

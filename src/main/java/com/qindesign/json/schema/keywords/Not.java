@@ -24,6 +24,6 @@ public class Not extends Keyword {
                           ValidatorContext context)
       throws MalformedSchemaException {
     context.setCollectSubAnnotations(false);
-    return !context.apply(value, "", instance, "");
+    return !context.apply(value, "", null, instance, "");
   }
 }

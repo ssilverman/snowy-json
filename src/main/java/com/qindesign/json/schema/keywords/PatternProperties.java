@@ -65,7 +65,7 @@ public class PatternProperties extends Keyword {
         if (!p.matcher(e.getKey()).find()) {
           continue;
         }
-        if (!context.apply(schemaObject.get(p.pattern()), p.pattern(),
+        if (!context.apply(schemaObject.get(p.pattern()), p.pattern(), null,
                            e.getValue(), e.getKey())) {
           if (context.isFailFast()) {
             return false;

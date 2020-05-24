@@ -34,7 +34,7 @@ public class PropertyNames extends Keyword {
     boolean retval = true;
 
     for (String name : instance.getAsJsonObject().keySet()) {
-      if (!context.apply(value, "", new JsonPrimitive(name), name)) {
+      if (!context.apply(value, "", null, new JsonPrimitive(name), name)) {
         if (context.isFailFast()) {
           return false;
         }

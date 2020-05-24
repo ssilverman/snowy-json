@@ -45,6 +45,7 @@ public class CoreRef extends Keyword {
     // In both cases, this doesn't set the base URI of the first $id element
     // because CoreId will be doing this when encountered
     uri = context.baseURI().resolve(uri);
+    URI schemaURI = uri;
     JsonElement e;
     String fragment = uri.getRawFragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
@@ -75,6 +76,6 @@ public class CoreRef extends Keyword {
       return false;
     }
 
-    return context.apply(e, "", instance, "");
+    return context.apply(e, "", schemaURI, instance, "");
   }
 }

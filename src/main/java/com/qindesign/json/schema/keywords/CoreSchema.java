@@ -102,7 +102,7 @@ public class CoreSchema extends Keyword {
     opts2.set(Option.COLLECT_ERRORS, false);
     opts2.set(Option.DEFAULT_SPECIFICATION, spec);
     ValidatorContext context2 = new ValidatorContext(id, ids, context.knownURLs(), validated, opts2);
-    if (!context2.apply(e, "", parent, "")) {
+    if (!context2.apply(e, "", null, parent, "")) {
       context.schemaError("does not validate");
       return false;
     }

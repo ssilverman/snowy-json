@@ -34,7 +34,8 @@ public class AllOf extends Keyword {
     int index = 0;
 
     for (JsonElement e : value.getAsJsonArray()) {
-      if (!context.apply(e, Integer.toString(index), instance, "")) {
+      String path = Integer.toString(index);
+      if (!context.apply(e, path, null, instance, "")) {
         if (context.isFailFast()) {
           return false;
         }

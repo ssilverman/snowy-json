@@ -56,7 +56,7 @@ public class AdditionalProperties extends Keyword {
         if (validated.contains(e.getKey())) {
           continue;
         }
-        if (!context.apply(value, "", e.getValue(), e.getKey())) {
+        if (!context.apply(value, "", null, e.getValue(), e.getKey())) {
           if (context.isFailFast()) {
             return false;
           }
