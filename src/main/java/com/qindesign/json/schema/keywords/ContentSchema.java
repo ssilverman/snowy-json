@@ -9,7 +9,6 @@ import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -30,17 +29,14 @@ public class ContentSchema extends Keyword {
       return true;
     }
 
+    context.checkValidSchema(value);
+
     if (!JSON.isString(instance)) {
       return true;
     }
 
     if (!parent.has(ContentMediaType.NAME)) {
       return true;
-    }
-
-    if (!Validator.isSchema(value)) {
-      context.schemaError("not a schema");
-      return false;
     }
 
     context.addAnnotation(NAME, value);
