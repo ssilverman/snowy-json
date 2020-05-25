@@ -231,11 +231,11 @@ already built:
 mvn exec:java@main -Dexec.args="schema.json instance.json"
 ```
 
-To run the test suite and tell the test runner that the suite is in
-`/suites/json-schema-test-suite`:
+To compile and run the test suite and tell the test runner that the suite is
+in `/suites/json-schema-test-suite`:
 
 ```bash
-mvn exec:java@test -Dexec.args="/suites/json-schema-test-suite"
+mvn compile exec:java@test -Dexec.args="/suites/json-schema-test-suite"
 ```
 
 To execute a specific main class, say one that isn't defined as a specific
