@@ -1,8 +1,8 @@
-# Snow, a JSON Validator
+# Snow, a JSON Schema Validator
 
-Version: 0.5.0
+Version: 0.6.0
 
-The main goal of this project is to be a reference JSON validator.
+The main goal of this project is to be a reference JSON Schema validator.
 
 ## Features
 
@@ -27,6 +27,12 @@ This project has the following features:
 8. Specification detection heuristics for when there's no $schema declared.
 9. Content validation support for the "base64" encoding and "application/json"
    media type.
+   
+### Additional features
+
+These additional features exist:
+
+1. A rudimentary linter that catches simple but common errors.
 
 ## Under the covers
 
@@ -114,6 +120,8 @@ effectively an annotation whose name is "error" for a false validation result,
 and "annotation" for a validation result of true. If neither this nor
 `COLLECT_ANNOTATIONS` is set to `true` then no loop detection is available.
 
+This option may need to be set to `false` if a schema uses $recursiveRef.
+
 ### Option: DEFAULT_SPECIFICATION
 
 Type: `com.qindesign.json.schema.Specification`
@@ -153,7 +161,7 @@ There are plans to explore supporting more features, including:
 
 ## An ending thought
 
-I'd love to say this: "The validator isn't wrong, the spec is ambiguous."™
+I'd love to say this: "The validator isn't wrong, the spec is ambiguous."™ \
 Realistic? No, but fun to say anyway.
 
 ---
