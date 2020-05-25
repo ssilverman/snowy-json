@@ -33,7 +33,8 @@ public enum Option {
 
   /**
    * Whether to collect errors, including both valid and invalid results,
-   * a {@link Boolean}.
+   * a {@link Boolean}. This option may need to be set to {@code false} if a
+   * schema uses $recursiveRef.
    */
   COLLECT_ERRORS(Boolean.class),
 
