@@ -36,6 +36,32 @@ These additional features exist:
 
 1. A rudimentary linter that catches simple but common errors.
 
+## Quick start
+
+There are more details below, but here are three commands that will get you
+started right away:
+
+1. Run the validator on an instance against a schema:
+   ```bash
+   mvn exec:java@main -Dexec.args="schema.json instance.json"
+   ```
+   The two files in this example are named `schema.json` for the schema and
+   `instance.json` for the instance. The example assumes the files are in the
+   current working directory.
+2. Clone and then run the test suite:
+   ```bash
+   mvn compile exec:java@test -Dexec.args="/suites/json-schema-test-suite"
+   ```
+   This assumes that the test suite is in `/suites/json-schema-test-suite`.
+   Yours may be in a different location. The test suite can be cloned from
+   [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite).
+3. Run the linter on a schema:
+   ```bash
+   mvn exec:java@linter -Dexec.args="schema.json"
+   ```
+   The schema file in this example is named `schema.json`. The example assumes
+   the file is in the current working directory.
+
 ## Under the covers
 
 This project uses Google's [Gson](https://github.com/google/gson) and
