@@ -4,6 +4,8 @@ Version: 0.6.0
 
 The main goal of this project is to be a reference JSON Schema validator.
 
+See: [JSON Schema](https://json-schema.org)
+
 ## Features
 
 This project has the following features:
@@ -20,7 +22,7 @@ This project has the following features:
       resources, and other objects. "URL" here means that the system knows how
       to retrieve something vs. "URI", which is just an ID.
 6. Options for controlling "format" validation, annotation collection, error
-   collection, and default and non-default specification choice. 
+   collection, and default and non-default specification choice.
 7. There's rudimentary infinite loop detection, but only if error or annotation
    collection is enabled. It works by detecting that a previous keyword has been
    applied to the same instance location.
@@ -145,12 +147,112 @@ Type: `com.qindesign.json.schema.Specification`
 This indicates which specification to use if one is not explicitly stated in
 a schema.
 
+## Project structure
+
+This project is designed to provide APIs and tools for performing JSON Schema
+validation. Its main purpose is to do most of the work, but have the user wire
+in everything themselves. A few rudimentary and runnable test programs are
+provided, however.
+
+The main package is `com.qindesign.json.schema`.
+
+### Complete programs
+
+The first program is `Main`. This takes two arguments, a schema file and an
+instance file, and then performs validation of the instance against the schema.
+
+The second program is `Test`. This takes one argument, a directory containing
+the JSON Schema test suite, and then runs all the tests in the suite. You can
+obtain a copy of the test suite by cloning the
+[test suite repository](https://github.com/json-schema-org/JSON-Schema-Test-Suite).
+
+The third program is `Linter`, a rudimentary linter for JSON Schema files. It
+takes one argument, the schema file to check.
+
+### API
+
+The main entry point to the API is the `Validator.validate` method. In addition
+to the non-optional schema, instance, and base URI, you can pass options, known
+IDs and URLs, and a place to put collected annotations and errors. Only the
+first three arguments, `schema`, `instance`, and `baseURI` must not be `null`.
+
+In this version, the caller must organize the errors into the desired output
+format. An example of how to convert them into the Basic output format is in
+the `Main.basicOutput` method.
+
+Providing tools to format the errors into more output formats may happen in
+the future.
+
+## Building and running
+
+This project uses Maven as its build tool because it makes managing the
+dependencies easy. It uses standard Maven commands and phases. For example, to
+compile the project, use:
+
+```bash
+mvn compile
+```
+
+To clean and then re-compile:
+
+```bash
+mvn clean compile
+```
+
+Maven makes it easy to build, execute, and package everything with the right
+dependencies, however it's also possible to use your IDE or different tools
+to manage the project.  This section only discusses Maven usage.
+
+### Program execution with Maven
+
+Maven takes care of project dependencies for you so you don't have to manage the
+classpath or downloads.
+
+Currently, there are three predefined execution targets:
+1. `main`: Executes `Main`. Validates an instance against a schema.
+2. `test`: Executes `Test`. Runs the test suite.
+3. `linter`: Executes `Linter`. Checks a schema.
+
+This section shows some simple execution examples. There's more information
+about the included programs below.
+
+Note that Maven doesn't automatically build the project when running an
+execution target. It either has to be pre-built using `compile` or added to the
+command line. For example, to compile and then run the linter:
+
+```bash
+mvn compile exec:java@linter -Dexec.args="schema.json"
+```
+
+To run the main validator without attempting a compile first, say because it's
+already built:
+
+```bash
+mvn exec:java@main -Dexec.args="schema.json instance.json"
+```
+
+To run the test suite and tell the test runner that the suite is in
+`/suites/json-schema-test-suite`:
+
+```bash
+mvn exec:java@test -Dexec.args="/suites/json-schema-test-suite"
+```
+
+To execute a specific main class, say one that isn't defined as a specific
+execution, add an `exec.mainClass` property. For example, if the fully-qualified
+main class is `my.Main` and it takes some "program arguments":
+
+```bash
+mvn exec:java -Dexec.mainClass="my.Main" -Dexec.args="program arguments"
+```
+
 ## Future plans
 
 There are plans to explore supporting more features, including:
 
 1. Custom vocabulary support.
-2. Output formatting. All the information is currently there, but 
+2. Output formatting. All the information is currently there, but the caller
+   must process and organize it.
 
 ## References
 
@@ -158,6 +260,8 @@ There are plans to explore supporting more features, including:
 2. [Gson](https://github.com/google/gson)
 3. [Guava](https://github.com/google/guava)
 4. [ECMA 262](https://www.ecma-international.org/publications/standards/Ecma-262.htm)
+5. [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite)
+6. [JSON Schema Draft Sources](https://github.com/json-schema-org/json-schema-spec)
 
 ## An ending thought
 
