@@ -201,13 +201,13 @@ public final class ValidatorContext {
    * Annotations collection, maps element location to its annotations:<br>
    * instance location -> name -> schema location -> value
    */
-  private final Map<String, Map<String, Map<String, Annotation>>> annotations = new HashMap<>();
+  private final Map<String, Map<String, Map<String, Annotation>>> annotations;
 
   /**
    * Error "annotation" collection, maps element location to its errors:<br>
    * instance location -> schema location -> value
    */
-  private final Map<String, Map<String, Annotation>> errors = new HashMap<>();
+  private final Map<String, Map<String, Annotation>> errors;
 
   /**
    * The initial base URI passed in with the constructor. This may or may not
@@ -255,18 +255,24 @@ public final class ValidatorContext {
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
    * @param options any options
+   * @param annotations annotations get stored here
+   * @param errors errors get stored here
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
    */
   public ValidatorContext(URI baseURI,
                           Map<Id, JsonElement> knownIDs, Map<URI, URL> knownURLs,
-                          Set<URI> validatedSchemas, Options options) {
+                          Set<URI> validatedSchemas, Options options,
+                          Map<String, Map<String, Map<String, Annotation>>> annotations,
+                          Map<String, Map<String, Annotation>> errors) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(knownURLs, "knownURLs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
     Objects.requireNonNull(options, "options");
+    Objects.requireNonNull(annotations, "annotations");
+    Objects.requireNonNull(errors, "errors");
 
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
@@ -308,6 +314,17 @@ public final class ValidatorContext {
     isCollectAnnotations = isOption(Option.COLLECT_ANNOTATIONS);
     isCollectErrors = isOption(Option.COLLECT_ERRORS);
     isFailFast = !isCollectAnnotations && !isCollectErrors;
+
+    if (isCollectAnnotations) {
+      this.annotations = annotations;
+    } else {
+      this.annotations = null;
+    }
+    if (isCollectErrors) {
+      this.errors = errors;
+    } else {
+      this.errors = null;
+    }
   }
 
   /**
@@ -679,6 +696,10 @@ public final class ValidatorContext {
    * @return whether there's an existing annotation.
    */
   public boolean hasAnnotation(String name) {
+    if (!isCollectAnnotations || !state.isCollectSubAnnotations) {
+      return false;
+    }
+
     return annotations
         .getOrDefault(state.instanceLocation, Collections.emptyMap())
         .getOrDefault(name, Collections.emptyMap())
@@ -689,6 +710,10 @@ public final class ValidatorContext {
    * Returns whether there's an existing error at the current instance location.
    */
   public boolean hasError() {
+    if (!isCollectErrors) {
+      return false;
+    }
+
     return errors
         .getOrDefault(state.instanceLocation, Collections.emptyMap())
         .containsKey(state.keywordLocation);
@@ -702,6 +727,10 @@ public final class ValidatorContext {
    * @return a map keyed by schema location.
    */
   public Map<String, Annotation> annotations(String name) {
+    if (!isCollectAnnotations) {
+      return Collections.emptyMap();
+    }
+
     return Collections.unmodifiableMap(
         annotations
             .getOrDefault(state.instanceLocation, Collections.emptyMap())
@@ -1015,10 +1044,12 @@ public final class ValidatorContext {
         // Note that this is still necessary even with the setCollectAnnotations
         // optimization because it either may not be used or not used
         // early enough
-        annotations.getOrDefault(instanceLocation, Collections.emptyMap())
-            .values()
-            .forEach(
-                v -> v.entrySet().removeIf(e -> e.getKey().startsWith(state.keywordLocation)));
+        if (isCollectAnnotations) {
+          annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+              .values()
+              .forEach(
+                  v -> v.entrySet().removeIf(e -> e.getKey().startsWith(state.keywordLocation)));
+        }
         if (!hasError()) {
           addError(false, k.name() + " didn't validate");
         }

@@ -73,7 +73,7 @@ public class Main {
     opts.set(Option.DEFAULT_SPECIFICATION, spec);
     boolean result = Validator.validate(schema, instance, schemaID,
                                         Collections.emptyMap(), Collections.emptyMap(),
-                                        opts);
+                                        opts, null, null);
     logger.info("Validation result: " + result);
   }
 }
