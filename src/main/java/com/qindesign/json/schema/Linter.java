@@ -275,7 +275,9 @@ public final class Linter {
       // Unknown keywords, but not inside defs
       object.keySet().forEach(name -> {
         if (!ValidatorContext.keywords.containsKey(name)) {
-          addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
+          if (!name.equals("then") && !name.equals("else")) {  // TODO: This is a hack!
+            addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
+          }
         }
       });
     });
