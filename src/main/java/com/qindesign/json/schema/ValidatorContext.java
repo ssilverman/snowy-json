@@ -882,7 +882,7 @@ public final class ValidatorContext {
       }
 
       JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
-      if (i > 1 && idElem != null && Validator.isString(idElem)) {
+      if (i > 1 && idElem != null && JSON.isString(idElem)) {
         URI id = getID(idElem, path + "/" + CoreId.NAME);
         if (id != null) {
           newBase = newBase.resolve(id);
@@ -943,7 +943,7 @@ public final class ValidatorContext {
                        JsonElement instance, String instancePath)
       throws MalformedSchemaException
   {
-    if (Validator.isBoolean(schema)) {
+    if (JSON.isBoolean(schema)) {
       return schema.getAsBoolean();
     }
 

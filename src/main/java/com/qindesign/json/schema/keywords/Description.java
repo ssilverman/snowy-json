@@ -5,9 +5,9 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -24,7 +24,7 @@ public class Description extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    if (!Validator.isString(value)) {
+    if (!JSON.isString(value)) {
       context.schemaError("not a string");
       return false;
     }

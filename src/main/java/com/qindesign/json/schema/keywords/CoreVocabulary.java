@@ -5,10 +5,10 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,7 +57,7 @@ public class CoreVocabulary extends Keyword {
         context.schemaError("URI not normalized", e.getKey());
         return false;
       }
-      if (!Validator.isBoolean(e.getValue())) {
+      if (!JSON.isBoolean(e.getValue())) {
         context.schemaError("not a Boolean", e.getKey());
         return false;
       }

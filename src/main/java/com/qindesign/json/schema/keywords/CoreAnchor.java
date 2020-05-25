@@ -5,6 +5,7 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
@@ -29,7 +30,7 @@ public class CoreAnchor extends Keyword {
       return true;
     }
 
-    if (!Validator.isString(value)) {
+    if (!JSON.isString(value)) {
       context.schemaError("not a string");
       return false;
     }

@@ -5,11 +5,11 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
 
@@ -31,7 +31,7 @@ public class MaxContains extends Keyword {
       return true;
     }
 
-    if (!Validator.isNumber(value)) {
+    if (!JSON.isNumber(value)) {
       context.schemaError("not a number");
       return false;
     }

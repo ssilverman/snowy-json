@@ -89,4 +89,34 @@ public final class JSON {
       throw new JsonSyntaxException(e);
     }
   }
+
+  /**
+   * Convenience method that checks if a JSON element is a Boolean.
+   *
+   * @param e the element to test
+   * @return whether the element is a Boolean.
+   */
+  public static boolean isBoolean(JsonElement e) {
+    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean();
+  }
+
+  /**
+   * Convenience method that checks if a JSON element is a number.
+   *
+   * @param e the element to test
+   * @return whether the element is a number.
+   */
+  public static boolean isNumber(JsonElement e) {
+    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber();
+  }
+
+  /**
+   * Convenience method that checks if a JSON element is a string.
+   *
+   * @param e the element to test
+   * @return whether the element is a string.
+   */
+  public static boolean isString(JsonElement e) {
+    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isString();
+  }
 }

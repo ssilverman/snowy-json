@@ -5,11 +5,11 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
 
@@ -47,7 +47,7 @@ public class Contains extends Keyword {
     boolean allowZero = false;
     if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
       JsonElement minContains = parent.get(MinContains.NAME);
-      if (minContains != null && Validator.isNumber(minContains)) {
+      if (minContains != null && JSON.isNumber(minContains)) {
         BigDecimal n = Numbers.valueOf(minContains.getAsString());
         if (n.signum() == 0) {
           allowZero = true;

@@ -7,11 +7,11 @@ import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
 import java.net.URI;
@@ -218,7 +218,7 @@ public class Format extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    if (!Validator.isString(value)) {
+    if (!JSON.isString(value)) {
       context.schemaError("not a string");
       return false;
     }
@@ -240,7 +240,7 @@ public class Format extends Keyword {
       case "date-time":
       case "date":
       case "full-date":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         Matcher m;
@@ -274,14 +274,14 @@ public class Format extends Keyword {
         break;
       case "time":
       case "full-time":
-        if (Validator.isString(instance)) {
+        if (JSON.isString(instance)) {
           if (!FULL_TIME.matcher(instance.getAsString()).matches()) {
             return false;
           }
         }
         break;
       case "duration":
-        if (Validator.isString(instance)) {
+        if (JSON.isString(instance)) {
           if (!DURATION.matcher(instance.getAsString()).matches()) {
             return false;
           }
@@ -289,7 +289,7 @@ public class Format extends Keyword {
         break;
       case "email":
       case "idn-email":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
 //        // For now, just check for one '@' sign not at the ends
@@ -305,7 +305,7 @@ public class Format extends Keyword {
         break;
       case "hostname":
       case "idn-hostname":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         // TODO: Allow IPv6 addresses here?
@@ -320,7 +320,7 @@ public class Format extends Keyword {
         break;
       case "ipv4":
       case "ipv6":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         try {
@@ -340,7 +340,7 @@ public class Format extends Keyword {
         break;
       case "uri":
       case "uri-reference":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         try {
@@ -354,7 +354,7 @@ public class Format extends Keyword {
         break;
       case "iri":
       case "iri-reference":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         try {
@@ -367,7 +367,7 @@ public class Format extends Keyword {
         }
         break;
       case "uuid":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         try {
@@ -377,28 +377,28 @@ public class Format extends Keyword {
         }
         break;
       case "uri-template":
-        if (Validator.isString(instance)) {
+        if (JSON.isString(instance)) {
           if (!checkURITemplate(instance.getAsString())) {
             return false;
           }
         }
         break;
       case "json-pointer":
-        if (Validator.isString(instance)) {
+        if (JSON.isString(instance)) {
           if (!JSON_POINTER.matcher(instance.getAsString()).matches()) {
             return false;
           }
         }
         break;
       case "relative-json-pointer":
-        if (Validator.isString(instance)) {
+        if (JSON.isString(instance)) {
           if (!RELATIVE_JSON_POINTER.matcher(instance.getAsString()).matches()) {
             return false;
           }
         }
         break;
       case "regex":
-        if (!Validator.isString(instance)) {
+        if (!JSON.isString(instance)) {
           break;
         }
         try {

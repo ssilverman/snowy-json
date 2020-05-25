@@ -5,11 +5,11 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class DependentRequired extends Keyword {
       int index = 0;
       Set<String> names = new HashSet<>();
       for (JsonElement name : e.getValue().getAsJsonArray()) {
-        if (!Validator.isString(name)) {
+        if (!JSON.isString(name)) {
           context.schemaError("not a string", e.getKey() + "/" + index);
           return false;
         }

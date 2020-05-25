@@ -136,16 +136,6 @@ public final class Validator {
   }
 
   /**
-   * Convenience method that checks if a JSON element is a Boolean.
-   *
-   * @param e the element to test
-   * @return whether the element is a Boolean.
-   */
-  public static boolean isBoolean(JsonElement e) {
-    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean();
-  }
-
-  /**
    * Convenience method that checks if a JSON element is potential schema. A
    * schema is either an object or Boolean. Note that this does not do a deep
    * check if the element is an object.
@@ -154,27 +144,7 @@ public final class Validator {
    * @return whether the element is a Boolean.
    */
   public static boolean isSchema(JsonElement e) {
-    return e.isJsonObject() || isBoolean(e);
-  }
-
-  /**
-   * Convenience method that checks if a JSON element is a number.
-   *
-   * @param e the element to test
-   * @return whether the element is a number.
-   */
-  public static boolean isNumber(JsonElement e) {
-    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber();
-  }
-
-  /**
-   * Convenience method that checks if a JSON element is a string.
-   *
-   * @param e the element to test
-   * @return whether the element is a string.
-   */
-  public static boolean isString(JsonElement e) {
-    return e.isJsonPrimitive() && e.getAsJsonPrimitive().isString();
+    return e.isJsonObject() || JSON.isBoolean(e);
   }
 
   /**
@@ -364,7 +334,7 @@ public final class Validator {
 
     // Use all the things we know about $schema
     JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
-    if (schemaVal != null && isString(schemaVal)) {
+    if (schemaVal != null && JSON.isString(schemaVal)) {
       try {
         URI uri = new URI(schemaVal.getAsString());
         // Don't check if it's normalized because it may become a valid spec
@@ -410,7 +380,7 @@ public final class Validator {
 
     // See if there's a $ref to a schema
     JsonElement refVal = schema.getAsJsonObject().get(CoreRef.NAME);
-    if (refVal != null && isString(refVal)) {
+    if (refVal != null && JSON.isString(refVal)) {
       try {
         URI uri = new URI(refVal.getAsString());
         // Don't check if it's normalized because it may become a valid spec
@@ -498,7 +468,7 @@ public final class Validator {
           // Look into the keyword
           switch (e.getKey()) {
             case CoreId.NAME:
-              if (isString(e.getValue())) {
+              if (JSON.isString(e.getValue())) {
                 try {
                   if (URIs.hasNonEmptyFragment(new URI(e.getValue().getAsString()))) {
                     cantBe.add(Specification.DRAFT_2019_09);
@@ -516,7 +486,7 @@ public final class Validator {
               break;
 
             case Format.NAME:
-              if (isString(e.getValue())) {
+              if (JSON.isString(e.getValue())) {
                 String format = e.getValue().getAsString();
                 if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
                   couldBe.add(Specification.DRAFT_2019_09);
@@ -578,7 +548,7 @@ public final class Validator {
    */
   public static URI getID(JsonElement idElem, Specification spec, URI loc)
       throws MalformedSchemaException {
-    if (!Validator.isString(idElem)) {
+    if (!JSON.isString(idElem)) {
       throw new MalformedSchemaException("not a string", loc);
     }
 
@@ -710,7 +680,7 @@ public final class Validator {
       if (value != null) {
         String path = newParentID + "/" + CoreId.NAME;
 
-        if (!isString(value)) {
+        if (!JSON.isString(value)) {
           throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(path));
         }
 
@@ -771,7 +741,7 @@ public final class Validator {
         if (value != null) {
           String path = newParentID + "/" + CoreAnchor.NAME;
 
-          if (!isString(value)) {
+          if (!JSON.isString(value)) {
             throw new MalformedSchemaException("not a string",
                                                Strings.jsonPointerToURI(path));
           }

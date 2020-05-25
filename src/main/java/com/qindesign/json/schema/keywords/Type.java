@@ -5,11 +5,11 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
 import com.qindesign.json.schema.Strings;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class Type extends Keyword {
       values = value.getAsJsonArray();
       // Don't do all the schema validation here because it should have been
       // checked when validating the schema using the meta-schema
-    } else if (Validator.isString(value)) {
+    } else if (JSON.isString(value)) {
       values = Collections.singleton(value.getAsJsonPrimitive());
     } else {
       context.schemaError("not an array or string");
@@ -42,7 +42,7 @@ public class Type extends Keyword {
 
     int index = 0;
     for (JsonElement t : values) {
-      if (!Validator.isString(t)) {
+      if (!JSON.isString(t)) {
         context.schemaError("not a string", Integer.toString(index));
         return false;
       }
@@ -53,7 +53,7 @@ public class Type extends Keyword {
           }
           break;
         case "boolean":
-          if (Validator.isBoolean(instance)) {
+          if (JSON.isBoolean(instance)) {
             return true;
           }
           break;
@@ -68,18 +68,18 @@ public class Type extends Keyword {
           }
           break;
         case "number":
-          if (Validator.isNumber(instance)) {
+          if (JSON.isNumber(instance)) {
             return true;
           }
           break;
         case "integer":
-          if (Validator.isNumber(instance)) {
+          if (JSON.isNumber(instance)) {
             BigDecimal n = Numbers.valueOf(instance.getAsString());
             return n.stripTrailingZeros().scale() <= 0;
           }
           break;
         case "string":
-          if (Validator.isString(instance)) {
+          if (JSON.isString(instance)) {
             return true;
           }
           break;
@@ -87,7 +87,7 @@ public class Type extends Keyword {
       index++;
     }
 
-    if (Validator.isString(value)) {
+    if (JSON.isString(value)) {
       context.addError(false, "value not a \"" + Strings.jsonString(value.getAsString()) + "\"");
     } else {
       StringBuilder sb = new StringBuilder();

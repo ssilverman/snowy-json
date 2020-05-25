@@ -11,7 +11,6 @@ import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.util.Base64InputStream;
 import java.io.IOException;
@@ -45,12 +44,12 @@ public class ContentMediaType extends Keyword {
       return true;
     }
 
-    if (!Validator.isString(value)) {
+    if (!JSON.isString(value)) {
       context.schemaError("not a string");
       return false;
     }
 
-    if (!Validator.isString(instance)) {
+    if (!JSON.isString(instance)) {
       return true;
     }
 
@@ -63,7 +62,7 @@ public class ContentMediaType extends Keyword {
           // Determine if Base64-encoded
           boolean base64 = false;
           JsonElement encoding = parent.get(ContentEncoding.NAME);
-          if (encoding != null && Validator.isString(encoding)) {
+          if (encoding != null && JSON.isString(encoding)) {
             if (encoding.getAsString().equalsIgnoreCase("base64")) {
               base64 = true;
             }

@@ -5,10 +5,10 @@ package com.qindesign.json.schema.keywords;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
-import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import java.math.BigDecimal;
 
@@ -26,7 +26,7 @@ public class MultipleOf extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    if (!Validator.isNumber(value)) {
+    if (!JSON.isNumber(value)) {
       context.schemaError("not a number");
       return false;
     }
@@ -36,7 +36,7 @@ public class MultipleOf extends Keyword {
       return false;
     }
 
-    if (!Validator.isNumber(instance)) {
+    if (!JSON.isNumber(instance)) {
       return true;
     }
 
