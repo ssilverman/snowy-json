@@ -148,9 +148,19 @@ public final class JSON {
    */
   public static final class TraverseState {
     /** The current specification, as determined by the latest $schema value. */
-    public Specification spec;
+    private Specification spec;
 
-    TraverseState copy() {
+    /**
+     * Returns the specification.
+     */
+    public Specification spec() {
+      return spec;
+    }
+
+    /**
+     * Returns a copy of the object.
+     */
+    private TraverseState copy() {
       TraverseState copy = new TraverseState();
       copy.spec = this.spec;
       return copy;
