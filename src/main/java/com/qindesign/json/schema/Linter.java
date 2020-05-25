@@ -13,6 +13,7 @@ import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.CoreSchema;
 import com.qindesign.json.schema.keywords.Definitions;
 import com.qindesign.json.schema.keywords.Format;
+import com.qindesign.json.schema.keywords.If;
 import com.qindesign.json.schema.keywords.Items;
 import com.qindesign.json.schema.keywords.MaxContains;
 import com.qindesign.json.schema.keywords.MinContains;
@@ -254,6 +255,19 @@ public final class Linter {
                      "\"" + UnevaluatedItems.NAME +
                      "\" without array-form \"" +
                      Items.NAME + "\"");
+          }
+        }
+      }
+
+      if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
+        if (object.has("then")) {
+          if (!object.has(If.NAME)) {
+            addIssue(issues, path, "\"then\" without \"" + If.NAME + "\"");
+          }
+        }
+        if (object.has("else")) {
+          if (!object.has(If.NAME)) {
+            addIssue(issues, path, "\"else\" without \"" + If.NAME + "\"");
           }
         }
       }
