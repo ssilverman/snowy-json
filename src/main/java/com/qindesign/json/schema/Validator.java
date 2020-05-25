@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -184,15 +185,17 @@ public final class Validator {
    *     any default</li>
    * </ol>
    *
-   * @param schema the schema
-   * @param instance the instance
-   * @param baseURI the schema's base URI
+   * @param schema the schema, must not be {@code null}
+   * @param instance the instance, must not be {@code null}
+   * @param baseURI the schema's base URI, must not be {@code null}
    * @param knownIDs any known JSON contents, searched first
    * @param knownURLs any known resources, searched second
    * @param options any options
    * @param annotations annotations get stored here, if not {@code null}
    * @param errors errors get stored here, if not {@code null}
    * @return the validation result.
+   * @throws NullPointerException if {@code schema}, {@code instance}, or
+   *         {@code baseURI} are {@code null}.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
@@ -203,6 +206,10 @@ public final class Validator {
                                  Map<String, Map<String, Annotation>> errors)
       throws MalformedSchemaException
   {
+    Objects.requireNonNull(schema, "schema");
+    Objects.requireNonNull(instance, "instance");
+    Objects.requireNonNull(baseURI, "baseURI");
+
     if (options == null) {
       options = new Options();
     }

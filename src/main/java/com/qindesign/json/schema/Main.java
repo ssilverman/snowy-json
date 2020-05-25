@@ -25,10 +25,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.util.Collections;
@@ -74,9 +76,18 @@ public class Main {
     }
   }
 
+  /** The default specification. */
   private static final Specification spec = Specification.DRAFT_2019_09;
 
-  public static void main(String[] args) throws Exception {
+  /**
+   * Main program entry point.
+   *
+   * @param args the program arguments
+   * @throws IOException if there was an error reading the files.
+   * @throws JsonParseException if there was an error parsing the JSON.
+   * @throws MalformedSchemaException if there was a problem with the schema.
+   */
+  public static void main(String[] args) throws IOException, MalformedSchemaException {
     if (args.length != 2) {
       System.out.println("Usage: " + CLASS.getName() + " <schema> <instance>");
       System.exit(1);
@@ -112,6 +123,13 @@ public class Main {
     w.flush();
   }
 
+  /**
+   * Converts a set of validation errors into the "Basic" output format.
+   *
+   * @param result the validation result
+   * @param errors the errors
+   * @return a JSON tree containing the formatted Basic output.
+   */
   private static JsonObject basicOutput(boolean result,
                                         Map<String, Map<String, Annotation>> errors) {
     JsonObject root = new JsonObject();
