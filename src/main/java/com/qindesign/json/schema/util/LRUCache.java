@@ -29,6 +29,9 @@ import java.util.function.Function;
 /**
  * Implements an LRU cache. The values are produced using a given
  * producer function.
+ * <p>
+ * The most convenient method to use is {@link #access(Object)}. That is
+ * considered to be the main method in this class.
  *
  * @param <K> the key type
  * @param <V> the value type
@@ -78,10 +81,12 @@ public final class LRUCache<K, V> {
 
   /**
    * Gets an entry from the cache. This will return {@code null} if the entry
-   * does not exist.
+   * does not exist. See {@link #access(Object)} if a new value should be
+   * created when the entry is absent.
    *
    * @param key the key
    * @return the associated entry, or {@code null} if it doesn't exist.
+   * @see #access(Object)
    */
   public V get(K key) {
     Entry e = map.get(key);
@@ -95,11 +100,62 @@ public final class LRUCache<K, V> {
   }
 
   /**
+   * Returns whether the cache contains an entry for the given key.
+   *
+   * @param key the key
+   * @return whether the entry is present in the cache.
+   */
+  public boolean contains(K key) {
+    return map.containsKey(key);
+  }
+
+  /**
+   * Directly stores an entry in the cache. This will return any previous entry,
+   * or {@code null} if there was none. Note that this may return {@code null}
+   * if the entry was actually {@code null}. To determine if an entry exists,
+   * see {@link #contains(Object)}.
+   * <p>
+   * It is more convenient to use {@link #access(Object)} because that manages
+   * entry creation using the producer function.
+   *
+   * @param key the key
+   * @param value the new entry
+   * @return any previous entry, or {@code null} if there was no previous entry.
+   * @see #contains(Object)
+   * @see #access(Object)
+   */
+  public V put(K key, V value) {
+    Entry e = map.get(key);
+    V prevValue = null;
+
+    if (e != null) {
+      prevValue = e.value;
+      e.value = value;
+      remove(e);
+      insertAtHead(e);
+    } else {
+      e = new Entry(key, value);
+      if (map.size() >= maxSize) {
+        map.remove(tail.key);
+        remove(tail);
+      }
+      insertAtHead(e);
+      map.put(key, e);
+    }
+
+    return prevValue;
+  }
+
+  /**
    * Accesses an entry in the cache. If one doesn't exist, it will be created
    * using the producer function and added to the cache. This will throw any
    * exception that the producer throws.
+   * <p>
+   * This is the most convenient method to use when an entry is needed, and is
+   * considered to be the main method in this class.
    *
    * @param key the key
+   * @return an entry, possibly new, from the cache
    */
   public V access(K key) {
     Entry e = map.get(key);
