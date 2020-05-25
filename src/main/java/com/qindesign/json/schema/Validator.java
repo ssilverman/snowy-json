@@ -87,7 +87,7 @@ public final class Validator {
       .map(Specification::id)
       .collect(Collectors.toUnmodifiableSet());
 
-  private static final Set<String> NEW_KEYWORDS_DRAFT_2019_09 = Set.of(
+  public static final Set<String> NEW_KEYWORDS_DRAFT_2019_09 = Set.of(
       CoreAnchor.NAME,
       CoreDefs.NAME,
       CoreRecursiveAnchor.NAME,
@@ -101,13 +101,13 @@ public final class Validator {
       MinContains.NAME,
       ContentSchema.NAME,
       Deprecated.NAME);
-  private static final Set<String> OLD_KEYWORDS_DRAFT_2019_09 = Set.of(
+  public static final Set<String> OLD_KEYWORDS_DRAFT_2019_09 = Set.of(
       Definitions.NAME,
       Dependencies.NAME);
   private static final Set<String> NEW_FORMATS_DRAFT_2019_09 = Set.of(
       "duration",
       "uuid");
-  private static final Set<String> NEW_KEYWORDS_DRAFT_07 = Set.of(
+  public static final Set<String> NEW_KEYWORDS_DRAFT_07 = Set.of(
       CoreComment.NAME,
       If.NAME,
       "then",

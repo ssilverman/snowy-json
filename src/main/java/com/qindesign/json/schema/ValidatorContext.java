@@ -69,7 +69,7 @@ public final class ValidatorContext {
           UnevaluatedItems.NAME,
           UnevaluatedProperties.NAME));
 
-  private static final Map<String, Keyword> keywords;
+  public static final Map<String, Keyword> keywords;
   private static final Map<String, Integer> keywordClasses;
 
   /**
