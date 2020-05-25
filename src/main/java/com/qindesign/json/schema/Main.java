@@ -3,10 +3,19 @@
  */
 package com.qindesign.json.schema;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 import java.io.File;
+import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -71,9 +80,45 @@ public class Main {
     opts.set(Option.FORMAT, true);
     opts.set(Option.CONTENT, true);
     opts.set(Option.DEFAULT_SPECIFICATION, spec);
+
+    Map<String, Map<String, Annotation>> errors = new HashMap<>();
+
     boolean result = Validator.validate(schema, instance, schemaID,
                                         Collections.emptyMap(), Collections.emptyMap(),
-                                        opts, null, null);
+                                        opts, null, errors);
     logger.info("Validation result: " + result);
+
+    JsonWriter w = new JsonWriter(new OutputStreamWriter(System.out));
+    w.setIndent("    ");
+    Streams.write(basicOutput(result, errors), w);
+    w.flush();
+  }
+
+  private static JsonObject basicOutput(boolean result,
+                                        Map<String, Map<String, Annotation>> errors) {
+    JsonObject root = new JsonObject();
+    root.add("valid", new JsonPrimitive(result));
+    JsonArray errorArr = new JsonArray();
+    root.add("errors", errorArr);
+    errors.forEach((instanceLoc, map) ->
+      map.forEach((schemaLoc, a) -> {
+        JsonObject error = new JsonObject();
+        error.add("keywordLocation", new JsonPrimitive(a.keywordLocation));
+        error.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
+        error.add("instanceLocation", new JsonPrimitive(a.instanceLocation));
+
+        ValidationResult vr = (ValidationResult) a.value;
+        if (vr.result) {
+          return;
+        }
+        error.add("valid", new JsonPrimitive(false));
+        if (vr.message == null) {
+          error.add(a.name, JsonNull.INSTANCE);
+        } else {
+          error.add(a.name, new JsonPrimitive(vr.message));
+        }
+        errorArr.add(error);
+      }));
+    return root;
   }
 }
