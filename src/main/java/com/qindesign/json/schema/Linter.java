@@ -191,7 +191,7 @@ public final class Linter {
         }
       }
 
-      // Check specification-specific keywords
+      // Check specification-specific keyword presence
       if (state.spec() != null) {
         if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
           object.keySet().forEach(name -> {
@@ -199,28 +199,6 @@ public final class Linter {
               addIssue(issues, path, "\"" + name + "\" was removed in Draft 2019-09");
             }
           });
-
-          if (object.has(MinContains.NAME)) {
-            if (!object.has(Contains.NAME)) {
-              addIssue(issues, path,
-                       "\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
-            }
-          }
-          if (object.has(MaxContains.NAME)) {
-            if (!object.has(Contains.NAME)) {
-              addIssue(issues, path,
-                       "\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
-            }
-          }
-          if (object.has(UnevaluatedItems.NAME)) {
-            JsonElement items = object.get(Items.NAME);
-            if (items != null && !items.isJsonArray()) {
-              addIssue(issues, path,
-                       "\"" + UnevaluatedItems.NAME +
-                       "\" without array-form \"" +
-                       Items.NAME + "\"");
-            }
-          }
         } else {  // Before Draft 2019-09
           object.keySet().forEach(name -> {
             if (Validator.NEW_KEYWORDS_DRAFT_2019_09.contains(name)) {
@@ -250,14 +228,42 @@ public final class Linter {
                  path.endsWith("/" + Definitions.NAME);
       }
 
-      // Unknown keywords, but not inside defs
-      if (!inDefs) {
-        object.keySet().forEach(name -> {
-          if (!ValidatorContext.keywords.containsKey(name)) {
-            addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
-          }
-        });
+      // Allow anything in defs
+      if (inDefs) {
+        return;
       }
+
+      // Schema-specific keyword behaviour
+      if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        if (object.has(MinContains.NAME)) {
+          if (!object.has(Contains.NAME)) {
+            addIssue(issues, path,
+                     "\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
+          }
+        }
+        if (object.has(MaxContains.NAME)) {
+          if (!object.has(Contains.NAME)) {
+            addIssue(issues, path,
+                     "\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
+          }
+        }
+        if (object.has(UnevaluatedItems.NAME)) {
+          JsonElement items = object.get(Items.NAME);
+          if (items != null && !items.isJsonArray()) {
+            addIssue(issues, path,
+                     "\"" + UnevaluatedItems.NAME +
+                     "\" without array-form \"" +
+                     Items.NAME + "\"");
+          }
+        }
+      }
+
+      // Unknown keywords, but not inside defs
+      object.keySet().forEach(name -> {
+        if (!ValidatorContext.keywords.containsKey(name)) {
+          addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
+        }
+      });
     });
 
     return issues;
