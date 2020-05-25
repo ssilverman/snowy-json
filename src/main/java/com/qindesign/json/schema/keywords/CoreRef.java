@@ -64,11 +64,13 @@ public class CoreRef extends Keyword {
       // don't have plain names
       if (fragment != null) {
         Id id = context.findID(uri);
-        try {
-          schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
-        } catch (URISyntaxException ex) {
-          context.schemaError("unexpected bad URI");
-          return false;
+        if (id != null) {  // May be no anchor in earlier specs
+          try {
+            schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
+          } catch (URISyntaxException ex) {
+            context.schemaError("unexpected bad URI");
+            return false;
+          }
         }
       }
 
