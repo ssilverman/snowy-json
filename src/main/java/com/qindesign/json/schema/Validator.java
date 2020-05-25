@@ -189,7 +189,7 @@ public final class Validator {
    * @param baseURI the schema's base URI
    * @param knownIDs any known JSON contents, searched first
    * @param knownURLs any known resources, searched second
-   * @param opts any options
+   * @param options any options
    * @param annotations annotations get stored here, if not {@code null}
    * @param errors errors get stored here, if not {@code null}
    * @return the validation result.
@@ -198,13 +198,13 @@ public final class Validator {
   public static boolean validate(JsonElement schema, JsonElement instance,
                                  URI baseURI,
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
-                                 Options opts,
+                                 Options options,
                                  Map<String, Map<String, Map<String, Annotation>>> annotations,
                                  Map<String, Map<String, Annotation>> errors)
       throws MalformedSchemaException
   {
-    if (opts == null) {
-      opts = new Options();
+    if (options == null) {
+      options = new Options();
     }
 
     // First, determine the schema specification
@@ -214,11 +214,11 @@ public final class Validator {
     // on the default specification
     boolean isDefaultSpec = (spec == null);
     if (isDefaultSpec) {
-      spec = (Specification) opts.get(Option.SPECIFICATION);
+      spec = (Specification) options.get(Option.SPECIFICATION);
       if (spec == null) {
         spec = guessSpecification(schema);
         if (spec == null) {
-          spec = (Specification) opts.get(Option.DEFAULT_SPECIFICATION);
+          spec = (Specification) options.get(Option.DEFAULT_SPECIFICATION);
         }
       }
     }
@@ -235,14 +235,14 @@ public final class Validator {
 
     // Annotations and errors collection
     if (annotations == null) {
-      if (Boolean.TRUE.equals(opts.get(Option.COLLECT_ANNOTATIONS))) {
+      if (Boolean.TRUE.equals(options.get(Option.COLLECT_ANNOTATIONS))) {
         annotations = new HashMap<>();
       } else {
         annotations = Collections.emptyMap();
       }
     }
     if (errors == null) {
-      if (Boolean.TRUE.equals(opts.get(Option.COLLECT_ERRORS))) {
+      if (Boolean.TRUE.equals(options.get(Option.COLLECT_ERRORS))) {
         errors = new HashMap<>();
       } else {
         errors = Collections.emptyMap();
@@ -251,7 +251,7 @@ public final class Validator {
 
     // Assume all the known specs have been validated
     ValidatorContext context =
-        new ValidatorContext(baseURI, ids, knownURLs, KNOWN_SCHEMAS, opts, annotations, errors);
+        new ValidatorContext(baseURI, ids, knownURLs, KNOWN_SCHEMAS, options, annotations, errors);
 
     // If the spec is known, the $schema keyword will process it
     // Next, validate the schema if it's unknown
@@ -268,7 +268,6 @@ public final class Validator {
         // The whole point here, after all, is to get the vocabularies
       }
     }
-    // TODO: I don't love the duplicate code in CoreSchema
 
     boolean retval = context.apply(schema, "", null, instance, "");
     if (retval) {
