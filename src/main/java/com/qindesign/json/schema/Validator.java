@@ -240,57 +240,6 @@ public final class Validator {
     return retval;
   }
 
-//  /**
-//   * Validates a schema against its or a default meta-schema. If the meta-schema
-//   * could not be found or is not valid then this will return {@code true}.
-//   * <p>
-//   * This uses the default specification if the schema does not proclaim one.
-//   *
-//   * @param schema the schema to validate
-//   * @param defaultSpec the default specification
-//   * @return whether the given schema validates.
-//   */
-//  public static boolean validateSchema(JsonElement schema, Specification defaultSpec)
-//      throws MalformedSchemaException
-//  {
-//    // First, determine the schema specification
-//    // Use all the things we know about $schema
-//    Specification spec = null;
-//    if (schema.isJsonObject()) {
-//      JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
-//      if (schemaVal != null && isString(schemaVal)) {
-//        try {
-//          URI uri = new URI(schemaVal.getAsString());
-//          if (uri.isAbsolute() && uri.normalize().equals(uri)) {
-//            spec = Specification.of(URIs.stripFragment(uri));
-//          }
-//        } catch (URISyntaxException ex) {
-//          // Ignore
-//        }
-//      }
-//    }
-//
-//    // If the spec is known, the $schema keyword will process it
-//    if (spec != null) {
-//      return true;
-//    }
-//
-//    // Next, validate the schema if it's unknown
-//    // Use the default specification
-//    JsonElement metaSchema = loadResource(spec.id());
-//    if (metaSchema == null) {
-//      return true;
-//    }
-//
-//    Map<Id, JsonElement> ids;
-//    try {
-//      ids = Validator.scanIDs(spec.id(), metaSchema, spec);
-//    } catch (MalformedSchemaException ex) {
-//      // Assume a bad known schema validates
-//      return true;
-//    }
-//  }
-
   /**
    * Loads a resource as JSON. This returns {@code null} if the resource could
    * not be found.
