@@ -198,7 +198,7 @@ public final class ValidatorContext {
         if (oldKeyword != null) {
           logger.severe("Duplicate keyword: " + keyword.name() + ": " + c);
         } else {
-          logger.config("Keyword: " + keyword.name());
+          logger.fine("Keyword: " + keyword.name());
         }
       } catch (ReflectiveOperationException | RuntimeException ex) {
         logger.log(Level.SEVERE, "Error loading keyword: " + c, ex);
