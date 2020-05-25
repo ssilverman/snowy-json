@@ -61,7 +61,7 @@ public class CoreRef extends Keyword {
       return false;
     }
 
-    // Resolve and treat as either a JSON pointer or plain name
+    // Resolve and treat as either a JSON Pointer or plain name
     // In both cases, this doesn't set the base URI of the first $id element
     // because CoreId will be doing this when encountered
     uri = context.baseURI().resolve(uri);

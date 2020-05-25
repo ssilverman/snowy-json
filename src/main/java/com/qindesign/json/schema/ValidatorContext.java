@@ -770,7 +770,7 @@ public final class ValidatorContext {
   /**
    * Merges the path with the base URI. If the given path is empty, this returns
    * the base URI. It is assumed that the base contains an absolute part and a
-   * a JSON pointer part in the fragment.
+   * a JSON Pointer part in the fragment.
    *
    * @param base the base URI
    * @param path path to append
@@ -793,9 +793,9 @@ public final class ValidatorContext {
   /**
    * Merges the path with the base pointer. If the given path is empty, this
    * returns the base pointer. It is assumed that the base path is a
-   * JSON pointer.
+   * JSON Pointer.
    * <p>
-   * This also ensures that the path is a valid JSON pointer by escaping any
+   * This also ensures that the path is a valid JSON Pointer by escaping any
    * characters as needed.
    *
    * @param base the base pointer
@@ -837,7 +837,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Checks whether the given JSON element is a valid JSON schema. If it is not
+   * Checks whether the given JSON element is a valid JSON Schema. If it is not
    * then a schema error will be flagged using the context. A valid schema can
    * either be an object or a Boolean.
    * <p>
@@ -856,7 +856,7 @@ public final class ValidatorContext {
    */
   public void checkValidSchema(JsonElement e, String path) throws MalformedSchemaException {
     if (!Validator.isSchema(e)) {
-      throw new MalformedSchemaException("not a valid JSON schema",
+      throw new MalformedSchemaException("not a valid JSON Schema",
                                          resolveAbsolute(state.absKeywordLocation, path));
     }
   }
@@ -874,8 +874,8 @@ public final class ValidatorContext {
   }
 
   /**
-   * Follows a JSON pointer into a JSON element and returns the requested
-   * sub-element. It is expected that {@code ptr} is a valid JSON pointer.
+   * Follows a JSON Pointer into a JSON element and returns the requested
+   * sub-element. It is expected that {@code ptr} is a valid JSON Pointer.
    * <p>
    * This sets the base URI along the way as it passes each $id, starting from
    * the given base URI. This ignores any child $id at the root level because
@@ -884,7 +884,7 @@ public final class ValidatorContext {
    *
    * @param baseURI the starting point for any new base URI
    * @param e the element to traverse
-   * @param ptr the JSON pointer
+   * @param ptr the JSON Pointer
    * @return the specified sub-element, or {@code null} if not found.
    * @throws MalformedSchemaException if an invalid $id was encountered
    */
@@ -1015,7 +1015,7 @@ public final class ValidatorContext {
       }
     }
     if (!schema.isJsonObject()) {
-      throw new MalformedSchemaException("not a valid JSON schema", absKeywordLocation);
+      throw new MalformedSchemaException("not a valid JSON Schema", absKeywordLocation);
     }
 
     // Set this here because callers may need this

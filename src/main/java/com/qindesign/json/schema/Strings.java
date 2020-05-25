@@ -113,11 +113,11 @@ public final class Strings {
   }
 
   /**
-   * Converts a JSON pointer to URI form, as a fragment. There's a small chance
+   * Converts a JSON Pointer to URI form, as a fragment. There's a small chance
    * that this may throw an {@link IllegalArgumentException} if there was some
    * encoding error.
    *
-   * @param ptr the JSON pointer
+   * @param ptr the JSON Pointer
    * @return the pointer in URI form.
    * @throws IllegalArgumentException if there was some encoding error, a
    *         small chance.
@@ -127,11 +127,11 @@ public final class Strings {
   }
 
   /**
-   * Converts a URI fragment to a JSON pointer by un-escaping all percent-
+   * Converts a URI fragment to a JSON Pointer by un-escaping all percent-
    * encoded characters. This assumes correctness.
    *
    * @param fragment the URI fragment
-   * @return the JSON pointer form of the URI fragment.
+   * @return the JSON Pointer form of the URI fragment.
    */
   public static String fragmentToJSONPointer(String fragment) {
     return URLDecoder.decode(fragment, StandardCharsets.UTF_8);
