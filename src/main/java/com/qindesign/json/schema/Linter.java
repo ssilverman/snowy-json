@@ -57,6 +57,7 @@ public final class Linter {
   private Linter() {
   }
 
+  /** The set of known formats. */
   private static final Set<String> KNOWN_FORMATS = Set.of(
       "date-time",
       "date",
@@ -79,6 +80,24 @@ public final class Linter {
       "json-pointer",
       "relative-json-pointer",
       "regex");
+
+  /** The set of known keywords. */
+  private static final Set<String> KNOWN_KEYWORDS = Set.of(
+      "$anchor", "$comment", "$defs", "$id",
+      "$recursiveAnchor", "$recursiveRef", "$ref", "$schema",
+      "$vocabulary", "additionalItems", "additionalProperties", "allOf",
+      "anyOf", "const", "contains", "contentEncoding",
+      "contentMediaType", "contentSchema", "default", "definitions",
+      "dependencies", "dependentRequired", "dependentSchemas", "deprecated",
+      "description", "enum", "examples", "exclusiveMinimum",
+      "exclusiveMaximum", "format", "if", "then",
+      "else", "items", "maxContains", "maximum",
+      "maxItems", "maxLength", "maxProperties", "minContains",
+      "minimum", "minItems", "minLength", "minProperties",
+      "multipleOf", "not", "oneOf", "pattern",
+      "patternProperties", "properties", "propertyNames", "readOnly",
+      "required", "title", "type", "unevaluatedItems",
+      "unevaluatedProperties", "uniqueItems", "writeOnly");
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
@@ -292,10 +311,8 @@ public final class Linter {
 
       // Unknown keywords, but not inside defs
       object.keySet().forEach(name -> {
-        if (!ValidatorContext.keywords.containsKey(name)) {
-          if (!name.equals("then") && !name.equals("else")) {  // TODO: This is a hack!
-            addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
-          }
+        if (!KNOWN_KEYWORDS.contains(name)) {
+          addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
         }
       });
     });
