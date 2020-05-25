@@ -25,6 +25,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.qindesign.json.schema.util.Logging;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -48,8 +49,14 @@ import java.util.stream.Stream;
  * Runs the test suite for multiple specifications.
  */
 public class Test {
-  private static final Class<?> CLASS = Main.class;
+  private static final Class<?> CLASS = Test.class;
+
+  private static final Level loggingLevel = Level.CONFIG;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
+
+  static {
+    Logging.init(logger, loggingLevel);
+  }
 
   private static final String TEST_SCHEMA = "test-schema.json";
   private static final Map<Specification, String> testDirs = Stream.of(new Object[][] {
