@@ -103,13 +103,14 @@ public final class LRUCache<K, V> {
    */
   public V access(K key) {
     Entry e = map.get(key);
-    V value = producer.apply(key);
+    V value;
 
     if (e != null) {
-      e.value = value;
+      value = e.value;
       remove(e);
       insertAtHead(e);
     } else {
+      value = producer.apply(key);
       e = new Entry(key, value);
       if (map.size() >= maxSize) {
         map.remove(tail.key);
