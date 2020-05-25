@@ -38,7 +38,7 @@ public enum Specification {
 
   private final URI id;
 
-  private Specification(String uri) {
+  Specification(String uri) {
     Objects.requireNonNull(uri, "uri");
     this.id = URI.create(uri);
   }

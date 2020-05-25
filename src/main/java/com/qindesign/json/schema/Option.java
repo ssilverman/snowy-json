@@ -44,7 +44,7 @@ public enum Option {
 
   private final Class<?> type;
 
-  private Option(Class<?> type) {
+  Option(Class<?> type) {
     Objects.requireNonNull(type, "type");
     this.type = type;
   }

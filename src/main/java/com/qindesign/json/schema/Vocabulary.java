@@ -20,7 +20,7 @@ public enum Vocabulary {
 
   private final URI id;
 
-  private Vocabulary(String id) {
+  Vocabulary(String id) {
     Objects.requireNonNull(id);
     this.id = URI.create(id);
   }
