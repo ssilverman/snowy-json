@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
  * Utilities for working with numbers.
  */
 public final class Numbers {
+  /**
+   * Disallow instantiation.
+   */
   private Numbers() {
   }
 

@@ -48,6 +48,9 @@ import java.nio.charset.StandardCharsets;
  * </ol>
  */
 public final class JSON {
+  /**
+   * Disallow instantiation.
+   */
   private JSON() {
   }
 

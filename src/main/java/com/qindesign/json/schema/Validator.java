@@ -151,6 +151,9 @@ public final class Validator {
   public static final java.util.regex.Pattern ANCHOR_PATTERN =
       java.util.regex.Pattern.compile("[A-Z_a-z][-A-Z_a-z.0-9]*");
 
+  /**
+   * Disallow instantiation.
+   */
   private Validator() {
   }
 

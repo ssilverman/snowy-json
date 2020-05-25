@@ -31,6 +31,9 @@ import java.util.BitSet;
  * String utilities.
  */
 public final class Strings {
+  /**
+   * Disallow instantiation.
+   */
   private Strings() {
   }
 

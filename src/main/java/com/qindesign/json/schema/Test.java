@@ -51,6 +51,12 @@ import java.util.stream.Stream;
 public class Test {
   private static final Class<?> CLASS = Test.class;
 
+  /**
+   * Disallow instantiation.
+   */
+  private Test() {
+  }
+
   private static final Level loggingLevel = Level.CONFIG;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 

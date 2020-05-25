@@ -43,6 +43,12 @@ import java.util.logging.Logger;
 public class Main {
   private static final Class<?> CLASS = Main.class;
 
+  /**
+   * Disallow instantiation.
+   */
+  private Main() {
+  }
+
   private static final Level loggingLevel = Level.CONFIG;
   private static final Logger logger = Logger.getLogger(CLASS.getName());
 

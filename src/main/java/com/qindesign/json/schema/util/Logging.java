@@ -67,6 +67,9 @@ public final class Logging {
     }
   }
 
+  /**
+   * Disallow instantiation.
+   */
   private Logging() {
   }
 }

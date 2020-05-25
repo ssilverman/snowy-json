@@ -54,6 +54,9 @@ import java.util.Set;
 public final class Linter {
   private static final Class<?> CLASS = Linter.class;
 
+  /**
+   * Disallow instantiation.
+   */
   private Linter() {
   }
 

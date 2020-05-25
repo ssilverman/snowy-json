@@ -28,6 +28,9 @@ import java.net.URISyntaxException;
  * Convenience methods for working with URIs.
  */
 public final class URIs {
+  /**
+   * Disallow instantiation.
+   */
   private URIs() {
   }
 
