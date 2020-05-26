@@ -209,6 +209,23 @@ the `Main.basicOutput` method.
 Providing tools to format the errors into more output formats may happen in
 the future.
 
+#### Annotations and errors
+
+Annotations and errors are collected by optionally providing maps to
+`Validator.validate`. They're maps from instance locations to an associated
+`Annotation` object, with some intervening values.
+
+* The annotations map follows this structure: instance location &rarr; name
+  &rarr; schema location &rarr; `Annotation`. The `Annotation` value is
+  dependent on the source of the annotation.
+* The errors map has this structure: instance location &rarr; schema location
+  &rarr; `Annotation`. The `Annotation` value is a `ValidationResult` object,
+  and its name will be "error" when the result is `false` and "annotation" when
+  the result is `true`.
+
+The locations are given as
+<a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
+
 ## Building and running
 
 This project uses Maven as its build tool because it makes managing the
