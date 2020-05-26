@@ -43,7 +43,7 @@ public final class LRUCache<K, V> {
    * A linked list entry.
    */
   private final class Entry {
-    K key;
+    final K key;
     V value;
     Entry prev;
     Entry next;
@@ -58,8 +58,8 @@ public final class LRUCache<K, V> {
   private Entry head;
   private Entry tail;
 
-  private int maxSize;
-  private Function<K, V> producer;
+  private final int maxSize;
+  private final Function<K, V> producer;
 
   /**
    * Creates a new LRU cache that uses the given function to create values

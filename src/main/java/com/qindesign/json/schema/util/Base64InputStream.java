@@ -40,7 +40,7 @@ public class Base64InputStream extends InputStream {
     EOF,
   }
 
-  private char[] buf = new char[4];
+  private final char[] buf = new char[4];
   private State state;
   private int b1;
   private int b2;
