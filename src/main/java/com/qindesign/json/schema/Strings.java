@@ -126,7 +126,7 @@ public final class Strings {
    *         small chance.
    */
   public static URI jsonPointerToURI(String ptr) {
-    return URI.create("#" + Strings.pctEncodeFragment(ptr));
+    return URI.create("#" + pctEncodeFragment(ptr));
   }
 
   /**
