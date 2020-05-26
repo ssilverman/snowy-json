@@ -187,6 +187,20 @@ public final class Validator {
    * <li>{@link Option#DEFAULT_SPECIFICATION DEFAULT_SPECIFICATION} option or
    *     any default</li>
    * </ol>
+   * <p>
+   * The annotations and errors are maps from instance locations to an
+   * associated {@link Annotation}, with some intervening values. Locations are
+   * given as <a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
+   * <ul>
+   * <li>The annotations follow this structure: instance location &rarr; name
+   *     &rarr; schema location &rarr; {@link Annotation}. The
+   *     {@link Annotation} value is dependent on the source.</li>
+   * <li>The errors have this structure: instance location &rarr; schema
+   *     location &rarr; {@link Annotation}. The {@link Annotation} value is an
+   *     instance of {@link ValidationResult}, and its name will be "error" when
+   *     the result is {@code false} and "annotation" when the result is
+   *     {@code true}.
+   * </ul>
    *
    * @param schema the schema, must not be {@code null}
    * @param instance the instance, must not be {@code null}
@@ -200,6 +214,7 @@ public final class Validator {
    * @throws NullPointerException if {@code schema}, {@code instance}, or
    *         {@code baseURI} are {@code null}.
    * @throws MalformedSchemaException if the schema is somehow malformed.
+   * @see <a href="https://tools.ietf.org/html/rfc6901>JSON Pointer</a>
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
                                  URI baseURI,
