@@ -21,9 +21,7 @@
  */
 package com.qindesign.json.schema;
 
-import com.google.common.graph.Traverser;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.keywords.ContentEncoding;
@@ -70,7 +68,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Validator tools.
@@ -382,7 +379,6 @@ public final class Validator {
    * @return the specification, or {@code null} if one could not be determined.
    * @see #specificationFromSchema(JsonElement)
    */
-  @SuppressWarnings("UnstableApiUsage")
   public static Specification guessSpecification(JsonElement schema) {
     if (!schema.isJsonObject()) {
       return null;
@@ -464,84 +460,83 @@ public final class Validator {
     Set<Specification> couldBe = new HashSet<>();
     Set<Specification> cantBe = new HashSet<>();
 
-    int specsSize = Specification.values().length;
-
     // Collect everything into "could be" and "can't be" sets
-    Traverser<JsonObject> traverser = Traverser.forTree(
-        node ->
-            node.entrySet().stream()
-                .filter(e -> e.getValue().isJsonObject())
-                .map(e -> e.getValue().getAsJsonObject())
-                .collect(Collectors.toUnmodifiableList()));
-    StreamSupport
-        .stream(traverser.depthFirstPreOrder(schema.getAsJsonObject()).spliterator(), false)
-        .flatMap(o -> o.entrySet().stream())
-        .allMatch(e -> {
-          // Look into the keyword
-          switch (e.getKey()) {
-            case CoreId.NAME:
-              if (JSON.isString(e.getValue())) {
-                try {
-                  if (URIs.hasNonEmptyFragment(new URI(e.getValue().getAsString()))) {
-                    cantBe.add(Specification.DRAFT_2019_09);
-                    couldBe.add(Specification.DRAFT_07);
-                    couldBe.add(Specification.DRAFT_06);
-                  } else {
-                    couldBe.add(Specification.DRAFT_2019_09);
-                    couldBe.add(Specification.DRAFT_07);
-                    couldBe.add(Specification.DRAFT_06);
-                  }
-                } catch (URISyntaxException ex) {
-                  // Ignore and continue
-                }
-              }
-              break;
+    JSON.traverse(schema, (e, parent, path, state) -> {
+      if (!e.isJsonObject()) {
+        return;
+      }
 
-            case Format.NAME:
-              if (JSON.isString(e.getValue())) {
-                String format = e.getValue().getAsString();
-                if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
-                  couldBe.add(Specification.DRAFT_2019_09);
-                  cantBe.add(Specification.DRAFT_07);
-                  cantBe.add(Specification.DRAFT_06);
-                } else if (NEW_FORMATS_DRAFT_07.contains(format)) {
-                  couldBe.add(Specification.DRAFT_2019_09);
+      e.getAsJsonObject().entrySet().forEach(entry -> {
+        // Look into the keyword
+        switch (entry.getKey()) {
+          case CoreId.NAME:
+            if (JSON.isString(entry.getValue())) {
+              try {
+                if (URIs.hasNonEmptyFragment(new URI(entry.getValue().getAsString()))) {
+                  cantBe.add(Specification.DRAFT_2019_09);
                   couldBe.add(Specification.DRAFT_07);
-                  cantBe.add(Specification.DRAFT_06);
+                  couldBe.add(Specification.DRAFT_06);
                 } else {
                   couldBe.add(Specification.DRAFT_2019_09);
                   couldBe.add(Specification.DRAFT_07);
                   couldBe.add(Specification.DRAFT_06);
                 }
+              } catch (URISyntaxException ex) {
+                // Ignore and continue
               }
-              break;
+            }
+            break;
 
-            default:
-              if (NEW_KEYWORDS_DRAFT_2019_09.contains(e.getKey())) {
-                // Ignore if there are old keywords because they'll get ignored
-                // during processing
+          case Format.NAME:
+            if (JSON.isString(entry.getValue())) {
+              String format = entry.getValue().getAsString();
+              if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
                 couldBe.add(Specification.DRAFT_2019_09);
                 cantBe.add(Specification.DRAFT_07);
                 cantBe.add(Specification.DRAFT_06);
-              } else if (NEW_KEYWORDS_DRAFT_07.contains(e.getKey())) {
+              } else if (NEW_FORMATS_DRAFT_07.contains(format)) {
                 couldBe.add(Specification.DRAFT_2019_09);
                 couldBe.add(Specification.DRAFT_07);
                 cantBe.add(Specification.DRAFT_06);
-              } else if (OLD_KEYWORDS_DRAFT_2019_09.contains(e.getKey())) {
-                cantBe.add(Specification.DRAFT_2019_09);
-                couldBe.add(Specification.DRAFT_07);
-                couldBe.add(Specification.DRAFT_06);
               } else {
                 couldBe.add(Specification.DRAFT_2019_09);
                 couldBe.add(Specification.DRAFT_07);
                 couldBe.add(Specification.DRAFT_06);
               }
-          }
+            }
+            break;
 
-          // Don't continue if it can't be any of the specs
-          return (cantBe.size() < specsSize);
-        });
+          default:
+            if (NEW_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
+              // Ignore if there are old keywords because they'll get ignored
+              // during processing
+              couldBe.add(Specification.DRAFT_2019_09);
+              cantBe.add(Specification.DRAFT_07);
+              cantBe.add(Specification.DRAFT_06);
+            } else if (NEW_KEYWORDS_DRAFT_07.contains(entry.getKey())) {
+              couldBe.add(Specification.DRAFT_2019_09);
+              couldBe.add(Specification.DRAFT_07);
+              cantBe.add(Specification.DRAFT_06);
+            } else if (OLD_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
+              cantBe.add(Specification.DRAFT_2019_09);
+              couldBe.add(Specification.DRAFT_07);
+              couldBe.add(Specification.DRAFT_06);
+            } else {
+              couldBe.add(Specification.DRAFT_2019_09);
+              couldBe.add(Specification.DRAFT_07);
+              couldBe.add(Specification.DRAFT_06);
+            }
+        }
 
+        // Don't continue if it can't be any of the specs
+//        return (cantBe.size() < specsSize);
+        // TODO: Implement early breaking from the visiting
+      });
+    });
+
+    if (cantBe.size() >= Specification.values().length) {
+      return null;
+    }
     // Remove all the "can't be" values from the "could be" set
     return couldBe.stream()
         .filter(spec -> !cantBe.contains(spec))
