@@ -288,6 +288,8 @@ There are plans to explore supporting more features, including:
 4. [ECMA 262](https://www.ecma-international.org/publications/standards/Ecma-262.htm)
 5. [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite)
 6. [JSON Schema Draft Sources](https://github.com/json-schema-org/json-schema-spec)
+7. [JSON Pointer](https://tools.ietf.org/html/rfc6901)
+8. [URI Syntax](https://tools.ietf.org/html/rfc3986)
 
 ## An ending thought
 
