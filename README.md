@@ -29,7 +29,7 @@ This project has the following features:
 8. Specification detection heuristics for when there's no $schema declared.
 9. Content validation support for the "base64" encoding and "application/json"
    media type.
-   
+
 ### Additional features
 
 These additional features exist:
@@ -225,6 +225,34 @@ Annotations and errors are collected by optionally providing maps to
 
 The locations are given as
 <a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
+
+The annotation types for specific keywords are as follows:
+* "additionalItems": `java.lang.Boolean`, always `true` if present, indicating
+  that the subschema was applied to all remaining items in the instance array.
+* "additionalProperties": `java.util.Set<String>`, the set of property names
+  whose contents were validated by this subschema.
+* "contentEncoding": `java.lang.String`
+* "contentMediaType": `java.lang.String`
+* "contentSchema": `com.google.gson.JsonElement`
+* "default": `com.google.gson.JsonElement`
+* "deprecated": `java.lang.Boolean`
+* "description": `java.lang.String`
+* "examples": `com.google.gson.JsonArray`
+* "format": `java.lang.String`
+* "items": `java.lang.Integer`, the largest index in the instance to which a
+  subschema was applied, or `java.lang.Boolean` (always `true`) if a subschema
+  was applied to every index.
+* "patternProperties": `java.util.Set<String>`, the set of property names
+  matched by this keyword.
+* "properties": `java.util.Set<String>`, the set of property names matched by
+  this keyword.
+* "readOnly": `java.lang.Boolean`
+* "title": `java.lang.String`
+* "unevaluatedItems": `java.lang.Boolean`, always `true` if present, indicating
+  that the subschema was applied to all remaining items in the instance array.
+* "unevaluatedProperties": `java.util.Set<String>`, the set of property names
+  whose contents were validated by this subschema.
+* "writeOnly": `java.lang.Boolean`
 
 ## Building and running
 
