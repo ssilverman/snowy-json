@@ -668,8 +668,10 @@ public final class Validator {
     if (e.isJsonArray()) {
       int index = 0;
       for (var elem : e.getAsJsonArray()) {
-        scanIDs(rootURI, rootID, baseURI, newParentID, Integer.toString(index++), e, elem, ids,
-                spec);
+        scanIDs(rootURI, rootID, baseURI,
+                newParentID, Integer.toString(index++),
+                e, elem,
+                ids, spec);
       }
       return rootID;
     }
@@ -779,8 +781,10 @@ public final class Validator {
           continue;
         }
       }
-      scanIDs(rootURI, rootID, baseURI, newParentID, entry.getKey(), e, entry.getValue(), ids,
-              spec);
+      scanIDs(rootURI, rootID, baseURI,
+              newParentID, entry.getKey(),
+              e, entry.getValue(),
+              ids, spec);
     }
 
     return rootID;
