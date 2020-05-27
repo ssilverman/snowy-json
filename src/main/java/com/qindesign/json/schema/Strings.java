@@ -41,6 +41,12 @@ public final class Strings {
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&'()*+,;=:@/?";
   private static final String HEX_CHARS = "01234567890ABCDEFabcdef";
 
+  /** Hex digits for percent-encoding. */
+  private static final char[] HEX_DIGITS = {
+      '0', '1', '2', '3', '4', '5', '6', '7',
+      '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+  };
+
   private static final BitSet validHex;
   private static final BitSet validFragment;
 
@@ -214,56 +220,57 @@ public final class Strings {
   }
 
   /**
-   * Encodes a string into a valid URI fragment. If any percent-encoded
-   * characters are found then they are checked for a valid format. Any that are
-   * invalid have their percent signs ('%') encoded as "%25" (the code for '%').
+   * Appends a byte as a percent-hex-encoded value. This assumes that {@code v}
+   * is one byte.
+   *
+   * @param sb the buffer to append to
+   * @param v the byte value to append
+   */
+  private static void appendPctHex(StringBuilder sb, int v) {
+    sb.append('%');
+    sb.append(HEX_DIGITS[v >> 4]);
+    sb.append(HEX_DIGITS[v & 0x0f]);
+  }
+
+  /**
+   * Encodes a string into a valid URI fragment, percent-encoding any
+   * fragment-invalid characters.
    *
    * @param s the string to encode
-   * @return the encoded value.
+   * @return the encoded value, a value suitable for use in a fragment.
    * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.5">Uniform Resource Identifier (URI): Generic Syntax: 3.5. Fragment</a>
+   * @see <a href="https://tools.ietf.org/html/rfc3629>UTF-8</a>
+   * @throws IllegalArgumentException if a character is out of the defined
+   *         UTF-8 range.
    */
   public static String pctEncodeFragment(String s) {
     StringBuilder sb = new StringBuilder();
-    int[] pctState = { -1 };  // Array is to make it accessible from the lambda
     s.codePoints().forEach(c -> {
-      if (pctState[0] >= 0) {
-        if (pctState[0] == '%') {
-          if (isHex(c)) {
-            pctState[0] = c;
-            return;
-          }
-          sb.append("%25");
-          // Keep pctState at '%'
-        } else if (isHex(c)) {
-          sb.append('%').append((char) pctState[0]).append((char) c);
-          pctState[0] = -1;
-          return;
-        } else {
-          // pctState is a hex value
-          sb.append("%25").append((char) pctState[0]);
-          pctState[0] = -1;
-        }
-      }
-
       if ((c < 128) && validFragment.get(c)) {
         sb.append((char) c);
         return;
       }
-      if ('%' != c) {
-        sb.appendCodePoint(c);
-        return;
-      }
-      pctState[0] = '%';
-    });
 
-    // Write any buffered characters
-    if (pctState[0] >= 0) {
-      if (pctState[0] == '%') {
-        sb.append("%25");
+      // Encode as UTF-8 and then into pct-encoded
+      // See: https://tools.ietf.org/html/rfc3629
+      if (c < 0x80) {
+        appendPctHex(sb, c);
+      } else if (c < 0x800) {
+        appendPctHex(sb, 0xc0 | (c >> 6));
+        appendPctHex(sb, 0x80 | (c & 0x3f));
+      } else if (c < 0x10000) {
+        appendPctHex(sb, 0xe0 | (c >> 12));
+        appendPctHex(sb, 0x80 | ((c >> 6) & 0x3f));
+        appendPctHex(sb, 0x80 | (c & 0x3f));
+      } else if (c < 0x110000) {
+        appendPctHex(sb, 0xf0 | (c >> 18));
+        appendPctHex(sb, 0x80 | ((c >> 12) & 0x3f));
+        appendPctHex(sb, 0x80 | ((c >> 6) & 0x3f));
+        appendPctHex(sb, 0x80 | (c & 0x3f));
       } else {
-        sb.append("%25").append((char) pctState[0]);
+        throw new IllegalArgumentException("Invalid UTF-8 character: 0x" + Integer.toHexString(c));
       }
-    }
+    });
 
     return sb.toString();
   }
