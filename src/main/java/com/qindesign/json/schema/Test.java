@@ -78,6 +78,8 @@ public class Test {
   private static final class Result {
     int total;
     int passed;
+    int totalOptional;  // How many of the tests are optional?
+    int passedOptional;  // How many of the passed tests are optional?
     long duration;  // The test duration
     long totalDuration;  // The duration including overhead
   }
@@ -155,8 +157,12 @@ public class Test {
     });
     IntStream.range(0, maxLen + 29).forEach(i -> System.out.print('-'));
     System.out.println();
-    System.out.printf("Pass:%d Fail:%d Total:%d Time:%ss\n",
-                      specResult.passed, specResult.total - specResult.passed, specResult.total,
+    System.out.printf("Pass:%d (%d opt) Fail:%d (%d opt) Total:%d (%d opt) Time:%ss\n",
+                      specResult.passed, specResult.passedOptional,
+                      specResult.total - specResult.passed,
+                      specResult.totalOptional - specResult.passedOptional,
+                      specResult.total,
+                      specResult.totalOptional,
                       formatDuration(specResult.duration).trim());
     System.out.println("Times:");
     System.out.printf("  Test: %ss\n", formatDuration(specResult.duration).trim());
@@ -228,6 +234,8 @@ public class Test {
         Result r = runSuite(root, file, instance.getAsJsonArray(), spec, knownIDs, knownURLs);
         result.total += r.total;
         result.passed += r.passed;
+        result.totalOptional += r.totalOptional;
+        result.passedOptional += r.passedOptional;
         result.duration += r.duration;
         results.put(dir.relativize(file).toString(), r);
 
@@ -277,7 +285,12 @@ public class Test {
           throw new IllegalArgumentException(ex);
         }
 
+        boolean isOptional = uri.getRawPath().contains("/optional/");
+
         suiteResult.total++;
+        if (isOptional) {
+          suiteResult.totalOptional++;
+        }
         logger.fine("Testing " + uri);
         Options opts = new Options();
         opts.set(Option.FORMAT, true);
@@ -295,6 +308,9 @@ public class Test {
                         ": got=" + result + " want=" + valid);
           } else {
             suiteResult.passed++;
+            if (isOptional) {
+              suiteResult.passedOptional++;
+            }
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
@@ -303,6 +319,9 @@ public class Test {
                         ": got=Malformed schema: " + ex.getMessage());
           } else {
             suiteResult.passed++;
+            if (isOptional) {
+              suiteResult.passedOptional++;
+            }
           }
         }
         testIndex++;
