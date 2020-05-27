@@ -145,23 +145,23 @@ public class Test {
     System.out.println("Results for specification: " + spec);
 
     int maxLen = results.keySet().stream().mapToInt(String::length).max().orElse(1);
-    System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s  %-9s\n", "Name", "Pass", "Fail", "Total", "Duration");
-    IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
+    System.out.printf("%-" + maxLen + "s  %-4s  %-4s  %-5s  %-8s\n", "Name", "Pass", "Fail", "Total", "Duration");
+    IntStream.range(0, maxLen + 29).forEach(i -> System.out.print('-'));
     System.out.println();
     results.forEach((name, result) -> {
-      System.out.printf("%-" + maxLen + "s  %4d  %4d  %5d  %8ss\n",
+      System.out.printf("%-" + maxLen + "s  %4d  %4d  %5d  %7ss\n",
                         name, result.passed, result.total - result.passed, result.total,
                         formatDuration(result.duration));
     });
-    IntStream.range(0, maxLen + 30).forEach(i -> System.out.print('-'));
+    IntStream.range(0, maxLen + 29).forEach(i -> System.out.print('-'));
     System.out.println();
     System.out.printf("Pass:%d Fail:%d Total:%d Time:%ss\n",
                       specResult.passed, specResult.total - specResult.passed, specResult.total,
                       formatDuration(specResult.duration).trim());
     System.out.println("Times:");
-    System.out.printf("  Test: %ss\n", formatDuration(specResult.duration));
-    System.out.printf("  Other: %ss\n", formatDuration(specResult.totalDuration - specResult.duration));
-    System.out.printf("  Total: %ss\n", formatDuration(specResult.totalDuration));
+    System.out.printf("  Test: %ss\n", formatDuration(specResult.duration).trim());
+    System.out.printf("  Other: %ss\n", formatDuration(specResult.totalDuration - specResult.duration).trim());
+    System.out.printf("  Total: %ss\n", formatDuration(specResult.totalDuration).trim());
 }
 
   /**
