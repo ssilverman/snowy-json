@@ -141,6 +141,69 @@ public final class Strings {
   }
 
   /**
+   * Encodes the string into a valid JSON Pointer "reference-token". This
+   * converts all '~' and '/' to '~0' and '~1', respectively. To emphasize this
+   * method's purpose: It is only designed to encode path elements of a JSON
+   * Pointer &mdash; the parts between the '/', and not the whole thing because
+   * '/' characters will get encoded.
+   *
+   * @param s the token to encode
+   * @return the JSON Pointer-encoded token.
+   */
+  public static String jsonPointerToken(String s) {
+    return s.replace("~", "~0").replace("/", "~1");
+  }
+
+  /**
+   * Decodes a JSON Pointer "reference-token". This converts all '~0' and '~1'
+   * to '~' and '/', respectively.
+   *
+   * @param s the token to dencode
+   * @return the decoded token.
+   */
+  public static String fromJSONPointerToken(String s) {
+    // Note: This does not work because the first transform may result in a
+    //       string having '~1':
+//    return s.replace("~0", "~").replace("~1", "/");
+
+    if (s.indexOf('~') < 0) {
+      return s;
+    }
+
+    StringBuilder sb = new StringBuilder(s.length());
+
+    int[] tildeState = { -1 };
+    s.codePoints().forEach(c -> {
+      if (tildeState[0] == '~') {
+        if (c == '0') {
+          sb.append('~');
+        } else if (c == '1') {
+          sb.append('/');
+        } else {
+          throw new IllegalArgumentException(
+              "Bad escape character (0x" + Integer.toHexString(c) + "): " + s);
+        }
+        tildeState[0] = -1;
+        return;
+      }
+
+      if (c == '~') {
+        tildeState[0] = '~';
+        return;
+      }
+
+      sb.appendCodePoint(c);
+    });
+
+    // Check that there's no lone '~' at the end
+    if (tildeState[0] >= 0) {
+      throw new IllegalArgumentException("Extra '~': " + s);
+    }
+
+    return sb.toString();
+  }
+
+  /**
    * Tests if the given code point is a hex digit.
    *
    * @param c the code point
