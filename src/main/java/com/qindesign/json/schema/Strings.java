@@ -187,7 +187,7 @@ public final class Strings {
         return;
       }
       if ('%' != c) {
-        sb.append(c);
+        sb.appendCodePoint(c);
         return;
       }
       pctState[0] = '%';
