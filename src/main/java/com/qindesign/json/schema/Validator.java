@@ -662,9 +662,7 @@ public final class Validator {
     if (parent == null) {
       newParentID = "";
     } else {
-      name = name.replace("~", "~0");
-      name = name.replace("/", "~1");
-      newParentID = parentID + "/" + name;
+      newParentID = parentID + "/" + Strings.jsonPointerToken(name);
     }
 
     if (e.isJsonArray()) {

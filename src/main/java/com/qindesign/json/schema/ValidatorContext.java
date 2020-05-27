@@ -792,23 +792,19 @@ public final class ValidatorContext {
 
   /**
    * Merges the path with the base pointer. If the given path is empty, this
-   * returns the base pointer. It is assumed that the base path is a
+   * returns the base pointer. It is assumed that the base path is a valid JSON
+   * Pointer and that the name is not. This encodes the name to a valid
    * JSON Pointer.
-   * <p>
-   * This also ensures that the path is a valid JSON Pointer by escaping any
-   * characters as needed.
    *
    * @param base the base pointer
-   * @param path path to append
+   * @param name the name to append
    * @return the merged pointer, escaping the path as needed.
    */
-  private static String resolvePointer(String base, String path) {
-    if (path.isEmpty()) {
+  private static String resolvePointer(String base, String name) {
+    if (name.isEmpty()) {
       return base;
     }
-    path = path.replace("~", "~0");
-    path = path.replace("/", "~1");
-    return base + "/" + path;
+    return base + "/" + Strings.jsonPointerToken(name);
   }
 
   /**
@@ -937,9 +933,7 @@ public final class ValidatorContext {
       }
 
       // Transform the part
-      part = part.replace("~0", "~");
-      part = part.replace("~1", "/");
-      e = e.getAsJsonObject().get(part);
+      e = e.getAsJsonObject().get(Strings.fromJSONPointerToken(part));
     }
     if (e != null) {
       state.baseURI = newBase;

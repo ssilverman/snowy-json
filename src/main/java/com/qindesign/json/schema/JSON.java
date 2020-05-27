@@ -235,10 +235,9 @@ public final class JSON {
 
     // Process everything else
     for (var entry : e.getAsJsonObject().entrySet()) {
-      String name = entry.getKey();
-      name = name.replace("~", "~0");
-      name = name.replace("/", "~1");
-      traverse(entry.getValue(), e, path + "/" + name, state, visitor);
+      traverse(entry.getValue(), e,
+               path + "/" + Strings.jsonPointerToken(entry.getKey()), state,
+               visitor);
     }
   }
 }
