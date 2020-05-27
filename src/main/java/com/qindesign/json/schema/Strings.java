@@ -137,10 +137,12 @@ public final class Strings {
 
   /**
    * Converts a URI fragment to a JSON Pointer by un-escaping all percent-
-   * encoded characters. This assumes correctness.
+   * encoded characters. This assumes fragment correctness and that the fragment
+   * contains a valid JSON Pointer.
    *
    * @param fragment the URI fragment
    * @return the JSON Pointer form of the URI fragment.
+   * @throws IllegalArgumentException if the fragment contains bad characters.
    */
   public static String fragmentToJSONPointer(String fragment) {
     return URLDecoder.decode(fragment, StandardCharsets.UTF_8);

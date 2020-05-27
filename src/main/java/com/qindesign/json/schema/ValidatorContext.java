@@ -771,10 +771,11 @@ public final class ValidatorContext {
   /**
    * Merges the path with the base URI. If the given path is empty, this returns
    * the base URI. It is assumed that the base contains an absolute part and a
-   * a JSON Pointer part in the fragment.
+   * JSON Pointer part in its fragment. It is expected that the path is not in
+   * JSON Pointer form.
    *
    * @param base the base URI
-   * @param path path to append
+   * @param path path to append, not in JSON Pointer form
    * @return the merged URI.
    */
   private static URI resolveAbsolute(URI base, String path) {
@@ -947,6 +948,8 @@ public final class ValidatorContext {
    * Gets and processes the given ID element. This returns a URI suitable for
    * resolving against the current base URI. This will return {@code null} if
    * the ID does not represent a new base, for example if it's an anchor.
+   * <p>
+   * This expects the path to not be in JSON Pointer form.
    *
    * @param idElem the ID element
    * @param path the relative path of the element, may be empty
@@ -961,7 +964,8 @@ public final class ValidatorContext {
   /**
    * Applies a schema to the given instance. The schema and instance path
    * parameters are the relative element name, either a name or a number. An
-   * empty string means the current location.
+   * empty string means the current location. The paths are not expected to be
+   * in JSON Pointer form.
    * <p>
    * This first checks that the schema is valid. A valid schema is either an
    * object or a Boolean.
@@ -973,10 +977,10 @@ public final class ValidatorContext {
    * as usual.
    *
    * @param schema the schema, an object or a Boolean
-   * @param schemaPath the schema path
+   * @param schemaPath the relative schema path, not in JSON Pointer form
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
-   * @param instancePath the instance path
+   * @param instancePath the relative instance path, not in JSON Pointer form
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or
    *         because internal validation is failing.
