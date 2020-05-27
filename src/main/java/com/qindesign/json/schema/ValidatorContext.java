@@ -594,7 +594,8 @@ public final class ValidatorContext {
           uri = new URI(uri.getScheme(), uri.getRawAuthority(), path.substring(0, lastSlashIndex),
                         uri.getRawQuery(), null);
         } catch (URISyntaxException ex) {
-          // Something's wrong, so ignore and continue the search
+          // Something's wrong, so ignore and continue the search with the
+          // predefined resources below
           break;
         }
       }
@@ -991,6 +992,7 @@ public final class ValidatorContext {
     URI absKeywordLocation = null;
 
     // See if the absolute keyword location needs to change
+    // Note: The base URI will change when CoreId is executed
     if (schema.isJsonObject()) {
       JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
