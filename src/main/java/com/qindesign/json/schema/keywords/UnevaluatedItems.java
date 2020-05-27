@@ -70,11 +70,7 @@ public class UnevaluatedItems extends Keyword {
         if (!e.getKey().startsWith(loc)) {
           continue;
         }
-        Object v = e.getValue().value;
-        if (v == null) {
-          continue;
-        }
-        if (v.equals(true)) {
+        if (Boolean.TRUE.equals(e.getValue().value)) {
           return true;
         }
       }
