@@ -661,7 +661,7 @@ public final class Validator {
    * form. It is expected that the name is not in JSON Pointer form.
    *
    * @param rootURI the URI of the document
-   * @param rootID the defined root ID, may be the same as {@code rootID}
+   * @param rootID the defined root ID, may be the same as {@code baseURI}
    * @param baseURI the current base ID
    * @param parentID the parent ID
    * @param name the name of the current element, a number for an array element,
