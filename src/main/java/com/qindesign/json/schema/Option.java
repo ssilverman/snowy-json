@@ -57,7 +57,14 @@ public enum Option {
   COLLECT_ERRORS(Boolean.class),
 
   /** Whether to validate content, a {@link Boolean}. */
-  CONTENT(Boolean.class)
+  CONTENT(Boolean.class),
+
+  /**
+   * Indicates that the validator should attempt auto-resolution when searching
+   * for schemas or when otherwise resolving IDs. This entails adding the
+   * original base URI and any root $id as known URLs during validation.
+   */
+  AUTO_RESOLVE(Boolean.class),
   ;
 
   private final Class<?> type;

@@ -89,6 +89,8 @@ public class Main {
     opts.set(Option.FORMAT, true);
     opts.set(Option.CONTENT, true);
     opts.set(Option.DEFAULT_SPECIFICATION, spec);
+    // Uncomment to do auto-resolution
+//    opts.set(Option.AUTO_RESOLVE, true);
 
     Map<String, Map<String, Annotation>> errors = new HashMap<>();
 

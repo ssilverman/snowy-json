@@ -132,6 +132,14 @@ Non-specification-specific consultation steps:
 2. Non-specification-specific defaults.
 3. Not found.
 
+### Option: AUTO_RESOLVE
+
+Type: `java.lang.Boolean`
+
+This controls whether the validator should attempt auto-resolution when
+searching for schemas or when otherwise resolving IDs. This entails adding the
+original base URI and any root $id as known URLs during validation.
+
 ### Option: COLLECT_ANNOTATIONS
 
 Type: `java.lang.Boolean`

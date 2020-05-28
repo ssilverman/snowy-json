@@ -52,6 +52,7 @@ import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.keywords.WriteOnly;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -252,7 +253,31 @@ public final class Validator {
       knownIDs.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
     }
     if (knownURLs == null) {
-      knownURLs = Collections.emptyMap();
+      knownURLs = new HashMap<>();
+    } else {
+      knownURLs = new HashMap<>(knownURLs);
+    }
+
+    // If auto-resolving
+    if (Boolean.TRUE.equals(options.get(Option.AUTO_RESOLVE))) {
+      URL baseURL = null;
+      try {
+        baseURL = baseURI.toURL();
+      } catch (IllegalArgumentException | MalformedURLException ex) {
+        // Ignore
+      }
+      if (baseURL != null) {
+        knownURLs.putIfAbsent(baseURI, baseURL);
+        if (schema.isJsonObject()) {
+          JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
+          if (idElem != null) {
+            URI id = getID(idElem, spec, baseURI);
+            if (id != null) {
+              knownURLs.putIfAbsent(id, baseURL);
+            }
+          }
+        }
+      }
     }
 
     // Annotations and errors collection
