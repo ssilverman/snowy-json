@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.qindesign</groupId>
-    <artifactId>json-schema</artifactId>
+    <artifactId>snowy-json</artifactId>
     <version>0.7.0</version>
 
     <name>Snow</name>
