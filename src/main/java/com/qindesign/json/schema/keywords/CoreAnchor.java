@@ -48,14 +48,7 @@ public class CoreAnchor extends Keyword {
       return true;
     }
 
-    if (!JSON.isString(value)) {
-      context.schemaError("not a string");
-      return false;
-    }
-    if (!Validator.ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
-      context.schemaError("invalid plain name");
-      return false;
-    }
+    context.getAnchor(value, "");
 
     return true;
   }

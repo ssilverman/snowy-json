@@ -45,6 +45,16 @@ public final class URIs {
   }
 
   /**
+   * Checks if the given URI consists of a fragment only.
+   *
+   * @param uri the URI to check
+   * @return whether the URI is composed of a fragment only.
+   */
+  public static boolean isFragmentOnly(URI uri) {
+    return uri.getScheme() == null && uri.getRawSchemeSpecificPart().isEmpty();
+  }
+
+  /**
    * Strips any fragment off the given URI. If there is no fragment, even an
    * empty one, then this returns the original URI.
    *

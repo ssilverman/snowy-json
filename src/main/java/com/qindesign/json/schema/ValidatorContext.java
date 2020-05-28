@@ -938,7 +938,7 @@ public final class ValidatorContext {
       JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
       if (i > 1 && idElem != null && JSON.isString(idElem)) {
         URI id = getID(idElem, path + "/" + CoreId.NAME);
-        if (id != null) {
+        if (!URIs.isFragmentOnly(id)) {
           newBase = newBase.resolve(id);
         }
       }
@@ -955,19 +955,36 @@ public final class ValidatorContext {
 
   /**
    * Gets and processes the given ID element. This returns a URI suitable for
-   * resolving against the current base URI. This will return {@code null} if
-   * the ID does not represent a new base, for example if it's an anchor.
+   * resolving against the current base URI. This will return a URI containing
+   * only a fragment if the ID does not represent a new base, for example if
+   * it's an anchor. This condition can be checked with
+   * {@link URIs#isFragmentOnly(URI)}.
    * <p>
    * This expects the path to not be in JSON Pointer form.
    *
-   * @param idElem the ID element
+   * @param e the ID element
    * @param path the relative path of the element, may be empty
    * @return the processed ID, or {@code null} if it's not a new base.
    * @throws MalformedSchemaException if the ID is malformed.
+   * @see URIs#isFragmentOnly(URI)
+   * @see Validator#getID(JsonElement, Specification, URI)
    */
-  public URI getID(JsonElement idElem, String path) throws MalformedSchemaException {
-    return Validator.getID(idElem, specification(),
-                           resolveAbsolute(state.absKeywordLocation, path));
+  public URI getID(JsonElement e, String path) throws MalformedSchemaException {
+    return Validator.getID(e, specification(), resolveAbsolute(state.absKeywordLocation, path));
+  }
+
+  /**
+   * Gets and processes the given anchor element. This returns the anchor value.
+   * <p>
+   * This expects the path to not be in JSON Pointer form.
+   *
+   * @param e the anchor element
+   * @param path the relative path of the element, may be empty
+   * @return the anchor name.
+   * @throws MalformedSchemaException if the ID is malformed.
+   */
+  public String getAnchor(JsonElement e, String path) throws MalformedSchemaException {
+    return Validator.getAnchor(e, resolveAbsolute(state.absKeywordLocation, path));
   }
 
   /**
@@ -1010,7 +1027,7 @@ public final class ValidatorContext {
       JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
         URI id = getID(idElem, schemaPath + "/" + CoreId.NAME);
-        if (id != null) {
+        if (!URIs.isFragmentOnly(id)) {
           absKeywordLocation = baseURI.resolve(id);
         }
       }

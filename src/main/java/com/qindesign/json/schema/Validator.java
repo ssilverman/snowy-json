@@ -272,7 +272,7 @@ public final class Validator {
           JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
           if (idElem != null) {
             URI id = getID(idElem, spec, baseURI);
-            if (id != null) {
+            if (!URIs.isFragmentOnly(id)) {
               knownURLs.putIfAbsent(id, baseURL);
             }
           }
@@ -570,13 +570,17 @@ public final class Validator {
 
   /**
    * Gets and processes the given ID element. This returns a URI suitable for
-   * resolving against the current base URI. This will return {@code null} if
-   * the ID does not represent a new base, for example if it's an anchor.
+   * resolving against the current base URI. This will return a URI containing
+   * only a fragment if the ID does not represent a new base, for example if
+   * it's an anchor. This condition can be checked with
+   * {@link URIs#isFragmentOnly(URI)}.
    *
    * @param idElem the ID element
+   * @param spec the specification
    * @param loc the absolute path of the element
    * @return the processed ID, or {@code null} if it's not a new base.
    * @throws MalformedSchemaException if the ID is malformed.
+   * @see URIs#isFragmentOnly(URI)
    */
   public static URI getID(JsonElement idElem, Specification spec, URI loc)
       throws MalformedSchemaException {
@@ -601,14 +605,33 @@ public final class Validator {
       }
 
       // If it's not just a fragment then it represents a new base URI
-      if (id.getScheme() == null && id.getRawSchemeSpecificPart().isEmpty()) {
-        id = null;
-      }
     } else {
       id = URIs.stripFragment(id);
     }
 
     return id;
+  }
+
+  /**
+   * Gets and processes the given anchor element. This returns the anchor name.
+   *
+   * @param anchorElem the anchor element
+   * @param loc the absolute path of the element
+   * @return the anchor name.
+   * @throws MalformedSchemaException if the anchor is malformed.
+   */
+  public static String getAnchor(JsonElement anchorElem, URI loc)
+      throws MalformedSchemaException {
+    if (!JSON.isString(anchorElem)) {
+      throw new MalformedSchemaException("not a string", loc);
+    }
+
+    String anchor = anchorElem.getAsString();
+    if (!Validator.ANCHOR_PATTERN.matcher(anchor).matches()) {
+      throw new MalformedSchemaException("invalid plain name", loc);
+    }
+
+    return anchor;
   }
 
   /**
@@ -713,35 +736,16 @@ public final class Validator {
       value = e.getAsJsonObject().get(CoreId.NAME);
       if (value != null) {
         String path = newParentID + "/" + CoreId.NAME;
+        URI uri = getID(value, spec, Strings.jsonPointerToURI(path));
 
-        if (!JSON.isString(value)) {
-          throw new MalformedSchemaException("not a string", Strings.jsonPointerToURI(path));
-        }
-
-        URI uri;
-        try {
-          uri = URI.create(value.getAsString()).normalize();
-        } catch (IllegalArgumentException ex) {
-          throw new MalformedSchemaException("not a valid URI-reference",
-                                             Strings.jsonPointerToURI(path));
-        }
+        Id id = new Id(baseURI.resolve(uri));
+        id.value = value.getAsString();
+        id.base = baseURI;
+        id.path = newParentID;
+        id.root = rootID;
+        id.rootURI = rootURI;
 
         if (URIs.hasNonEmptyFragment(uri)) {
-          if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-            throw new MalformedSchemaException("has a non-empty fragment",
-                                               Strings.jsonPointerToURI(path));
-          }
-          if (!ANCHOR_PATTERN.matcher(uri.getRawFragment()).matches()) {
-            throw new MalformedSchemaException("invalid plain name",
-                                               Strings.jsonPointerToURI(path));
-          }
-
-          Id id = new Id(baseURI.resolve(uri));
-          id.value = value.getAsString();
-          id.base = baseURI;
-          id.path = newParentID;
-          id.root = rootID;
-          id.rootURI = rootURI;
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
@@ -749,14 +753,6 @@ public final class Validator {
                 Strings.jsonPointerToURI(newParentID));
           }
         } else {
-          uri = URIs.stripFragment(uri);
-
-          Id id = new Id(baseURI.resolve(uri));
-          id.value = value.getAsString();
-          id.base = baseURI;
-          id.path = newParentID;
-          id.root = rootID;
-          id.rootURI = rootURI;
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException("ID not unique",
                                                Strings.jsonPointerToURI(newParentID));
@@ -774,18 +770,10 @@ public final class Validator {
         value = e.getAsJsonObject().get(CoreAnchor.NAME);
         if (value != null) {
           String path = newParentID + "/" + CoreAnchor.NAME;
+          String anchor = getAnchor(value, Strings.jsonPointerToURI(path));
 
-          if (!JSON.isString(value)) {
-            throw new MalformedSchemaException("not a string",
-                                               Strings.jsonPointerToURI(path));
-          }
-          if (!ANCHOR_PATTERN.matcher(value.getAsString()).matches()) {
-            throw new MalformedSchemaException("invalid plain name",
-                                               Strings.jsonPointerToURI(path));
-          }
-
-          Id id = new Id(baseURI.resolve("#" + value.getAsString()));
-          id.value = value.getAsString();
+          Id id = new Id(baseURI.resolve("#" + anchor));
+          id.value = anchor;
           id.base = baseURI;
           id.path = newParentID;
           id.root = rootID;
