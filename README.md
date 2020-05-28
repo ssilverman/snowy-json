@@ -1,6 +1,6 @@
 # Snow, a JSON Schema Validator
 
-Version: 0.6.0
+Version: 0.7.0
 
 The main goal of this project is to be a reference JSON Schema validator.
 
@@ -370,4 +370,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ```
 
 ---
-(c) 2020 Shawn Silverman
+Copyright (c) 2020 Shawn Silverman
