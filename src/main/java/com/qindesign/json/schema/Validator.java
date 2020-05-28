@@ -259,7 +259,7 @@ public final class Validator {
     }
 
     // If auto-resolving
-    if (Boolean.TRUE.equals(options.get(Option.AUTO_RESOLVE))) {
+    if (options.is(Option.AUTO_RESOLVE)) {
       URL baseURL = null;
       try {
         baseURL = baseURI.toURL();
@@ -282,14 +282,14 @@ public final class Validator {
 
     // Annotations and errors collection
     if (annotations == null) {
-      if (Boolean.TRUE.equals(options.get(Option.COLLECT_ANNOTATIONS))) {
+      if (options.is(Option.COLLECT_ANNOTATIONS)) {
         annotations = new HashMap<>();
       } else {
         annotations = Collections.emptyMap();
       }
     }
     if (errors == null) {
-      if (Boolean.TRUE.equals(options.get(Option.COLLECT_ERRORS))) {
+      if (options.is(Option.COLLECT_ERRORS)) {
         errors = new HashMap<>();
       } else {
         errors = Collections.emptyMap();

@@ -121,6 +121,19 @@ public final class Options {
   }
 
   /**
+   * Returns whether the specified option exists and equals {@code true}. Under
+   * the hood, this calls {@link #get(Option)} and then compares it to
+   * {@link Boolean#TRUE}. This means that all the same notes apply to
+   * this method.
+   *
+   * @param option the option
+   * @return whether the option exists and is equal to {@code true}.
+   */
+  public boolean is(Option option) {
+    return Boolean.TRUE.equals(get(option));
+  }
+
+  /**
    * Returns the value of the specified option or, if it's not set, the default
    * for the given specification. If that's not set then this searches the
    * non-specification-specific defaults. This may return {@code null} if the
