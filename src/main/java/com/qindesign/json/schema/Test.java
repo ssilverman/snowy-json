@@ -285,7 +285,8 @@ public class Test {
           throw new IllegalArgumentException(ex);
         }
 
-        boolean isOptional = uri.getRawPath().contains("/optional/");
+        String path = uri.getRawPath();
+        boolean isOptional = (path != null) && path.contains("/optional/");
 
         suiteResult.total++;
         if (isOptional) {
