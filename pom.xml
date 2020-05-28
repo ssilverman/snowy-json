@@ -25,6 +25,26 @@
     <artifactId>json-schema</artifactId>
     <version>0.7.0</version>
 
+    <name>Snow</name>
+    <description>Full-featured JSON Schema validator</description>
+    <url>https://github.com/ssilverman/snowy-json</url>
+    <inceptionYear>2020</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Shawn Silverman</name>
+            <email>shawn@pobox.com</email>
+            <url>https://github.com/ssilverman</url>
+        </developer>
+    </developers>
+
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
