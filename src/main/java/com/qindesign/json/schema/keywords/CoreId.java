@@ -21,8 +21,6 @@
  */
 package com.qindesign.json.schema.keywords;
 
-import static com.qindesign.json.schema.Validator.ANCHOR_PATTERN;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
