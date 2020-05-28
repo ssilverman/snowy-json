@@ -4,6 +4,11 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.7.1]
+
+### Changed
+* Changed the Maven artifactId to "snowy-json" from "json-schema".
+
 ## [0.7.0]
 
 ### Added
