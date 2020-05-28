@@ -565,12 +565,12 @@ public final class ValidatorContext {
     // Walk backwards until we find a matching resource or we hit the beginning
     StringBuilder sb = new StringBuilder();
     URI uri = id;
-    String path = uri.getRawPath();
-    while (true) {
+    String path;
+    do {
       // Try the resource
       URL url = knownURLs.get(uri);
       if (url != null) {
-        try (InputStream in = new URL(url.toString() + sb.toString()).openStream()) {
+        try (InputStream in = new URL(url, sb.toString()).openStream()) {
           state.schemaObject = null;
           return JSON.parse(in);
         } catch (IOException | JsonParseException ex) {
@@ -578,28 +578,37 @@ public final class ValidatorContext {
         }
       }
 
-      if (path == null || path.isEmpty()) {
-        break;
-      }
-
       // Reduce the path
       path = uri.getRawPath();
+      if (path == null) {
+        path = "";
+      }
       int lastSlashIndex = path.lastIndexOf('/');
-      if (lastSlashIndex >= 0) {
-        if (sb.length() > 0) {
-          sb.insert(0, '/');
-        }
-        sb.insert(0, path.substring(lastSlashIndex + 1));
-        try {
+      try {
+        if (lastSlashIndex >= 0) {
+          if (sb.length() > 0) {
+            sb.insert(0, '/');
+          }
+          sb.insert(0, path.substring(lastSlashIndex + 1));
           uri = new URI(uri.getScheme(), uri.getRawAuthority(), path.substring(0, lastSlashIndex),
                         uri.getRawQuery(), null);
-        } catch (URISyntaxException ex) {
-          // Something's wrong, so ignore and continue the search with the
-          // predefined resources below
-          break;
+        } else {
+          // This case will happen when a Java URI object has a non-absolute
+          // path. This may result when resolving by the algorithm in
+          // [RFC 2396: 5.2. Resolving Relative References to Absolute Form](https://tools.ietf.org/html/rfc2396#section-5.2).
+          // The algorithm in
+          // [RFC 3986: 5.2 Relative Resolution](https://tools.ietf.org/html/rfc3986#section-5.2)
+          // correctly ensures there's a leading slash. The solution is to
+          // define our own resolution function that accounts for this.
+          sb.insert(0, path);
+          uri = new URI(uri.getScheme(), uri.getRawAuthority(), "", uri.getRawQuery(), null);
         }
+      } catch (URISyntaxException ex) {
+        // Something's wrong, so ignore and continue the search with the
+        // predefined resources below
+        break;
       }
-    }
+    } while (!path.isEmpty());
 
     e = Validator.loadResource(id);
     if (e != null && Validator.isSchema(e)) {
