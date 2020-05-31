@@ -32,6 +32,7 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
+import java.net.IDN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
@@ -328,6 +329,35 @@ public class Format extends Keyword {
         }
         if (!InternetDomainName.isValid(string)) {
           return false;
+        }
+        if (value.getAsString().equals("idn-hostname")) {
+          if (string.startsWith("xn--")) {
+            if (IDN.toUnicode(string).equals(string)) {
+              return false;
+            }
+          } else {
+            // [4.2.3. Label Validation](https://tools.ietf.org/html/rfc5891#section-4.2.3)
+            // 4.2.3.1. Hyphen Restrictions
+            if (string.startsWith("--", 2)) {
+              return false;
+            }
+            if (string.startsWith("-") || string.endsWith("-")) {
+              return false;
+            }
+            // 4.2.3.2. Leading Combining Marks
+            // See https://www.compart.com/en/unicode/category for examples
+            if (string.length() > 0) {
+              int c = string.codePointAt(0);
+              switch (Character.getType(c)) {
+                case Character.COMBINING_SPACING_MARK:
+                case Character.NON_SPACING_MARK:
+                case Character.ENCLOSING_MARK:
+                  return false;
+              }
+            }
+            // TODO: 4.2.3.3. Contextual Rules
+            // TODO: 4.2.3.4. Labels Containing Characters Written Right to Left
+          }
         }
         break;
       case "ipv4":
