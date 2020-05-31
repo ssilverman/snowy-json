@@ -254,18 +254,22 @@ public class Format extends Keyword {
       return true;
     }
 
+    if (!JSON.isString(instance)) {
+      context.addAnnotation(NAME, value.getAsString());
+      return true;
+    }
+
+    String string = instance.getAsString();
+
     switch (value.getAsString()) {
       case "date-time":
       case "date":
       case "full-date":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         Matcher m;
         if (value.getAsString().equals("date-time")) {
-          m = DATE_TIME.matcher(instance.getAsString());
+          m = DATE_TIME.matcher(string);
         } else {
-          m = FULL_DATE.matcher(instance.getAsString());
+          m = FULL_DATE.matcher(string);
         }
         if (!m.matches()) {
           return false;
@@ -292,55 +296,42 @@ public class Format extends Keyword {
         break;
       case "time":
       case "full-time":
-        if (JSON.isString(instance)) {
-          if (!FULL_TIME.matcher(instance.getAsString()).matches()) {
-            return false;
-          }
+        if (!FULL_TIME.matcher(string).matches()) {
+          return false;
         }
         break;
       case "duration":
-        if (JSON.isString(instance)) {
-          if (!DURATION.matcher(instance.getAsString()).matches()) {
-            return false;
-          }
+        if (!DURATION.matcher(string).matches()) {
+          return false;
         }
         break;
       case "email":
       case "idn-email":
-        if (!JSON.isString(instance)) {
-          break;
-        }
 //        // For now, just check for one '@' sign not at the ends
-//        int atIndex = instance.getAsString().indexOf('@');
-//        if (0 < atIndex && atIndex < instance.getAsString().length() - 1 &&
-//            instance.getAsString().indexOf('@', atIndex + 1) < 0) {
+//        int atIndex = string.indexOf('@');
+//        if (0 < atIndex && atIndex < string.length() - 1 &&
+//            string.indexOf('@', atIndex + 1) < 0) {
 //          return true;
 //        }
 //        return false;
-        if (!EMAIL.matcher(instance.getAsString()).matches()) {
+        if (!EMAIL.matcher(string).matches()) {
           return false;
         }
         break;
       case "hostname":
       case "idn-hostname":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         // TODO: Allow IPv6 addresses here?
         if (value.getAsString().equals("hostname")) {
-          if (NON_HOSTNAME.matcher(instance.getAsString()).find()) {
+          if (NON_HOSTNAME.matcher(string).find()) {
             return false;
           }
         }
-        if (!InternetDomainName.isValid(instance.getAsString())) {
+        if (!InternetDomainName.isValid(string)) {
           return false;
         }
         break;
       case "ipv4":
       case "ipv6":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         try {
           int len;
           if (value.getAsString().equals("ipv4")) {
@@ -348,7 +339,7 @@ public class Format extends Keyword {
           } else {
             len = 16;
           }
-          if (InetAddresses.forString(instance.getAsString()).getAddress().length != len) {
+          if (InetAddresses.forString(string).getAddress().length != len) {
             return false;
           }
         } catch (IllegalArgumentException ex) {
@@ -358,11 +349,8 @@ public class Format extends Keyword {
         break;
       case "uri":
       case "uri-reference":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         try {
-          URI uri = new URI(instance.getAsString());
+          URI uri = new URI(string);
           if (value.getAsString().equals("uri")) {
             return uri.isAbsolute();
           }
@@ -372,11 +360,8 @@ public class Format extends Keyword {
         break;
       case "iri":
       case "iri-reference":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         try {
-          URI uri = new URI(iriToURI(instance.getAsString()));
+          URI uri = new URI(iriToURI(string));
           if (value.getAsString().equals("iri")) {
             return uri.isAbsolute();
           }
@@ -385,42 +370,30 @@ public class Format extends Keyword {
         }
         break;
       case "uuid":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         try {
-          UUID.fromString(instance.getAsString());
+          UUID.fromString(string);
         } catch (IllegalArgumentException ex) {
           return false;
         }
         break;
       case "uri-template":
-        if (JSON.isString(instance)) {
-          if (!checkURITemplate(instance.getAsString())) {
-            return false;
-          }
+        if (!checkURITemplate(string)) {
+          return false;
         }
         break;
       case "json-pointer":
-        if (JSON.isString(instance)) {
-          if (!JSON_POINTER.matcher(instance.getAsString()).matches()) {
-            return false;
-          }
+        if (!JSON_POINTER.matcher(string).matches()) {
+          return false;
         }
         break;
       case "relative-json-pointer":
-        if (JSON.isString(instance)) {
-          if (!RELATIVE_JSON_POINTER.matcher(instance.getAsString()).matches()) {
-            return false;
-          }
+        if (!RELATIVE_JSON_POINTER.matcher(string).matches()) {
+          return false;
         }
         break;
       case "regex":
-        if (!JSON.isString(instance)) {
-          break;
-        }
         try {
-          java.util.regex.Pattern.compile(instance.getAsString());
+          java.util.regex.Pattern.compile(string);
         } catch (PatternSyntaxException ex) {
           return false;
         }
