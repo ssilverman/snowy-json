@@ -63,11 +63,17 @@ public final class LRUCache<K, V> {
 
   /**
    * Creates a new LRU cache that uses the given function to create values
-   * from keys.
+   * from keys. The function can be made to throw checked exceptions, if needed,
+   * by using the "sneaky throws" idiom.
+   * <pre>{@code
+   * private static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
+   *   throw (E) e;
+   * }
+   * }</pre>
    *
    * @param maxSize the maximum size
    * @param producer a function that creates values from keys
-   * @see <a href="https://www.baeldung.com/java-sneaky-throws">“Sneaky Throws” in Java</a>
+   * @see <a href="https://www.baeldung.com/java-sneaky-throws">"Sneaky throws" in Java</a>
    */
   public LRUCache(int maxSize, Function<K, V> producer) {
     if (maxSize <= 0) {
