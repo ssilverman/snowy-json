@@ -30,6 +30,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -69,6 +71,20 @@ public final class JSON {
   public static JsonElement parse(File f) throws IOException {
     try (BufferedReader r = new BufferedReader(new FileReader(f, StandardCharsets.UTF_8))) {
       return parse(r);
+    }
+  }
+
+  /**
+   * Parses JSON from a {@link URL}.
+   *
+   * @param url the URL whose content to parse
+   * @return the parsed JSON element.
+   * @throws IOException if there was a problem reading the data.
+   * @throws JsonParseException if there was a parsing error.
+   */
+  public static JsonElement parse(URL url) throws IOException {
+    try (InputStream in = new BufferedInputStream(url.openStream())) {
+      return parse(in);
     }
   }
 
