@@ -61,13 +61,13 @@ public class UnevaluatedItems extends Keyword {
       return true;
     }
 
-    String loc = context.schemaParentLocation();
+    String parentPrefix = context.schemaParentLocation() + "/";
     int max = 0;
 
     // Returns true if we need to return true and false to not return
     Function<Map<String, Annotation>, Boolean> f = (Map<String, Annotation> a) -> {
       for (var e : a.entrySet()) {
-        if (!e.getKey().startsWith(loc)) {
+        if (!e.getKey().startsWith(parentPrefix)) {
           continue;
         }
         if (Boolean.TRUE.equals(e.getValue().value)) {
@@ -87,7 +87,7 @@ public class UnevaluatedItems extends Keyword {
     // "items"
     Map<String, Annotation> annotations = context.annotations(Items.NAME);
     for (var e : annotations.entrySet()) {
-      if (!e.getKey().startsWith(loc)) {
+      if (!e.getKey().startsWith(parentPrefix)) {
         continue;
       }
       Object v = e.getValue().value;

@@ -1089,10 +1089,23 @@ public final class ValidatorContext {
         // optimization because it either may not be used or not used
         // early enough
         if (isCollectAnnotations) {
+          // Note that we're also checking for equality in case the current
+          // failing keyword has set some annotations
           annotations.getOrDefault(instanceLocation, Collections.emptyMap())
               .values()
               .forEach(
-                  v -> v.entrySet().removeIf(e -> e.getKey().startsWith(state.keywordLocation)));
+                  v -> v.entrySet().removeIf(e -> {
+                    String key = e.getKey();
+                    if (key.startsWith(state.keywordLocation)) {
+                      if (key.length() == state.keywordLocation.length()) {
+                        return true;
+                      }
+                      if (key.charAt(state.keywordLocation.length()) == '/') {
+                        return true;
+                      }
+                    }
+                    return false;
+                  }));
         }
         if (!hasError()) {
           addError(false, k.name() + " didn't validate");

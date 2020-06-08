@@ -65,7 +65,7 @@ public class UnevaluatedProperties extends Keyword {
     }
     JsonObject object = instance.getAsJsonObject();
 
-    String loc = context.schemaParentLocation();
+    String parentPrefix = context.schemaParentLocation() + "/";
     Set<String> validated = new HashSet<>();
 
     Consumer<Map<String, Annotation>> f = (Map<String, Annotation> a) -> {
@@ -73,7 +73,7 @@ public class UnevaluatedProperties extends Keyword {
         return;
       }
       for (var e : a.entrySet()) {
-        if (!e.getKey().startsWith(loc)) {
+        if (!e.getKey().startsWith(parentPrefix)) {
           continue;
         }
         if (e.getValue().value instanceof Set<?>) {
