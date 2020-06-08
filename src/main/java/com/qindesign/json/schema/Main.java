@@ -33,10 +33,14 @@ import com.qindesign.json.schema.util.Logging;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -79,8 +83,17 @@ public class Main {
     JsonElement instance;
 
     // Load the schema and instance
-    schema = JSON.parse(new File(args[0]));
-    instance = JSON.parse(new File(args[1]));
+    // First try them as a URL
+    try {
+      schema = getFromURL(args[0], "Schema");
+    } catch (MalformedURLException ex) {
+      schema = JSON.parse(new File(args[0]));
+    }
+    try {
+      instance = getFromURL(args[1], "Instance");
+    } catch (MalformedURLException ex) {
+      instance = JSON.parse(new File(args[1]));
+    }
     logger.info("Loaded schema=" + args[0] + " instance=" + args[1]);
     logger.info("Actual spec=" + Validator.specificationFromSchema(schema));
     logger.info("Guessed spec=" + Validator.guessSpecification(schema));
@@ -104,6 +117,25 @@ public class Main {
     Streams.write(basicOutput(result, errors), w);
     w.flush();
     System.out.println();
+  }
+
+  /**
+   * Gets a JSON object from a potential URL and prints the content type.
+   *
+   * @param spec the URL spec
+   * @param name the name to use for the logging
+   * @return the parsed JSON.
+   * @throws MalformedURLException if the spec is not a valid URL.
+   * @throws IOException if there was an error reading from the resource.
+   * @throws JsonParseException if there was a JSON parsing error.
+   */
+  private static JsonElement getFromURL(String spec, String name) throws IOException {
+    URL url = new URL(spec);
+    URLConnection conn = url.openConnection();
+    logger.info(Optional.ofNullable(conn.getContentType())
+                    .map(s -> name + " URL: Content-Type=" + s)
+                    .orElse(name + " URL: has no Content-Type"));
+    return JSON.parse(conn.getInputStream());
   }
 
   /**

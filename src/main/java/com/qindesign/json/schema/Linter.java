@@ -40,12 +40,16 @@ import com.qindesign.json.schema.keywords.Type;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -109,7 +113,17 @@ public final class Linter {
       return;
     }
 
-    JsonElement schema = JSON.parse(new File(args[0]));
+    JsonElement schema;
+    try {
+      URL url = new URL(args[0]);
+      URLConnection conn = url.openConnection();
+      System.out.println(Optional.ofNullable(conn.getContentType())
+                             .map(s -> "Schema URL: Content-Type=" + s)
+                             .orElse("Schema URL: has no Content-Type"));
+      schema = JSON.parse(conn.getInputStream());
+    } catch (MalformedURLException ex) {
+      schema = JSON.parse(new File(args[0]));
+    }
     var issues = check(schema);
     issues.forEach((path, list) -> list.forEach(msg -> System.out.println(path + ": " + msg)));
   }
