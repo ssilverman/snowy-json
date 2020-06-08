@@ -106,7 +106,13 @@ public class Type extends Keyword {
     }
 
     if (JSON.isString(value)) {
-      context.addError(false, "value not a \"" + Strings.jsonString(value.getAsString()) + "\"");
+      String s = Strings.jsonString(value.getAsString());
+      boolean vowel = (s.length() > 0) && ("aeiouAEIOU".indexOf(s.charAt(0)) >= 0);
+      if (vowel) {
+        context.addError(false, "value not an \"" + s + "\"");
+      } else {
+        context.addError(false, "value not a \"" + s + "\"");
+      }
     } else {
       StringBuilder sb = new StringBuilder();
       value.getAsJsonArray()
