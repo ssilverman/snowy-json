@@ -6,6 +6,26 @@ The main goal of this project is to be a reference JSON Schema validator.
 
 See: [JSON Schema](https://json-schema.org)
 
+## Table of contents
+
+1. [Features](#features)
+   1. [Additional features](#additional-features)
+2. [Quick start](#quick-start)
+3. [Under the covers](#under-the-covers)
+4. [Limitations](#limitations)
+5. [Which specification is used for processing?](#which-specification-is-used-for-processing)
+6. [Options for controlling behaviour](#options-for-controlling-behaviour)
+7. [Project structure](#project-structure)
+   1. [Complete programs](#complete-programs)
+   2. [API](#api)
+      1. [Annotations and errors](#annotations-and-errors)
+8. [Building and running](#building-and-running)
+   1. [Program execution with Maven](#program-execution-with-maven)
+9. [Future plans](#future-plans)
+10. [References](#references)
+11. [An ending thought](#an-ending-thought)
+12. [License](#license)
+
 ## Features
 
 This project has the following features:
