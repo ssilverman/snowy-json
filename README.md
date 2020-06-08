@@ -21,7 +21,7 @@ See: [JSON Schema](https://json-schema.org)
       1. [Annotations and errors](#annotations-and-errors)
 8. [Building and running](#building-and-running)
    1. [Program execution with Maven](#program-execution-with-maven)
-9. [What the linter checks](#what-the-linter-checks)
+9. [The linter](#the-linter)
 10. [Future plans](#future-plans)
 11. [References](#references)
 12. [An ending thought](#an-ending-thought)
@@ -346,7 +346,11 @@ main class is `my.Main` and it takes some "program arguments":
 mvn exec:java -Dexec.mainClass="my.Main" -Dexec.args="program arguments"
 ```
 
-## What the linter checks
+## The linter
+
+The linter's job is to provide suggestions about potential errors in a schema.
+It shows only potential problems whose presence does not necessarily mean the
+schema won't work.
 
 The linter is rudimentary and does not check or validate everything about the
 schema. It does currently check for the following things:
