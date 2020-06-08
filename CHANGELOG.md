@@ -4,6 +4,19 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.8.0]
+
+### Added
+* More `idn-hostname` format checks.
+* URL support in `Main` and `Linter`.
+* Internal $ref existence checking in `Linter`.
+* Table of contents in the README.
+* A "What the linter checks" section in the README.
+
+### Fixed
+
+* There's now correct use of "an" vs. "a" in the error message in `Type`.
+
 ## [0.7.1]
 
 ### Changed
@@ -25,7 +38,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Annotation collection was removed from the Contains keyword.
 
 ### Fixed
-* Fixed percent encoder, used when resolving absolute locations. 
+* Fixed percent encoder, used when resolving absolute locations.
 * Relative paths resolved against a base URI having an empty path no longer
   result in an infinite loop.
 * Other code and Javadoc fixes.
