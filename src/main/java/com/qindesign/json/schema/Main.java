@@ -107,10 +107,12 @@ public class Main {
 
     Map<String, Map<String, Annotation>> errors = new HashMap<>();
 
+    long time = System.currentTimeMillis();
     boolean result = Validator.validate(schema, instance, schemaID,
                                         Collections.emptyMap(), Collections.emptyMap(),
                                         opts, null, errors);
-    logger.info("Validation result: " + result);
+    time = System.currentTimeMillis() - time;
+    logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 
     JsonWriter w = new JsonWriter(new OutputStreamWriter(System.out));
     w.setIndent("    ");
