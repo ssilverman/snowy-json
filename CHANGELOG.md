@@ -11,7 +11,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * URL support in `Main` and `Linter`.
 * Internal $ref existence checking in `Linter`.
 * Table of contents in the README.
-* A "What the linter checks" section in the README.
+* New "The linter" section in the README.
 
 ### Fixed
 
