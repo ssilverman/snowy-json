@@ -16,6 +16,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Fixed
 
 * There's now correct use of "an" vs. "a" in the error message in `Type`.
+* Annotation prefix checking now considers the final "/" and doesn't just match
+  the prefix.
 
 ## [0.7.1]
 
