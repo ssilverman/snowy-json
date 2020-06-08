@@ -21,10 +21,11 @@ See: [JSON Schema](https://json-schema.org)
       1. [Annotations and errors](#annotations-and-errors)
 8. [Building and running](#building-and-running)
    1. [Program execution with Maven](#program-execution-with-maven)
-9. [Future plans](#future-plans)
-10. [References](#references)
-11. [An ending thought](#an-ending-thought)
-12. [License](#license)
+9. [What the linter checks](#what-the-linter-checks)
+10. [Future plans](#future-plans)
+11. [References](#references)
+12. [An ending thought](#an-ending-thought)
+13. [License](#license)
 
 ## Features
 
@@ -344,6 +345,32 @@ main class is `my.Main` and it takes some "program arguments":
 ```bash
 mvn exec:java -Dexec.mainClass="my.Main" -Dexec.args="program arguments"
 ```
+
+## What the linter checks
+
+The linter is rudimentary and does not check or validate everything about the
+schema. It does currently check for the following things:
+
+1. Unknown `format` values.
+2. Empty `items` arrays.
+3. `additionalItems` without a sibling array-form `items`.
+4. `$schema` elements inside a subschema that do not have a sibling `$id`.
+5. Unknown keywords.
+6. Property names that start with "$".
+7. `format` with a sibling non-"string" `type`.
+8. Unnormalized `$id` values.
+9. Locally-pointing `$ref` values that don't exist.
+10. Draft 2019-09 or later schemas having keywords that were removed in
+    Draft 2019-09.
+11. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
+12. Pre-Draft-07 schemas having keywords that were added in Draft-07.
+13. Draft 2019-09 or later, or unspecified, schemas:
+    1. `minContains` without a sibling `contains`.
+    2. `maxContains` without a sibling `contains`.
+    3. `unevaluatedItems` without a sibling array-form `items`.
+14. Draft-07 or later, or unspecified, schemas:
+    1. `then` without `if`.
+    2. `else` without `if`.
 
 ## Future plans
 
