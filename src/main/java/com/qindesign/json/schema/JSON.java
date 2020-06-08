@@ -31,9 +31,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -69,8 +68,8 @@ public final class JSON {
    * @throws JsonParseException if there was a parsing error.
    */
   public static JsonElement parse(File f) throws IOException {
-    try (BufferedReader r = new BufferedReader(new FileReader(f, StandardCharsets.UTF_8))) {
-      return parse(r);
+    try (InputStream in = new BufferedInputStream(new FileInputStream(f))) {
+      return parse(in);
     }
   }
 
@@ -89,7 +88,9 @@ public final class JSON {
   }
 
   /**
-   * Parses JSON from an {@link InputStream}.
+   * Parses JSON from an {@link InputStream}. This decodes the stream using the
+   * {@link StandardCharsets#UTF_8} charset. Note that this does not buffer nor
+   * close the stream.
    *
    * @param in the input stream
    * @return the parsed JSON element.
@@ -97,13 +98,12 @@ public final class JSON {
    * @throws JsonParseException if there was a parsing error.
    */
   public static JsonElement parse(InputStream in) throws IOException {
-    try (Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-      return parse(r);
-    }
+    return parse(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
 
   /**
-   * Parses JSON from a {@link Reader}.
+   * Parses JSON from a {@link Reader}. Note that this does not buffer nor close
+   * the input.
    * <p>
    * This mimics {@link JsonParser#parseReader(Reader)} and
    * {@link JsonParser#parseReader(JsonReader)} for behaviour because
