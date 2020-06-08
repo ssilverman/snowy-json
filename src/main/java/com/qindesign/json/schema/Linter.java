@@ -28,6 +28,7 @@ import com.qindesign.json.schema.keywords.AdditionalItems;
 import com.qindesign.json.schema.keywords.Contains;
 import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
+import com.qindesign.json.schema.keywords.CoreRef;
 import com.qindesign.json.schema.keywords.CoreSchema;
 import com.qindesign.json.schema.keywords.Definitions;
 import com.qindesign.json.schema.keywords.Format;
@@ -189,6 +190,31 @@ public final class Linter {
                 }
               } catch (URISyntaxException ex) {
                 // Ignore
+              }
+            }
+          } else if (path.endsWith("/" + CoreRef.NAME)) {
+            // Only examine $refs that are just fragments
+            if (JSON.isString(e)) {
+              String ref = e.getAsString();
+              if (ref.startsWith("#")) {
+                boolean first = true;
+                JsonElement o = schema;
+                for (String part : ref.substring(1).split("/", -1)) {
+                  if (first) {
+                    if (!part.isEmpty()) {
+                      addIssue(issues, path, "bad JSON Pointer: \"" + ref + "\"");
+                      break;
+                    }
+                    first = false;
+                    continue;
+                  }
+                  if (!o.isJsonObject() || !o.getAsJsonObject().has(part)) {
+                    addIssue(issues, path,
+                             "reference not found: \"" + Strings.jsonString(ref) + "\"");
+                    break;
+                  }
+                  o = o.getAsJsonObject().get(part);
+                }
               }
             }
           }
