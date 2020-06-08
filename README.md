@@ -1,6 +1,6 @@
 # Snow, a JSON Schema Validator
 
-Version: 0.7.1
+Version: 0.8.0
 
 The main goal of this project is to be a reference JSON Schema validator.
 
