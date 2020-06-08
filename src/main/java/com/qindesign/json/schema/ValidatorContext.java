@@ -240,6 +240,26 @@ public final class ValidatorContext {
   private final Map<URI, Id> idsByURI;
   private final Map<URI, URL> knownURLs;
 
+  // https://www.baeldung.com/java-sneaky-throws
+  @SuppressWarnings("unchecked")
+  private static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
+    throw (E) e;
+  }
+
+  // URL cache
+  private static final int MAX_URL_CACHE_SIZE = 10;
+  // Function throws IOException (checked) or JsonParseException (unchecked)
+  private final LRUCache<URL, JsonElement> urlCache = new LRUCache<>(
+      MAX_URL_CACHE_SIZE,
+      url -> {
+        try (InputStream in = url.openStream()) {
+          return JSON.parse(in);
+        } catch (IOException ex) {
+          sneakyThrow(ex);
+          return null;
+        }
+      });
+
   /**
    * Tracks schemas that have either been validated or in the process of being
    * validated, to avoid $schema recursion.
@@ -570,9 +590,12 @@ public final class ValidatorContext {
       // Try the resource
       URL url = knownURLs.get(uri);
       if (url != null) {
-        try (InputStream in = new URL(url, sb.toString()).openStream()) {
-          state.schemaObject = null;
-          return JSON.parse(in);
+        try {
+          JsonElement data = urlCache.access(new URL(url, sb.toString()));
+          if (data != null) {
+            state.schemaObject = null;
+            return data;
+          }
         } catch (IOException | JsonParseException ex) {
           // Ignore and try next
         }
