@@ -103,6 +103,7 @@ public class Main {
     w.setIndent("    ");
     Streams.write(basicOutput(result, errors), w);
     w.flush();
+    System.out.println();
   }
 
   /**
