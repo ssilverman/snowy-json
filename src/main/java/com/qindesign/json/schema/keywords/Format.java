@@ -35,7 +35,6 @@ import com.qindesign.json.schema.Vocabulary;
 import java.net.IDN;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 
@@ -96,6 +95,11 @@ public class Format extends Keyword {
       '0', '1', '2', '3', '4', '5', '6', '7',
       '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
   };
+
+  // See: https://www.rfc-editor.org/rfc/rfc4122
+  private static final java.util.regex.Pattern UUID =
+      java.util.regex.Pattern
+          .compile("^\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}$");
 
   // URI templates
   private static final String TEMPLATE_VAR = "(?!\\.)(?:\\.?(\\w|%\\p{XDigit}{2}))+";
@@ -400,9 +404,7 @@ public class Format extends Keyword {
         }
         break;
       case "uuid":
-        try {
-          UUID.fromString(string);
-        } catch (IllegalArgumentException ex) {
+        if (!UUID.matcher(string).matches()) {
           return false;
         }
         break;
