@@ -189,6 +189,8 @@ public final class JSON {
 
     /**
      * Returns the specification.
+     *
+     * @return the specification.
      */
     public Specification spec() {
       return spec;

@@ -42,6 +42,8 @@ public class MalformedSchemaException extends Exception {
 
   /**
    * Returns the absolute location in the schema where the error occurred.
+   *
+   * @return the absolute schema error location.
    */
   public URI getLocation() {
     return location;

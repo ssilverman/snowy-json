@@ -212,7 +212,7 @@ public final class Validator {
    * @throws NullPointerException if {@code schema}, {@code instance}, or
    *         {@code baseURI} are {@code null}.
    * @throws MalformedSchemaException if the schema is somehow malformed.
-   * @see <a href="https://tools.ietf.org/html/rfc6901>JSON Pointer</a>
+   * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
                                  URI baseURI,

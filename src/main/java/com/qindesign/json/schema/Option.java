@@ -76,6 +76,8 @@ public enum Option {
 
   /**
    * Returns the type for this option, a {@link Class}.
+   *
+   * @return the option type, a {@link Class}.
    */
   public Class<?> type() {
     return type;

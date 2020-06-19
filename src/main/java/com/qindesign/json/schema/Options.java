@@ -156,6 +156,8 @@ public final class Options {
 
   /**
    * Returns a copy of these options.
+   *
+   * @return a copy of the options.
    */
   public Options copy() {
     Options copy = new Options();

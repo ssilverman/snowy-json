@@ -45,6 +45,8 @@ public enum Vocabulary {
 
   /**
    * Returns the ID as a {@link URI}.
+   *
+   * @return the ID, a {@link URI}.
    */
   public URI id() {
     return id;

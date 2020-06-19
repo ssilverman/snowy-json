@@ -44,6 +44,8 @@ public abstract class Keyword {
 
   /**
    * Returns the keyword name.
+   *
+   * @return the keyword name.
    */
   public final String name() {
     return name;
@@ -57,6 +59,7 @@ public abstract class Keyword {
    * @param parent the keyword's parent object
    * @param context the current context
    * @return whether the keyword application was a success.
+   * @throws MalformedSchemaException if the schema is not valid.
    */
   protected abstract boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                                    ValidatorContext context)

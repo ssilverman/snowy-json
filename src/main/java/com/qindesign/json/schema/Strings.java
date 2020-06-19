@@ -241,7 +241,7 @@ public final class Strings {
    * @param s the string to encode
    * @return the encoded value, a value suitable for use in a fragment.
    * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.5">Uniform Resource Identifier (URI): Generic Syntax: 3.5. Fragment</a>
-   * @see <a href="https://tools.ietf.org/html/rfc3629>UTF-8</a>
+   * @see <a href="https://tools.ietf.org/html/rfc3629">UTF-8</a>
    * @throws IllegalArgumentException if a character is out of the defined
    *         UTF-8 range.
    */

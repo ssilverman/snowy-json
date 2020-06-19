@@ -66,6 +66,7 @@ public final class Id {
   /**
    * Creates a new ID with all-null fields.
    *
+   * @param id the ID, a {@link URI}
    * @throws NullPointerException if the ID is {@code null}.
    */
   public Id(URI id) {

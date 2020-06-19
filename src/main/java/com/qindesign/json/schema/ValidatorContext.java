@@ -406,6 +406,8 @@ public final class ValidatorContext {
 
   /**
    * Returns whether we can fail fast when processing a keyword.
+   *
+   * @return whether we can fail fast during keyword processing.
    */
   public boolean isFailFast() {
     return isFailFast;
@@ -413,6 +415,8 @@ public final class ValidatorContext {
 
   /**
    * Returns the pattern cache.
+   *
+   * @return the pattern cache.
    */
   public LRUCache<String, java.util.regex.Pattern> patternCache() {
     return patternCache;
@@ -420,6 +424,8 @@ public final class ValidatorContext {
 
   /**
    * Returns all the known resources.
+   *
+   * @return all the known resources.
    */
   public Map<URI, URL> knownURLs() {
     return Collections.unmodifiableMap(knownURLs);
@@ -437,6 +443,8 @@ public final class ValidatorContext {
 
   /**
    * Returns the current base URI. This is the base URI of the closest ancestor.
+   *
+   * @return the current base URI.
    */
   public URI baseURI() {
     return state.baseURI;
@@ -473,6 +481,8 @@ public final class ValidatorContext {
 
   /**
    * Returns the current specification in use.
+   *
+   * @return the current specification.
    */
   public Specification specification() {
     return state.spec;
@@ -498,6 +508,7 @@ public final class ValidatorContext {
    *
    * @param id the vocabulary ID
    * @param required whether the vocabulary is required or optional
+   * @return whether the ID is unique.
    */
   public boolean setVocabulary(URI id, boolean required) {
     return vocabularies.putIfAbsent(id, required) == null;
@@ -505,6 +516,8 @@ public final class ValidatorContext {
 
   /**
    * Returns all the known vocabularies and whether they're required.
+   *
+   * @return all the known vocabularies.
    */
   public Map<URI, Boolean> vocabularies() {
     return Collections.unmodifiableMap(vocabularies);
@@ -513,6 +526,8 @@ public final class ValidatorContext {
   /**
    * Returns whether the parent object of the current keyword is the
    * root schema.
+   *
+   * @return whether the parent of the current keyword is the root schema.
    */
   public boolean isRootSchema() {
     return state.isRoot;
@@ -525,6 +540,8 @@ public final class ValidatorContext {
    * Note that this returns the dynamic path and not a resolved URI. This is
    * meant for annotations. Callers need to resolve against the base URI if
    * they need an absolute form.
+   *
+   * @return the location of the parent of the current keyword.
    */
   public String schemaParentLocation() {
     return state.keywordParentLocation;
@@ -537,6 +554,8 @@ public final class ValidatorContext {
    * Note that this returns the dynamic path and not a resolved URI. This is
    * meant for annotations. Callers need to resolve against the base URI if
    * they need an absolute form.
+   *
+   * @return the location of the current keyword.
    */
   public String schemaLocation() {
     return state.keywordLocation;
@@ -759,6 +778,8 @@ public final class ValidatorContext {
 
   /**
    * Returns whether there's an existing error at the current instance location.
+   *
+   * @return whether there's an error at the current instance location.
    */
   public boolean hasError() {
     if (!isCollectErrors) {
@@ -1030,6 +1051,7 @@ public final class ValidatorContext {
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
    * @param instancePath the relative instance path, not in JSON Pointer form
+   * @return the result of schema application.
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or
    *         because internal validation is failing.
