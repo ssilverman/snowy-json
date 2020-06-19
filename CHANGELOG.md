@@ -4,6 +4,15 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.9.0]
+
+### Added
+* Added the _source_ and _javadoc_ package plugins to the POM.
+
+### Fixed
+* Improved the UUID format checker.
+* Javadoc updates and fixes.
+
 ## [0.8.0]
 
 ### Added
