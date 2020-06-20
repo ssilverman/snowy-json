@@ -21,9 +21,8 @@
  */
 package com.qindesign.json.schema;
 
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -132,20 +131,11 @@ public final class Strings {
    *         small chance.
    */
   public static URI jsonPointerToURI(String ptr) {
-    return URI.create("#" + pctEncodeFragment(ptr));
-  }
-
-  /**
-   * Converts a URI fragment to a JSON Pointer by un-escaping all percent-
-   * encoded characters. This assumes fragment correctness and that the fragment
-   * contains a valid JSON Pointer.
-   *
-   * @param fragment the URI fragment
-   * @return the JSON Pointer form of the URI fragment.
-   * @throws IllegalArgumentException if the fragment contains bad characters.
-   */
-  public static String fragmentToJSONPointer(String fragment) {
-    return URLDecoder.decode(fragment, StandardCharsets.UTF_8);
+    try {
+      return new URI(null, null, null, null, ptr);
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Unexpected bad URI", ex);
+    }
   }
 
   /**
@@ -219,62 +209,6 @@ public final class Strings {
    */
   public static boolean isHex(int c) {
     return (c < 128) && validHex.get(c);
-  }
-
-  /**
-   * Appends a byte as a percent-hex-encoded value. This assumes that {@code v}
-   * is one byte.
-   *
-   * @param sb the buffer to append to
-   * @param v the byte value to append
-   */
-  private static void appendPctHex(StringBuilder sb, int v) {
-    sb.append('%');
-    sb.append(HEX_DIGITS[v >> 4]);
-    sb.append(HEX_DIGITS[v & 0x0f]);
-  }
-
-  /**
-   * Encodes a string into a valid URI fragment, percent-encoding any
-   * fragment-invalid characters.
-   *
-   * @param s the string to encode
-   * @return the encoded value, a value suitable for use in a fragment.
-   * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.5">Uniform Resource Identifier (URI): Generic Syntax: 3.5. Fragment</a>
-   * @see <a href="https://tools.ietf.org/html/rfc3629">UTF-8</a>
-   * @throws IllegalArgumentException if a character is out of the defined
-   *         UTF-8 range.
-   */
-  public static String pctEncodeFragment(String s) {
-    StringBuilder sb = new StringBuilder();
-    s.codePoints().forEach(c -> {
-      if ((c < 128) && validFragment.get(c)) {
-        sb.append((char) c);
-        return;
-      }
-
-      // Encode as UTF-8 and then into pct-encoded
-      // See: https://tools.ietf.org/html/rfc3629
-      if (c < 0x80) {
-        appendPctHex(sb, c);
-      } else if (c < 0x800) {
-        appendPctHex(sb, 0xc0 | (c >> 6));
-        appendPctHex(sb, 0x80 | (c & 0x3f));
-      } else if (c < 0x10000) {
-        appendPctHex(sb, 0xe0 | (c >> 12));
-        appendPctHex(sb, 0x80 | ((c >> 6) & 0x3f));
-        appendPctHex(sb, 0x80 | (c & 0x3f));
-      } else if (c < 0x110000) {
-        appendPctHex(sb, 0xf0 | (c >> 18));
-        appendPctHex(sb, 0x80 | ((c >> 12) & 0x3f));
-        appendPctHex(sb, 0x80 | ((c >> 6) & 0x3f));
-        appendPctHex(sb, 0x80 | (c & 0x3f));
-      } else {
-        throw new IllegalArgumentException("Invalid UTF-8 character: 0x" + Integer.toHexString(c));
-      }
-    });
-
-    return sb.toString();
   }
 
   private static final char[] BASE64_ALPHABET = {

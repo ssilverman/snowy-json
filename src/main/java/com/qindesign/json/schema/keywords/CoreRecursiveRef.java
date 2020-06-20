@@ -29,8 +29,8 @@ import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 
 /**
  * Implements the "$recursiveRef" core applicator.
@@ -53,7 +53,7 @@ public class CoreRecursiveRef extends Keyword {
 
     URI uri;
     try {
-      uri = new URI(value.getAsString()).normalize();
+      uri = URI.parse(value.getAsString()).normalize();
     } catch (URISyntaxException ex) {
       context.schemaError("not a valid URI");
       return false;
@@ -61,7 +61,9 @@ public class CoreRecursiveRef extends Keyword {
 
     // Fragment
     if (!uri.isAbsolute()) {
-      if (!uri.getRawSchemeSpecificPart().isEmpty()) {
+      if (uri.rawAuthority() != null ||
+          !uri.rawPath().isEmpty() ||
+          uri.rawQuery() != null) {
         // Technically, this is a "MAY" and not a "MUST"
         context.schemaError("not a lone octothorpe");
         return false;

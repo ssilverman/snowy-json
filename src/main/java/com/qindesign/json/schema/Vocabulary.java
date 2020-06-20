@@ -21,7 +21,7 @@
  */
 package com.qindesign.json.schema;
 
-import java.net.URI;
+import com.qindesign.net.URI;
 import java.util.Objects;
 
 /**
@@ -40,7 +40,7 @@ public enum Vocabulary {
 
   Vocabulary(String id) {
     Objects.requireNonNull(id);
-    this.id = URI.create(id);
+    this.id = URI.parseUnchecked(id);
   }
 
   /**

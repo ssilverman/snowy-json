@@ -21,7 +21,7 @@
  */
 package com.qindesign.json.schema;
 
-import java.net.URI;
+import com.qindesign.net.URI;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -58,7 +58,7 @@ public enum Specification {
 
   Specification(String uri) {
     Objects.requireNonNull(uri, "uri");
-    this.id = URI.create(uri);
+    this.id = URI.parseUnchecked(uri);
   }
 
   /**

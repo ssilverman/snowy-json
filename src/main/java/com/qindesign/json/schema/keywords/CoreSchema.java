@@ -33,8 +33,8 @@ import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class CoreSchema extends Keyword {
 
     URI id;
     try {
-      id = new URI(value.getAsString());
+      id = URI.parse(value.getAsString());
     } catch (URISyntaxException ex) {
       context.schemaError("not a URI");
       return false;

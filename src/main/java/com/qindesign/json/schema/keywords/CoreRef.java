@@ -27,12 +27,11 @@ import com.qindesign.json.schema.Id;
 import com.qindesign.json.schema.JSON;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 
 /**
  * Implements the "$ref" core applicator.
@@ -55,7 +54,7 @@ public class CoreRef extends Keyword {
 
     URI uri;
     try {
-      uri = new URI(value.getAsString()).normalize();
+      uri = URI.parse(value.getAsString()).normalize();
     } catch (URISyntaxException ex) {
       context.schemaError("not a valid URI");
       return false;
@@ -67,12 +66,12 @@ public class CoreRef extends Keyword {
     uri = context.baseURI().resolve(uri);
     URI schemaURI = uri;
     JsonElement e;
-    String fragment = uri.getRawFragment();
+    String fragment = uri.fragment();
     if (fragment != null && Format.JSON_POINTER.matcher(fragment).matches()) {
       uri = URIs.stripFragment(uri);
       e = context.findAndSetRoot(uri);
       if (e != null) {
-        e = context.followPointer(uri, e, Strings.fragmentToJSONPointer(fragment));
+        e = context.followPointer(uri, e, fragment);
       }
     } else {
       // No fragment or plain name
@@ -84,7 +83,7 @@ public class CoreRef extends Keyword {
         Id id = context.findID(uri);
         if (id != null) {  // May be no anchor in earlier specs
           try {
-            schemaURI = new URI(id.base.getScheme(), id.base.getRawSchemeSpecificPart(), id.path);
+            schemaURI = new URI(id.base.scheme(), id.base.authority(), id.base.path(), id.base.query(), id.path);
           } catch (URISyntaxException ex) {
             context.schemaError("unexpected bad URI");
             return false;

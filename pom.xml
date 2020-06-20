@@ -176,5 +176,10 @@
             <artifactId>guava</artifactId>
             <version>29.0-jre</version>
         </dependency>
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>67.1</version>
+        </dependency>
     </dependencies>
 </project>

@@ -38,10 +38,10 @@ import com.qindesign.json.schema.keywords.MinContains;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.util.LRUCache;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -318,10 +318,12 @@ public final class ValidatorContext {
     if (URIs.hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("baseURI has a non-empty fragment");
     }
-    if (baseURI.getRawFragment() == null) {
+    if (baseURI.rawFragment() == null) {
       // Ensure there's an empty fragment
       try {
-        baseURI = new URI(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), "");
+        baseURI = new URI(baseURI.scheme(), baseURI.authority(),
+                          baseURI.path(),
+                          baseURI.query(), "");
       } catch (URISyntaxException ex) {
         throw new IllegalArgumentException("Unexpected bad base URI");
       }
@@ -621,7 +623,7 @@ public final class ValidatorContext {
       }
 
       // Reduce the path
-      path = uri.getRawPath();
+      path = uri.rawPath();
       if (path == null) {
         path = "";
       }
@@ -632,8 +634,9 @@ public final class ValidatorContext {
             sb.insert(0, '/');
           }
           sb.insert(0, path.substring(lastSlashIndex + 1));
-          uri = new URI(uri.getScheme(), uri.getRawAuthority(), path.substring(0, lastSlashIndex),
-                        uri.getRawQuery(), null);
+          uri = new URI(uri.scheme(), uri.authority(),
+                        path.substring(0, lastSlashIndex),
+                        uri.query(), null);
         } else {
           // This case will happen when a Java URI object has a non-absolute
           // path. This may result when resolving by the algorithm in
@@ -642,8 +645,9 @@ public final class ValidatorContext {
           // [RFC 3986: 5.2 Relative Resolution](https://tools.ietf.org/html/rfc3986#section-5.2)
           // correctly ensures there's a leading slash. The solution is to
           // define our own resolution function that accounts for this.
+          // This has been done with our own URI implementation.
           sb.insert(0, path);
-          uri = new URI(uri.getScheme(), uri.getRawAuthority(), "", uri.getRawQuery(), null);
+          uri = new URI(uri.scheme(), uri.authority(), "", uri.query(), null);
         }
       } catch (URISyntaxException ex) {
         // Something's wrong, so ignore and continue the search with the
@@ -835,14 +839,18 @@ public final class ValidatorContext {
     if (path.isEmpty()) {
       return base;
     }
-    if (path.startsWith("/")) {
-      return base.resolve("#" + path);
+    try {
+      if (path.startsWith("/")) {
+        return base.resolve(new URI(null, null, null, null, path));
+      }
+      String fragment = base.fragment();
+      if (fragment == null) {
+        fragment = "";
+      }
+      return base.resolve(new URI(null, null, null, null, fragment + "/" + path));
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Unexpected bad URI", ex);
     }
-    String fragment = base.getRawFragment();
-    if (fragment == null) {
-      fragment = "";
-    }
-    return base.resolve("#" + fragment + "/" + Strings.pctEncodeFragment(path));
   }
 
   /**

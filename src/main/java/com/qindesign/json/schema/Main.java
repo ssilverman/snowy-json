@@ -30,11 +30,11 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.util.Logging;
+import com.qindesign.net.URI;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
@@ -78,7 +78,7 @@ public class Main {
       return;
     }
 
-    URI schemaID = new File(args[0]).toURI();
+    URI schemaID = new URI(new File(args[0]).toURI());
     JsonElement schema;
     JsonElement instance;
 

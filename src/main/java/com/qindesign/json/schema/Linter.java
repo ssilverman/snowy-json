@@ -39,11 +39,11 @@ import com.qindesign.json.schema.keywords.MinContains;
 import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.json.schema.keywords.Type;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public final class Linter {
           } else if (path.endsWith("/" + CoreId.NAME)) {
             if (JSON.isString(e)) {
               try {
-                URI id = new URI(e.getAsString());
+                URI id = URI.parse(e.getAsString());
                 if (!id.normalize().equals(id)) {
                   addIssue(issues, path,
                            "unnormalized ID: \"" + Strings.jsonString(e.getAsString()) + "\"");

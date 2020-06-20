@@ -27,7 +27,7 @@ import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
+import com.qindesign.net.URI;
 
 /**
  * Implements "$id".

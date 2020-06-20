@@ -26,10 +26,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.util.Logging;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -111,7 +111,7 @@ public class Test {
     logger.info("Loaded test schema");
 
     Map<URI, JsonElement> knownIDs = Collections.emptyMap();
-    Map<URI, URL> knownURLs = Map.of(URI.create("http://localhost:1234"),
+    Map<URI, URL> knownURLs = Map.of(URI.parseUnchecked("http://localhost:1234"),
                                      root.resolve("remotes").toUri().toURL());
 
     for (Specification spec : Specification.values()) {
@@ -220,7 +220,7 @@ public class Test {
         opts.set(Option.COLLECT_ERRORS, false);
         opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
-          if (!Validator.validate(testSchema, instance, testSchemaFile.toURI(),
+          if (!Validator.validate(testSchema, instance, new URI(testSchemaFile.toURI()),
                                   knownIDs, knownURLs, opts, null, null)) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
@@ -276,17 +276,16 @@ public class Test {
         JsonElement data = test.get("data");
         boolean valid = test.get("valid").getAsBoolean();
 
-        URI uri = file.toUri();
+        URI uri = new URI(file.toUri());
         try {
-          uri = new URI(uri.getScheme(),
-                        uri.getRawSchemeSpecificPart() + "/" + groupIndex + "/" + testIndex,
-                        null);
+          uri = new URI(uri.scheme(), uri.authority(),
+                        uri.path() + "/" + groupIndex + "/" + testIndex,
+                        uri.query(), null);
         } catch (URISyntaxException ex) {
           throw new IllegalArgumentException(ex);
         }
 
-        String path = uri.getRawPath();
-        boolean isOptional = (path != null) && path.contains("/optional/");
+        boolean isOptional = uri.rawPath().contains("/optional/");
 
         suiteResult.total++;
         if (isOptional) {
@@ -304,7 +303,7 @@ public class Test {
           boolean result =
               Validator.validate(schema, data, uri, knownIDs, knownURLs, opts, null, null);
           if (result != valid) {
-            logger.info(root.toUri().relativize(uri) + ": Bad result: " +
+            logger.info(new URI(root.toUri()).relativize(uri) + ": Bad result: " +
                         groupDescription + ": " + description +
                         ": got=" + result + " want=" + valid);
           } else {
@@ -315,7 +314,7 @@ public class Test {
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
-            logger.info(root.toUri().relativize(uri) + ": Bad result: " +
+            logger.info(new URI(root.toUri()).relativize(uri) + ": Bad result: " +
                         groupDescription + ": " + description +
                         ": got=Malformed schema: " + ex.getMessage());
           } else {

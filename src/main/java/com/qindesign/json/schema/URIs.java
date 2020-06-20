@@ -21,8 +21,8 @@
  */
 package com.qindesign.json.schema;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 
 /**
  * Convenience methods for working with URIs.
@@ -41,7 +41,7 @@ public final class URIs {
    * @return whether the URI has a non-empty fragment.
    */
   public static boolean hasNonEmptyFragment(URI uri) {
-    return (uri.getRawFragment() != null) && !uri.getRawFragment().isEmpty();
+    return (uri.rawFragment() != null) && !uri.rawFragment().isEmpty();
   }
 
   /**
@@ -51,7 +51,11 @@ public final class URIs {
    * @return whether the URI is composed of a fragment only.
    */
   public static boolean isFragmentOnly(URI uri) {
-    return uri.getScheme() == null && uri.getRawSchemeSpecificPart().isEmpty();
+    // TODO: Do we need to check for a non-null fragment?
+    return uri.scheme() == null &&
+           uri.rawAuthority() == null &&
+           uri.rawPath().isEmpty() &&
+           uri.rawQuery() == null;
   }
 
   /**
@@ -64,11 +68,11 @@ public final class URIs {
    *         the new URI. This shouldn't normally need to be caught.
    */
   public static URI stripFragment(URI uri) {
-    if (uri.getRawFragment() == null) {
+    if (uri.rawFragment() == null) {
       return uri;
     }
     try {
-      return new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null);
+      return new URI(uri.scheme(), uri.authority(), uri.path(), uri.query(), null);
     } catch (URISyntaxException ex) {
       throw new IllegalArgumentException("Unexpected bad URI: " + uri, ex);
     }

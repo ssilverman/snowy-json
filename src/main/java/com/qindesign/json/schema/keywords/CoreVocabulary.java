@@ -28,8 +28,8 @@ import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,7 +65,7 @@ public class CoreVocabulary extends Keyword {
     for (var e : value.getAsJsonObject().entrySet()) {
       URI uri;
       try {
-        uri = new URI(e.getKey());
+        uri = URI.parse(e.getKey());
       } catch (URISyntaxException ex) {
         context.schemaError("not a valid URI", e.getKey());
         return false;

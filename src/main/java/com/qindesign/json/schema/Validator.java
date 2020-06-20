@@ -50,11 +50,11 @@ import com.qindesign.json.schema.keywords.ReadOnly;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.keywords.WriteOnly;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,7 +89,7 @@ public final class Validator {
       { "http://json-schema.org/draft-07/schema", "/draft-07/schema.json" },
       { "http://json-schema.org/draft-06/schema", "/draft-06/schema.json" },
       }).collect(Collectors.toUnmodifiableMap(
-          data -> URI.create((String) data[0]),
+          data -> URI.parseUnchecked((String) data[0]),
           data -> {
             URL url = CLASS.getResource((String) data[1]);
             if (url == null) {
@@ -370,7 +370,7 @@ public final class Validator {
     JsonElement schemaVal = schema.getAsJsonObject().get(CoreSchema.NAME);
     if (schemaVal != null && JSON.isString(schemaVal)) {
       try {
-        URI uri = new URI(schemaVal.getAsString());
+        URI uri = URI.parse(schemaVal.getAsString());
         // Don't check if it's normalized because it may become a valid spec
         if (uri.isAbsolute()) {
           return Specification.of(URIs.stripFragment(uri.normalize()));
@@ -415,7 +415,7 @@ public final class Validator {
     JsonElement refVal = schema.getAsJsonObject().get(CoreRef.NAME);
     if (refVal != null && JSON.isString(refVal)) {
       try {
-        URI uri = new URI(refVal.getAsString());
+        URI uri = URI.parse(refVal.getAsString());
         // Don't check if it's normalized because it may become a valid spec
         if (uri.isAbsolute()) {
           return Specification.of(URIs.stripFragment(uri.normalize()));
@@ -497,7 +497,7 @@ public final class Validator {
           case CoreId.NAME:
             if (JSON.isString(entry.getValue())) {
               try {
-                if (URIs.hasNonEmptyFragment(new URI(entry.getValue().getAsString()))) {
+                if (URIs.hasNonEmptyFragment(URI.parse(entry.getValue().getAsString()))) {
                   cantBe.add(Specification.DRAFT_2019_09);
                   couldBe.add(Specification.DRAFT_07);
                   couldBe.add(Specification.DRAFT_06);
@@ -590,7 +590,7 @@ public final class Validator {
 
     URI id;
     try {
-      id = new URI(idElem.getAsString()).normalize();
+      id = URI.parse(idElem.getAsString()).normalize();
     } catch (URISyntaxException ex) {
       throw new MalformedSchemaException("not a valid URI-reference", loc);
     }
@@ -600,7 +600,8 @@ public final class Validator {
         throw new MalformedSchemaException("has a non-empty fragment", loc);
       }
 
-      if (!ANCHOR_PATTERN.matcher(id.getRawFragment()).matches()) {
+      // TODO: Should we use the non-raw fragment here?
+      if (!ANCHOR_PATTERN.matcher(id.rawFragment()).matches()) {
         throw new MalformedSchemaException("invalid plain name", loc);
       }
 
@@ -772,7 +773,7 @@ public final class Validator {
           String path = newParentID + "/" + CoreAnchor.NAME;
           String anchor = getAnchor(value, Strings.jsonPointerToURI(path));
 
-          Id id = new Id(baseURI.resolve("#" + anchor));
+          Id id = new Id(baseURI.resolve(URI.parseUnchecked("#" + anchor)));
           id.value = anchor;
           id.base = baseURI;
           id.path = newParentID;

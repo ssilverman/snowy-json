@@ -22,7 +22,6 @@
 package com.qindesign.json.schema.keywords;
 
 import com.google.common.net.InetAddresses;
-import com.google.common.net.InternetDomainName;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.JSON;
@@ -32,9 +31,9 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
-import java.net.IDN;
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.qindesign.net.Hostname;
+import com.qindesign.net.URI;
+import com.qindesign.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 
@@ -111,10 +110,6 @@ public class Format extends Keyword {
   private static final String TEMPLATE_VARLIST = "(?!,)(?:,?" + TEMPLATE_VARSPEC + ")+";
   private static final java.util.regex.Pattern TEMPLATE_EXPR =
       java.util.regex.Pattern.compile("^[+#./;?&=,!@|]?" + TEMPLATE_VARLIST + "$");
-
-  /** Quick check characters not supposed to be in a hostname. */
-  private static final java.util.regex.Pattern NON_HOSTNAME =
-      java.util.regex.Pattern.compile("[^a-zA-Z0-9.-]");
 
   private static final java.util.regex.Pattern JSON_POINTER_PATTERN =
       java.util.regex.Pattern.compile("(?:/(?:[^/~]|~[01])*)*");
@@ -327,44 +322,13 @@ public class Format extends Keyword {
         }
         break;
       case "hostname":
-      case "idn-hostname":
-        // TODO: Allow IPv6 addresses here?
-        if (value.getAsString().equals("hostname")) {
-          if (NON_HOSTNAME.matcher(string).find()) {
-            return false;
-          }
-        }
-        if (!InternetDomainName.isValid(string)) {
+        if (!Hostname.parseHostname(string)) {
           return false;
         }
-        if (value.getAsString().equals("idn-hostname")) {
-          if (string.startsWith("xn--")) {
-            if (IDN.toUnicode(string).equals(string)) {
-              return false;
-            }
-          } else {
-            // [4.2.3. Label Validation](https://tools.ietf.org/html/rfc5891#section-4.2.3)
-            // 4.2.3.1. Hyphen Restrictions
-            if (string.startsWith("--", 2)) {
-              return false;
-            }
-            if (string.startsWith("-") || string.endsWith("-")) {
-              return false;
-            }
-            // 4.2.3.2. Leading Combining Marks
-            // See https://www.compart.com/en/unicode/category for examples
-            if (string.length() > 0) {
-              int c = string.codePointAt(0);
-              switch (Character.getType(c)) {
-                case Character.COMBINING_SPACING_MARK:
-                case Character.NON_SPACING_MARK:
-                case Character.ENCLOSING_MARK:
-                  return false;
-              }
-            }
-            // TODO: 4.2.3.3. Contextual Rules
-            // TODO: 4.2.3.4. Labels Containing Characters Written Right to Left
-          }
+        break;
+      case "idn-hostname":
+        if (!Hostname.parseIDNHostname(string)) {
+          return false;
         }
         break;
       case "ipv4":
@@ -387,7 +351,7 @@ public class Format extends Keyword {
       case "uri":
       case "uri-reference":
         try {
-          URI uri = new URI(string);
+          URI uri = URI.parse(string);
           if (value.getAsString().equals("uri")) {
             return uri.isAbsolute();
           }
@@ -398,7 +362,7 @@ public class Format extends Keyword {
       case "iri":
       case "iri-reference":
         try {
-          URI uri = new URI(iriToURI(string));
+          URI uri = URI.parse(iriToURI(string));
           if (value.getAsString().equals("iri")) {
             return uri.isAbsolute();
           }
