@@ -378,6 +378,7 @@ schema. It does currently check for the following things:
     1. `minContains` without a sibling `contains`.
     2. `maxContains` without a sibling `contains`.
     3. `unevaluatedItems` without a sibling array-form `items`.
+    4. `$id` values that have an empty fragment.
 14. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.

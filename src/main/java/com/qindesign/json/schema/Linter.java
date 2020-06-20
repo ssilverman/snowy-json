@@ -188,6 +188,12 @@ public final class Linter {
                   addIssue(issues, path,
                            "unnormalized ID: \"" + Strings.jsonString(e.getAsString()) + "\"");
                 }
+                if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+                  if (id.rawFragment() != null && id.rawFragment().isEmpty()) {
+                    addIssue(issues, path,
+                             "empty fragment: \"" + Strings.jsonString(e.getAsString()) + "\"");
+                  }
+                }
               } catch (URISyntaxException ex) {
                 // Ignore
               }
