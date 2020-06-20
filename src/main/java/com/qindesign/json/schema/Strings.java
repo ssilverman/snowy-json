@@ -201,16 +201,6 @@ public final class Strings {
     return sb.toString();
   }
 
-  /**
-   * Tests if the given code point is a hex digit.
-   *
-   * @param c the code point
-   * @return whether the code point is a hex digit.
-   */
-  public static boolean isHex(int c) {
-    return (c < 128) && validHex.get(c);
-  }
-
   private static final char[] BASE64_ALPHABET = {
       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
       'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
