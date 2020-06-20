@@ -23,7 +23,7 @@
 
     <groupId>com.qindesign</groupId>
     <artifactId>snowy-json</artifactId>
-    <version>0.8.0</version>
+    <version>0.9.0</version>
 
     <name>Snow</name>
     <description>Full-featured JSON Schema validator</description>
