@@ -8,6 +8,18 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Added
 * Added the _source_ and _javadoc_ package plugins to the POM.
+* A linter check for `$id` values that have an empty fragment, for Draft 2019-09
+  and later.
+
+### Changed
+* The EMAIL regex in Format now disallows local parts starting with a dot,
+  ending with a dot, or containing two consecutive dots.
+* URI and hostname parsing is now down with local code in the
+  `com.qindesign.net` package.
+* New internal URI and hostname parsing and handling. There's a new
+  `com.qindesign.net` package containing `URI` and `Hostname` classes. `URI`
+  replaces `java.net.URI` and `Hostname` handles both regular and IDN
+  hostname parsing.
 
 ### Fixed
 * Improved the UUID format checker.
