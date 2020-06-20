@@ -57,4 +57,14 @@ public final class Numbers {
       return new BigDecimal(s);
     }
   }
+
+  /**
+   * Tests if the given {@link BigDecimal} is an integer.
+   *
+   * @param n the number to test
+   * @return whether the number is an integer.
+   */
+  public static boolean isInteger(BigDecimal n) {
+    return n.stripTrailingZeros().scale() <= 0;
+  }
 }

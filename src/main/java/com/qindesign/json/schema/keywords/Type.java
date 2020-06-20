@@ -93,7 +93,7 @@ public class Type extends Keyword {
         case "integer":
           if (JSON.isNumber(instance)) {
             BigDecimal n = Numbers.valueOf(instance.getAsString());
-            return n.stripTrailingZeros().scale() <= 0;
+            return Numbers.isInteger(n);
           }
           break;
         case "string":

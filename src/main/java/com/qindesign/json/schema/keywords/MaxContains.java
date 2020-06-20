@@ -58,7 +58,7 @@ public class MaxContains extends Keyword {
       context.schemaError("not >= 0");
       return false;
     }
-    if (n.stripTrailingZeros().scale() > 0) {
+    if (!Numbers.isInteger(n)) {
       context.schemaError("not an integer");
       return false;
     }
