@@ -45,17 +45,16 @@ public final class URIs {
   }
 
   /**
-   * Checks if the given URI consists of a fragment only.
+   * Checks if the given URI does not just consist of a fragment.
    *
    * @param uri the URI to check
    * @return whether the URI is composed of a fragment only.
    */
-  public static boolean isFragmentOnly(URI uri) {
-    // TODO: Do we need to check for a non-null fragment?
-    return uri.scheme() == null &&
-           uri.rawAuthority() == null &&
-           uri.rawPath().isEmpty() &&
-           uri.rawQuery() == null;
+  public static boolean isNotFragmentOnly(URI uri) {
+    return uri.scheme() != null ||
+           uri.rawAuthority() != null ||
+           !uri.rawPath().isEmpty() ||
+           uri.rawQuery() != null;
   }
 
   /**

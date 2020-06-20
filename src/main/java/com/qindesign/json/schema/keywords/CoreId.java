@@ -44,7 +44,7 @@ public class CoreId extends Keyword {
                           ValidatorContext context)
       throws MalformedSchemaException {
     URI id = context.getID(value, "");
-    if (!URIs.isFragmentOnly(id)) {
+    if (URIs.isNotFragmentOnly(id)) {
       context.setBaseURI(id);
     }
     return true;

@@ -272,7 +272,7 @@ public final class Validator {
           JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
           if (idElem != null) {
             URI id = getID(idElem, spec, baseURI);
-            if (!URIs.isFragmentOnly(id)) {
+            if (URIs.isNotFragmentOnly(id)) {
               knownURLs.putIfAbsent(id, baseURL);
             }
           }
@@ -573,14 +573,14 @@ public final class Validator {
    * resolving against the current base URI. This will return a URI containing
    * only a fragment if the ID does not represent a new base, for example if
    * it's an anchor. This condition can be checked with
-   * {@link URIs#isFragmentOnly(URI)}.
+   * {@link URIs#isNotFragmentOnly(URI)}.
    *
    * @param idElem the ID element
    * @param spec the specification
    * @param loc the absolute path of the element
    * @return the processed ID, or {@code null} if it's not a new base.
    * @throws MalformedSchemaException if the ID is malformed.
-   * @see URIs#isFragmentOnly(URI)
+   * @see URIs#isNotFragmentOnly(URI)
    */
   public static URI getID(JsonElement idElem, Specification spec, URI loc)
       throws MalformedSchemaException {
