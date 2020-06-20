@@ -89,7 +89,10 @@ public class Format extends Keyword {
           .compile("^P(?:" + DUR_DATE + "|" + DUR_TIME + "|" + DUR_WEEK + ")$");
 
   private static final java.util.regex.Pattern EMAIL =
-      java.util.regex.Pattern.compile("^[^@]+@[^@]+$");
+//      java.util.regex.Pattern.compile("^[^@]+@[^@]+$");
+//      java.util.regex.Pattern.compile("^.*[^\\\\]@[^@]+$");
+//      java.util.regex.Pattern.compile("^(?!\\.).*[^\\\\.]@[^@]+$");
+      java.util.regex.Pattern.compile("^(?!\\.)(?:[^.]|\\.(?!\\.))*[^\\\\.]@[^@]+$");
 
   private static final char[] HEX_DIGITS = {
       '0', '1', '2', '3', '4', '5', '6', '7',
