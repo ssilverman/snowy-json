@@ -172,7 +172,7 @@ public final class JSON {
      * won't necessarily change for every element.
      *
      * @param e the element being visited
-     * @param parent the element's parent
+     * @param parent the element's parent, may be {@code null}
      * @param path the full path to the element, a JSON Pointer
      * @param state holds more information about the element
      */
