@@ -161,6 +161,19 @@ public final class Linter {
   }
 
   /**
+   * Checks if the path ends with an unknown keyword.
+   *
+   * @param path the path
+   * @return whether the last element is unknown.
+   */
+  private static boolean isUnknown(List<String> path) {
+    if (path.isEmpty()) {
+      return false;
+    }
+    return !KNOWN_KEYWORDS.contains(path.get(path.size() - 1));
+  }
+
+  /**
    * Checks the given schema and returns lists of any issues found for each
    * element in the tree. This returns a map of JSON element locations to a
    * list of associated issue messages.
@@ -290,8 +303,11 @@ public final class Linter {
                  is(path, Definitions.NAME);
       }
 
-      // Allow anything directly below defs
-      if (inDefs) {
+      // Allow anything directly below defs or unknown keywords
+      // Note that arrays will have a path that ends in a number, and so is
+      // technically an unknown keyword; this is why we must also test for the
+      // parent being an array
+      if (inDefs || (isUnknown(path) && parent != null && !parent.isJsonArray())) {
         return;
       }
 
