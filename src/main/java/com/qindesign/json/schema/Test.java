@@ -295,9 +295,6 @@ public class Test {
         Options opts = new Options();
         opts.set(Option.FORMAT, true);
         opts.set(Option.CONTENT, true);
-        opts.set(Option.COLLECT_ERRORS, false);  // Don't collect errors because
-                                                 // we may be validating against
-                                                 // $recursiveRefs
         opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
           boolean result =

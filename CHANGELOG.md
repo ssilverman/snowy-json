@@ -14,6 +14,10 @@ See: [Keep a Changelog](https://keepachangelog.com)
   "IDN Hostnames" link in the reference list.
 * Added annotation printing to `Main`.
 
+### Removed
+* The notes for `Option.COLLECT_ERRORS` stated that it may need to be `false` in
+  the presence of any `$recursiveRef`s. This note has been removed.
+
 ## [0.9.0]
 
 ### Added
