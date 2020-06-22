@@ -34,9 +34,11 @@ import com.qindesign.net.URI;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,17 +108,30 @@ public class Main {
 //    opts.set(Option.AUTO_RESOLVE, true);
 
     Map<String, Map<String, Annotation>> errors = new HashMap<>();
+    Map<String, Map<String, Map<String, Annotation>>> annotations = new HashMap<>();
 
     long time = System.currentTimeMillis();
     boolean result = Validator.validate(schema, instance, schemaID,
                                         Collections.emptyMap(), Collections.emptyMap(),
-                                        opts, null, errors);
+                                        opts, annotations, errors);
     time = System.currentTimeMillis() - time;
     logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 
-    JsonWriter w = new JsonWriter(new OutputStreamWriter(System.out));
+    // Basic output
+    Writer out = new OutputStreamWriter(System.out);
+    JsonWriter w = new JsonWriter(out);
     w.setIndent("    ");
+    System.out.println("Basic output:");
     Streams.write(basicOutput(result, errors), w);
+    w.flush();
+    System.out.println();
+
+    // Annotations
+    System.out.println();
+    w = new JsonWriter(out);
+    w.setIndent("    ");
+    System.out.println("Annotations:");
+    Streams.write(annotationOutput(annotations), w);
     w.flush();
     System.out.println();
   }
@@ -172,6 +187,54 @@ public class Main {
         }
         errorArr.add(error);
       }));
+    return root;
+  }
+
+  /**
+   * Converts a set of annotations into some JSON.
+   *
+   * @param annotations the annotations
+   * @return a JSON tree containing the output.
+   */
+  private static JsonObject annotationOutput(
+      Map<String, Map<String, Map<String, Annotation>>> annotations) {
+    JsonObject root = new JsonObject();
+    JsonArray annotationArr = new JsonArray();
+    root.add("annotations", annotationArr);
+    annotations.forEach((instanceLoc, byName) -> {
+      byName.forEach((name, bySchemaLoc) -> {
+        bySchemaLoc.forEach((schemaLoc, a) -> {
+          JsonObject o = new JsonObject();
+          o.add("instanceLocation", new JsonPrimitive(a.instanceLocation));
+          o.add("keywordLocation", new JsonPrimitive(a.keywordLocation));
+          o.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
+          JsonObject ao = new JsonObject();
+          o.add("annotation", ao);
+          ao.add("name", new JsonPrimitive(a.name));
+
+          JsonElement ae;
+          if (a.value == null) {
+            ae = JsonNull.INSTANCE;
+          } else if (a.value instanceof Boolean) {
+            ae = new JsonPrimitive((Boolean) a.value);
+          } else if (a.value instanceof String) {
+            ae = new JsonPrimitive((String) a.value);
+          } else if (a.value instanceof Number) {
+            ae = new JsonPrimitive((Number) a.value);
+          } else if (a.value instanceof Collection) {
+            JsonArray arr = new JsonArray();
+            for (Object e : (Collection) a.value) {
+              arr.add(String.valueOf(e));
+            }
+            ae = arr;
+          } else {
+            ae = new JsonPrimitive(a.value.toString());
+          }
+          ao.add("value", ae);
+          annotationArr.add(o);
+        });
+      });
+    });
     return root;
   }
 }

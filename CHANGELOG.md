@@ -12,6 +12,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Added an "exclusive minimum" >= "exclusive maximum" check to the linter.
 * README updates: "Schema and instance coverage" future plans and
   "IDN Hostnames" link in the reference list.
+* Added annotation printing to `Main`.
 
 ## [0.9.0]
 
