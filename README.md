@@ -422,6 +422,7 @@ There are plans to explore supporting more features, including:
 1. Custom vocabulary support.
 2. Output formatting. All the information is currently there, but the caller
    must process and organize it.
+3. Schema and instance coverage.
 
 ## References
 
