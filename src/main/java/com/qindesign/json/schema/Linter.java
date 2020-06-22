@@ -192,15 +192,24 @@ public final class Linter {
       }
 
       if (e.isJsonPrimitive()) {
-        if (!isInParent(path, Properties.NAME)) {
-          if (is(path, Format.NAME)) {
+        if (isInParent(path, Properties.NAME)) {
+          return;
+        }
+        if (path.isEmpty()) {
+          return;
+        }
+
+        switch (path.get(path.size() - 1)) {
+          case Format.NAME:
             if (JSON.isString(e)) {
               if (!KNOWN_FORMATS.contains(e.getAsString())) {
                 addIssue(issues, path,
                          "unknown format: \"" + Strings.jsonString(e.getAsString()) + "\"");
               }
             }
-          } else if (is(path, CoreId.NAME)) {
+            break;
+
+          case CoreId.NAME:
             if (JSON.isString(e)) {
               try {
                 URI id = URI.parse(e.getAsString());
@@ -218,7 +227,9 @@ public final class Linter {
                 // Ignore
               }
             }
-          } else if (is(path,CoreRef.NAME)) {
+            break;
+
+          case CoreRef.NAME:
             // Only examine $refs that are just fragments
             if (JSON.isString(e)) {
               String ref = e.getAsString();
@@ -243,7 +254,7 @@ public final class Linter {
                 }
               }
             }
-          }
+            break;
         }
 
         return;
