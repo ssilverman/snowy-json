@@ -130,13 +130,15 @@ public final class Linter {
   }
 
   /**
-   * Convenience method that adds an issue to the map.
+   * Convenience method that adds an issue to the issue map.
    *
    * @param issues the map of issues
    * @param path the path
    * @param msg the message
    */
-  private static void addIssue(Map<String, List<String>> issues, String path, String msg) {
+  private static void addIssue(Map<List<String>, List<String>> issues,
+                               List<String> path,
+                               String msg) {
     issues.computeIfAbsent(path, k -> new ArrayList<>()).add(msg);
   }
 
@@ -147,24 +149,42 @@ public final class Linter {
    * @param parentName the parent name to check
    * @return whether the parent is {@code parentName}.
    */
-  private static boolean isInParent(String path, String parentName) {
-    int index = path.lastIndexOf('/');
-    if (index < 0) {
+  private static boolean isInParent(List<String> path, String parentName) {
+    if (path.size() < 2) {
       return false;
     }
-    return (path.substring(0, index).endsWith("/" + parentName));
+    return path.get(path.size() - 2).equals(parentName);
+  }
+
+  /**
+   * Checks if the path ends with the given name.
+   *
+   * @param path the path
+   * @param name the name to check
+   * @return whether the last element is {@code name}.
+   */
+  private static boolean is(List<String> path, String name) {
+    if (path.isEmpty()) {
+      return false;
+    }
+    return path.get(path.size() - 1).equals(name);
   }
 
   /**
    * Checks the given schema and returns lists of any issues found for each
-   * element in the tree. This returns a map of JSON Pointer locations to a
+   * element in the tree. This returns a map of JSON element locations to a
    * list of associated issue messages.
+   * <p>
+   * Each location will be a list of strings, where each element in the location
+   * is the name of a property. To convert each path element to JSON Pointer
+   * form, see {@link Strings#jsonPointerToken(String)}.
    *
    * @param schema the schema to check
    * @return the linter results, mapping locations to a list of issues.
+   * @see Strings#jsonPointerToken(String)
    */
-  public static Map<String, List<String>> check(JsonElement schema) {
-    Map<String, List<String>> issues = new HashMap<>();
+  public static Map<List<String>, List<String>> check(JsonElement schema) {
+    Map<List<String>, List<String>> issues = new HashMap<>();
 
     JSON.traverse(schema, (e, parent, path, state) -> {
       if (e.isJsonNull()) {
@@ -173,14 +193,14 @@ public final class Linter {
 
       if (e.isJsonPrimitive()) {
         if (!isInParent(path, Properties.NAME)) {
-          if (path.endsWith("/" + Format.NAME)) {
+          if (is(path, Format.NAME)) {
             if (JSON.isString(e)) {
               if (!KNOWN_FORMATS.contains(e.getAsString())) {
                 addIssue(issues, path,
                          "unknown format: \"" + Strings.jsonString(e.getAsString()) + "\"");
               }
             }
-          } else if (path.endsWith("/" + CoreId.NAME)) {
+          } else if (is(path, CoreId.NAME)) {
             if (JSON.isString(e)) {
               try {
                 URI id = URI.parse(e.getAsString());
@@ -198,7 +218,7 @@ public final class Linter {
                 // Ignore
               }
             }
-          } else if (path.endsWith("/" + CoreRef.NAME)) {
+          } else if (is(path,CoreRef.NAME)) {
             // Only examine $refs that are just fragments
             if (JSON.isString(e)) {
               String ref = e.getAsString();
@@ -232,7 +252,7 @@ public final class Linter {
       if (e.isJsonArray()) {
         JsonArray array = e.getAsJsonArray();
 
-        if (path.endsWith("/" + Items.NAME)) {
+        if (is(path, Items.NAME)) {
           if (array.size() <= 0) {
             addIssue(issues, path, "empty items array");
           }
@@ -244,7 +264,7 @@ public final class Linter {
       JsonObject object = e.getAsJsonObject();
 
       // If we're in a properties object then don't look at the names
-      if (path.endsWith("/" + Properties.NAME)) {
+      if (is(path, Properties.NAME)) {
         object.keySet().forEach(name -> {
           if (name.startsWith("$")) {
             addIssue(issues, path,
@@ -306,13 +326,13 @@ public final class Linter {
       boolean inDefs;  // Note: This is only a rudimentary check
       if (state.spec() != null) {
         if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          inDefs = path.endsWith("/" + CoreDefs.NAME);
+          inDefs = is(path, CoreDefs.NAME);
         } else {
-          inDefs = path.endsWith("/" + Definitions.NAME);
+          inDefs = is(path, Definitions.NAME);
         }
       } else {
-        inDefs = path.endsWith("/" + CoreDefs.NAME) ||
-                 path.endsWith("/" + Definitions.NAME);
+        inDefs = is(path, CoreDefs.NAME) ||
+                 is(path, Definitions.NAME);
       }
 
       // Allow anything in defs

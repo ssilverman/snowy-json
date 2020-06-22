@@ -20,6 +20,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   `com.qindesign.net` package containing `URI` and `Hostname` classes. `URI`
   replaces `java.net.URI` and `Hostname` handles both regular and IDN
   hostname parsing.
+* The linter now uses a list of strings for the path instead of a single JSON
+  Pointer string.
 
 ### Fixed
 * Improved the UUID format checker.
