@@ -525,7 +525,7 @@ public final class Linter {
       }
       if (allStrings) {
         got = StreamSupport.stream(type.getAsJsonArray().spliterator(), false)
-            .map(JsonElement::getAsString)
+            .map(e -> "\"" + e.getAsString() + "\"")
             .collect(Collectors.toList()).toString();
       } else {
         got = "mixed types";
@@ -537,7 +537,8 @@ public final class Linter {
     if (expected.size() == 1) {
       want = "\"" + expected.get(0) + "\"";
     } else {
-      want = "one of " + expected;
+      want = "one of " +
+             expected.stream().map(s -> "\"" + s + "\"").collect(Collectors.toList());
     }
     return "\"" + name + "\" type: want " + want + ", got " + got;
   }
