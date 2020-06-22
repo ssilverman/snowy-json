@@ -13,6 +13,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * README updates: "Schema and instance coverage" future plans and
   "IDN Hostnames" link in the reference list.
 * Added annotation printing to `Main`.
+* Added an option, `Option.COLLECT_ANNOTATIONS_FOR_FAILED`, that controls
+  whether annotation collection also retains annotations for schemas that
+  failed validation.
 
 ### Removed
 * The notes for `Option.COLLECT_ERRORS` stated that it may need to be `false` in

@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -272,6 +273,7 @@ public final class ValidatorContext {
   private final Options options;
   private final boolean isFailFast;
   private final boolean isCollectAnnotations;
+  private final boolean isCollectFailedAnnotations;
   private final boolean isCollectErrors;
 
   // Pattern cache
@@ -352,6 +354,7 @@ public final class ValidatorContext {
     // Options
     this.options = options.copy();
     isCollectAnnotations = isOption(Option.COLLECT_ANNOTATIONS);
+    isCollectFailedAnnotations = isOption(Option.COLLECT_ANNOTATIONS_FOR_FAILED);
     isCollectErrors = isOption(Option.COLLECT_ERRORS);
     isFailFast = !isCollectAnnotations && !isCollectErrors;
 
@@ -689,7 +692,10 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
-    if (!isCollectAnnotations || !state.isCollectSubAnnotations) {
+    if (!isCollectAnnotations) {
+      return;
+    }
+    if (!state.isCollectSubAnnotations && !isCollectFailedAnnotations) {
       return;
     }
 
@@ -698,6 +704,7 @@ public final class ValidatorContext {
     a.keywordLocation = state.keywordLocation;
     a.absKeywordLocation = state.absKeywordLocation;
     a.value = value;
+    a.valid = state.isCollectSubAnnotations;
 
     Annotation oldA = annotations
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
@@ -1144,21 +1151,31 @@ public final class ValidatorContext {
         if (isCollectAnnotations) {
           // Note that we're also checking for equality in case the current
           // failing keyword has set some annotations
-          annotations.getOrDefault(instanceLocation, Collections.emptyMap())
-              .values()
-              .forEach(
-                  v -> v.entrySet().removeIf(e -> {
-                    String key = e.getKey();
-                    if (key.startsWith(state.keywordLocation)) {
-                      if (key.length() == state.keywordLocation.length()) {
-                        return true;
-                      }
-                      if (key.charAt(state.keywordLocation.length()) == '/') {
-                        return true;
-                      }
-                    }
-                    return false;
-                  }));
+          Predicate<Map.Entry<String, Annotation>> pred = e -> {
+            String key = e.getKey();
+            if (key.startsWith(state.keywordLocation)) {
+              if (key.length() == state.keywordLocation.length()) {
+                return true;
+              }
+              if (key.charAt(state.keywordLocation.length()) == '/') {
+                return true;
+              }
+            }
+            return false;
+          };
+          if (!isCollectFailedAnnotations) {
+            annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+                .values()
+                .forEach(v -> v.entrySet().removeIf(pred));
+          } else {
+            annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+                .values()
+                .forEach(v -> v.entrySet().forEach(e -> {
+                  if (pred.test(e)) {
+                    e.getValue().valid = false;
+                  }
+                }));
+          }
         }
         if (!hasError()) {
           addError(false, k.name() + " didn't validate");

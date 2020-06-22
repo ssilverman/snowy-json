@@ -34,6 +34,8 @@ public final class Annotation {
   public URI absKeywordLocation;
   public Object value;
 
+  public boolean valid;  // Invalid annotations are attached to failed schemas
+
   Annotation(String name) {
     this.name = name;
   }

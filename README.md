@@ -17,10 +17,11 @@ See: [JSON Schema](https://json-schema.org)
 6. [Options for controlling behaviour](#options-for-controlling-behaviour)
    1. [AUTO_RESOLVE](#option-auto_resolve)
    2. [COLLECT_ANNOTATIONS](#option-collect_annotations)
-   3. [COLLECT_ERRORS](#option-collect_errors)
-   4. [DEFAULT_SPECIFICATION](#option-default_specification)
-   5. [FORMAT](#option-format)
-   6. [SPECIFICATION](#option-specification)
+   3. [COLLECT_ANNOTATIONS_FOR_FAILED](#option-collect_annotations_for_failed)
+   4. [COLLECT_ERRORS](#option-collect_errors)
+   5. [DEFAULT_SPECIFICATION](#option-default_specification)
+   6. [FORMAT](#option-format)
+   7. [SPECIFICATION](#option-specification)
 7. [Project structure](#project-structure)
    1. [Complete programs](#complete-programs)
    2. [API](#api)
@@ -174,6 +175,14 @@ Type: `java.lang.Boolean`
 
 This controls whether annotations are collected during validation. If neither
 this nor `COLLECT_ERRORS` is set to `true` then no loop detection is available.
+
+### Option: COLLECT_ANNOTATIONS_FOR_FAILED
+
+Type: `java.lang.Boolean`
+
+This controls, if annotations are collected, whether they should also be
+retained for failed schemas. This option only has an effect when the
+`COLLECT_ANNOTATIONS` option is set to `true`.
 
 ### Option: COLLECT_ERRORS
 
