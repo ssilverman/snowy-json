@@ -57,12 +57,15 @@ public class OneOf extends Keyword {
       String path = Integer.toString(index);
       if (context.apply(e, path, null, instance, "")) {
         validCount++;
+        if (validCount > 1) {
+          if (context.isFailFast()) {
+            return false;
+          }
+        }
         if (sb.length() > 0) {
           sb.append(", ");
         }
         sb.append(index);
-      }
-      if (validCount > 1) {
         context.setCollectSubAnnotations(false);
       }
       index++;
