@@ -1164,8 +1164,11 @@ public final class ValidatorContext {
           addError(false, k.name() + " didn't validate");
         }
 
-        // Don't escape early because we need to process all the keywords
+        // Don't escape early if we need to process all the keywords
         result = false;
+        if (isFailFast()) {
+          break;
+        }
       } else if (!hasError()) {
         addError(true, k.name());
       }
