@@ -293,14 +293,6 @@ public final class Linter {
         }
       }
 
-      if (object.has(Format.NAME)) {
-        JsonElement type = object.get(Type.NAME);
-        // TODO: Fix this to also look at "type" as an array
-        if (type == null || !JSON.isString(type) || !type.getAsString().equals("string")) {
-          addIssue.accept("\"" + Format.NAME + "\" without declared string type");
-        }
-      }
-
       // Minimum > maximum checks for all drafts
       addIssue.accept(compareExclusiveMinMax(object, ExclusiveMinimum.NAME, ExclusiveMaximum.NAME));
       addIssue.accept(compareMinMax(object, Minimum.NAME, Maximum.NAME));
