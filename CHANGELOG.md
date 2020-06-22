@@ -9,7 +9,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Added
 * Added expected type checking to the linter. For example, `minimum` expects a
   type of "number" or "integer".
-* Added an "exclusive minimum" >= "exclusive maximum" check to the linter.  
+* Added an "exclusive minimum" >= "exclusive maximum" check to the linter.
+* README updates: "Schema and instance coverage" future plans and
+  "IDN Hostnames" link in the reference list.
 
 ## [0.9.0]
 

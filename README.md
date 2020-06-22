@@ -388,7 +388,7 @@ schema. It does currently check for the following things:
 16. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.
-    
+
 ### Doing your own linting
 
 The `JSON` class has a `traverse` method that does a preorder tree traversal.
