@@ -302,6 +302,7 @@ public final class Linter {
       }
 
       // Minimum > maximum checks for all drafts
+      addIssue.accept(compareExclusiveMinMax(object, ExclusiveMinimum.NAME, ExclusiveMaximum.NAME));
       addIssue.accept(compareMinMax(object, Minimum.NAME, Maximum.NAME));
       addIssue.accept(compareMinMax(object, MinItems.NAME, MaxItems.NAME));
       addIssue.accept(compareMinMax(object, MinLength.NAME, MaxLength.NAME));
@@ -443,6 +444,8 @@ public final class Linter {
   /**
    * Compare the specified "minimum" and "maximum" elements and returns any
    * issue message. This will return {@code null} if there is no issue.
+   * <p>
+   * This will return an issue if {@code min > max}.
    *
    * @param o the JSON object
    * @param minName the "minimum" element name
@@ -460,6 +463,34 @@ public final class Linter {
       BigDecimal max = Numbers.valueOf(maxE.getAsString());
       if (min.compareTo(max) > 0) {
         return "\"" + minName + "\" > \"" + maxName + "\"";
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Compare the specified "exclusive minimum" and "exclusive maximum" elements
+   * and returns any issue message. This will return {@code null} if there is
+   * no issue.
+   * <p>
+   * This will return an issue if {@code min >= max}.
+   *
+   * @param o the JSON object
+   * @param minName the "minimum" element name
+   * @param maxName the "maximum" element name
+   * @return an issue message, or {@code null} for no issue.
+   */
+  private static String compareExclusiveMinMax(JsonObject o, String minName, String maxName) {
+    if (!o.has(minName) || !o.has(maxName)) {
+      return null;
+    }
+    JsonElement minE = o.get(minName);
+    JsonElement maxE = o.get(maxName);
+    if (JSON.isNumber(minE) && JSON.isNumber(maxE)) {
+      BigDecimal min = Numbers.valueOf(minE.getAsString());
+      BigDecimal max = Numbers.valueOf(maxE.getAsString());
+      if (min.compareTo(max) >= 0) {
+        return "\"" + minName + "\" >= \"" + maxName + "\"";
       }
     }
     return null;

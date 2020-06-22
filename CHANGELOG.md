@@ -9,6 +9,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Added
 * Added expected type checking to the linter. For example, `minimum` expects a
   type of "number" or "integer".
+* Added an "exclusive minimum" >= "exclusive maximum" check to the linter.  
 
 ## [0.9.0]
 
