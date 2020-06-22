@@ -4,6 +4,12 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.10.0]
+
+### Added
+* Added expected type checking to the linter. For example, `minimum` expects a
+  type of "number" or "integer".
+
 ## [0.9.0]
 
 ### Added

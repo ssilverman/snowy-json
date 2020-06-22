@@ -24,29 +24,7 @@ package com.qindesign.json.schema;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.qindesign.json.schema.keywords.AdditionalItems;
-import com.qindesign.json.schema.keywords.Contains;
-import com.qindesign.json.schema.keywords.CoreDefs;
-import com.qindesign.json.schema.keywords.CoreId;
-import com.qindesign.json.schema.keywords.CoreRef;
-import com.qindesign.json.schema.keywords.CoreSchema;
-import com.qindesign.json.schema.keywords.Definitions;
-import com.qindesign.json.schema.keywords.Format;
-import com.qindesign.json.schema.keywords.If;
-import com.qindesign.json.schema.keywords.Items;
-import com.qindesign.json.schema.keywords.MaxContains;
-import com.qindesign.json.schema.keywords.MaxItems;
-import com.qindesign.json.schema.keywords.MaxLength;
-import com.qindesign.json.schema.keywords.MaxProperties;
-import com.qindesign.json.schema.keywords.Maximum;
-import com.qindesign.json.schema.keywords.MinContains;
-import com.qindesign.json.schema.keywords.MinItems;
-import com.qindesign.json.schema.keywords.MinLength;
-import com.qindesign.json.schema.keywords.MinProperties;
-import com.qindesign.json.schema.keywords.Minimum;
-import com.qindesign.json.schema.keywords.Properties;
-import com.qindesign.json.schema.keywords.Type;
-import com.qindesign.json.schema.keywords.UnevaluatedItems;
+import com.qindesign.json.schema.keywords.*;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.File;
@@ -62,6 +40,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * A rudimentary linter.
@@ -315,6 +295,7 @@ public final class Linter {
 
       if (object.has(Format.NAME)) {
         JsonElement type = object.get(Type.NAME);
+        // TODO: Fix this to also look at "type" as an array
         if (type == null || !JSON.isString(type) || !type.getAsString().equals("string")) {
           addIssue.accept("\"" + Format.NAME + "\" without declared string type");
         }
@@ -325,6 +306,30 @@ public final class Linter {
       addIssue.accept(compareMinMax(object, MinItems.NAME, MaxItems.NAME));
       addIssue.accept(compareMinMax(object, MinLength.NAME, MaxLength.NAME));
       addIssue.accept(compareMinMax(object, MinProperties.NAME, MaxProperties.NAME));
+
+      // Type checks for all drafts
+      addIssue.accept(checkType(object, AdditionalItems.NAME, List.of("array")));
+      addIssue.accept(checkType(object, AdditionalProperties.NAME, List.of("object")));
+      addIssue.accept(checkType(object, Contains.NAME, List.of("array")));
+      addIssue.accept(checkType(object, ExclusiveMaximum.NAME, List.of("number", "integer")));
+      addIssue.accept(checkType(object, ExclusiveMinimum.NAME, List.of("number", "integer")));
+      addIssue.accept(checkType(object, Format.NAME, List.of("string")));
+      addIssue.accept(checkType(object, Items.NAME, List.of("array")));
+      addIssue.accept(checkType(object, Maximum.NAME, List.of("number", "integer")));
+      addIssue.accept(checkType(object, MaxItems.NAME, List.of("array")));
+      addIssue.accept(checkType(object, MaxLength.NAME, List.of("string")));
+      addIssue.accept(checkType(object, MaxProperties.NAME, List.of("object")));
+      addIssue.accept(checkType(object, Minimum.NAME, List.of("number", "integer")));
+      addIssue.accept(checkType(object, MinItems.NAME, List.of("array")));
+      addIssue.accept(checkType(object, MinLength.NAME, List.of("string")));
+      addIssue.accept(checkType(object, MinProperties.NAME, List.of("object")));
+      addIssue.accept(checkType(object, MultipleOf.NAME, List.of("number", "integer")));
+      addIssue.accept(checkType(object, Pattern.NAME, List.of("string")));
+      addIssue.accept(checkType(object, PatternProperties.NAME, List.of("object")));
+      addIssue.accept(checkType(object, Properties.NAME, List.of("object")));
+      addIssue.accept(checkType(object, PropertyNames.NAME, List.of("object")));
+      addIssue.accept(checkType(object, Required.NAME, List.of("object")));
+      addIssue.accept(checkType(object, UniqueItems.NAME, List.of("array")));
 
       // Check specification-specific keyword presence
       if (state.spec() != null) {
@@ -391,6 +396,20 @@ public final class Linter {
 
         // Minimum > maximum checks for this draft
         addIssue.accept(compareMinMax(object, MinContains.NAME, MaxContains.NAME));
+
+        // Type checks for this draft
+        addIssue.accept(checkType(object, ContentSchema.NAME, List.of("string")));
+        addIssue.accept(checkType(object, DependentRequired.NAME, List.of("object")));
+        addIssue.accept(checkType(object, DependentSchemas.NAME, List.of("object")));
+        addIssue.accept(checkType(object, MaxContains.NAME, List.of("array")));
+        addIssue.accept(checkType(object, MinContains.NAME, List.of("array")));
+        addIssue.accept(checkType(object, UnevaluatedItems.NAME, List.of("array")));
+        addIssue.accept(checkType(object, UnevaluatedProperties.NAME, List.of("object")));
+      }
+
+      if (state.spec() == null || state.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        // Type checks for this draft
+        addIssue.accept(checkType(object, Dependencies.NAME, List.of("object")));
       }
 
       if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
@@ -404,6 +423,10 @@ public final class Linter {
             addIssue.accept("\"else\" without \"" + If.NAME + "\"");
           }
         }
+
+        // Type checks for this draft
+        addIssue.accept(checkType(object, ContentEncoding.NAME, List.of("string")));
+        addIssue.accept(checkType(object, ContentMediaType.NAME, List.of("string")));
       }
 
       // Unknown keywords, but not inside defs
@@ -440,5 +463,59 @@ public final class Linter {
       }
     }
     return null;
+  }
+
+  /**
+   * Checks that the given element has an expected sibling "type".
+   *
+   * @param o the JSON object
+   * @param name the element name
+   * @param expected a list of possible expected type values
+   * @return an issue message, or {@code null} for no issue.
+   */
+  private static String checkType(JsonObject o, String name, List<String> expected) {
+    if (!o.has(name)) {
+      return null;
+    }
+    JsonElement type = o.get(Type.NAME);
+    if (type == null) {
+      return "\"" + name + "\" with no \"" + Type.NAME + "\"";
+    }
+
+    String want;
+    String got;
+    if (JSON.isString(type)) {
+      if (expected.contains(type.getAsString())) {
+        return null;
+      }
+      got = "\"" + type.getAsString() + "\"";
+    } else if (type.isJsonArray()) {
+      boolean allStrings = true;
+      for (var e : type.getAsJsonArray()) {
+        if (!JSON.isString(e)) {
+          allStrings = false;
+        } else {
+          if (expected.contains(e.getAsString())) {
+            return null;
+          }
+        }
+      }
+      if (allStrings) {
+        got = StreamSupport.stream(type.getAsJsonArray().spliterator(), false)
+            .map(JsonElement::getAsString)
+            .collect(Collectors.toList()).toString();
+      } else {
+        got = "mixed types";
+      }
+    } else {
+      return "\"" + name + "\" with no valid \"" + Type.NAME + "\"";
+    }
+
+    if (expected.size() == 1) {
+      want = "\"" + expected.get(0) + "\"";
+    } else {
+      want = "one of " + expected;
+    }
+    return "\"" + name + "\" type: want " + want + ", got " + got;
   }
 }
