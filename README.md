@@ -434,6 +434,7 @@ There are plans to explore supporting more features, including:
 6. [JSON Schema Draft Sources](https://github.com/json-schema-org/json-schema-spec)
 7. [JSON Pointer](https://tools.ietf.org/html/rfc6901)
 8. [URI Syntax](https://tools.ietf.org/html/rfc3986)
+9. [IDN Hostnames](https://tools.ietf.org/html/rfc5890)
 
 ## An ending thought
 
