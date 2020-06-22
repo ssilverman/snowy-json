@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A rudimentary linter.
@@ -200,6 +201,13 @@ public final class Linter {
         return;
       }
 
+      // Convenience function for adding a maybe-null issue
+      Consumer<String> addIssue = (String msg) -> {
+        if (msg != null) {
+          addIssue(issues, path, msg);
+        }
+      };
+
       if (e.isJsonPrimitive()) {
         if (isInParent(path, Properties.NAME)) {
           return;
@@ -212,8 +220,7 @@ public final class Linter {
           case Format.NAME:
             if (JSON.isString(e)) {
               if (!KNOWN_FORMATS.contains(e.getAsString())) {
-                addIssue(issues, path,
-                         "unknown format: \"" + Strings.jsonString(e.getAsString()) + "\"");
+                addIssue.accept("unknown format: \"" + Strings.jsonString(e.getAsString()) + "\"");
               }
             }
             break;
@@ -223,13 +230,11 @@ public final class Linter {
               try {
                 URI id = URI.parse(e.getAsString());
                 if (!id.normalize().equals(id)) {
-                  addIssue(issues, path,
-                           "unnormalized ID: \"" + Strings.jsonString(e.getAsString()) + "\"");
+                  addIssue.accept("unnormalized ID: \"" + Strings.jsonString(e.getAsString()) + "\"");
                 }
                 if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
                   if (id.rawFragment() != null && id.rawFragment().isEmpty()) {
-                    addIssue(issues, path,
-                             "empty fragment: \"" + Strings.jsonString(e.getAsString()) + "\"");
+                    addIssue.accept("empty fragment: \"" + Strings.jsonString(e.getAsString()) + "\"");
                   }
                 }
               } catch (URISyntaxException ex) {
@@ -248,15 +253,14 @@ public final class Linter {
                 for (String part : ref.substring(1).split("/", -1)) {
                   if (first) {
                     if (!part.isEmpty()) {
-                      addIssue(issues, path, "bad JSON Pointer: \"" + ref + "\"");
+                      addIssue.accept("bad JSON Pointer: \"" + ref + "\"");
                       break;
                     }
                     first = false;
                     continue;
                   }
                   if (!o.isJsonObject() || !o.getAsJsonObject().has(part)) {
-                    addIssue(issues, path,
-                             "reference not found: \"" + Strings.jsonString(ref) + "\"");
+                    addIssue.accept("reference not found: \"" + Strings.jsonString(ref) + "\"");
                     break;
                   }
                   o = o.getAsJsonObject().get(part);
@@ -274,7 +278,7 @@ public final class Linter {
 
         if (is(path, Items.NAME)) {
           if (array.size() <= 0) {
-            addIssue(issues, path, "empty items array");
+            addIssue.accept("empty items array");
           }
         }
 
@@ -287,8 +291,7 @@ public final class Linter {
       if (is(path, Properties.NAME)) {
         object.keySet().forEach(name -> {
           if (name.startsWith("$")) {
-            addIssue(issues, path,
-                     "property name starts with '$': \"" + Strings.jsonString(name) + "\"");
+            addIssue.accept("property name starts with '$': \"" + Strings.jsonString(name) + "\"");
           }
         });
 
@@ -297,49 +300,44 @@ public final class Linter {
 
       if (object.has(CoreSchema.NAME)) {
         if (parent != null && !object.has(CoreId.NAME)) {
-          addIssue(issues, path,
-                   "\"" + CoreSchema.NAME +
-                   "\" in subschema without sibling \"" +
-                   CoreId.NAME + "\"");
+          addIssue.accept("\"" + CoreSchema.NAME +
+                          "\" in subschema without sibling \"" +
+                          CoreId.NAME + "\"");
         }
       }
 
       if (object.has(AdditionalItems.NAME)) {
         JsonElement items = object.get(Items.NAME);
         if (items == null || !items.isJsonArray()) {
-          addIssue(issues, path, "\"" + AdditionalItems.NAME + "\" without array-form \"items\"");
+          addIssue.accept("\"" + AdditionalItems.NAME + "\" without array-form \"items\"");
         }
       }
 
       if (object.has(Format.NAME)) {
         JsonElement type = object.get(Type.NAME);
         if (type == null || !JSON.isString(type) || !type.getAsString().equals("string")) {
-          addIssue(issues, path, "\"" + Format.NAME + "\" without declared string type");
+          addIssue.accept("\"" + Format.NAME + "\" without declared string type");
         }
       }
 
       // Minimum > maximum checks for all drafts
-      Optional.ofNullable(compareMinMax(object, Minimum.NAME, Maximum.NAME))
-          .ifPresent(s -> addIssue(issues, path, s));
-      Optional.ofNullable(compareMinMax(object, MinItems.NAME, MaxItems.NAME))
-          .ifPresent(s -> addIssue(issues, path, s));
-      Optional.ofNullable(compareMinMax(object, MinLength.NAME, MaxLength.NAME))
-          .ifPresent(s -> addIssue(issues, path, s));
-      Optional.ofNullable(compareMinMax(object, MinProperties.NAME, MaxProperties.NAME))
-          .ifPresent(s -> addIssue(issues, path, s));
+      addIssue.accept(compareMinMax(object, Minimum.NAME, Maximum.NAME));
+      addIssue.accept(compareMinMax(object, MinItems.NAME, MaxItems.NAME));
+      addIssue.accept(compareMinMax(object, MinLength.NAME, MaxLength.NAME));
+      addIssue.accept(compareMinMax(object, MinProperties.NAME, MaxProperties.NAME));
 
       // Check specification-specific keyword presence
       if (state.spec() != null) {
         if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
           object.keySet().forEach(name -> {
             if (Validator.OLD_KEYWORDS_DRAFT_2019_09.contains(name)) {
-              addIssue(issues, path, "\"" + name + "\" was removed in Draft 2019-09");
+              addIssue.accept("\"" + name + "\" was removed in Draft 2019-09");
             }
           });
         } else {  // Before Draft 2019-09
           object.keySet().forEach(name -> {
             if (Validator.NEW_KEYWORDS_DRAFT_2019_09.contains(name)) {
-              addIssue(issues, path, "\"" + name + "\" was added in Draft 2019-09");
+              addIssue.accept("\"" + name + "\" was added in Draft 2019-09");
             }
           });
         }
@@ -347,7 +345,7 @@ public final class Linter {
         if (state.spec().ordinal() < Specification.DRAFT_07.ordinal()) {
           object.keySet().forEach(name -> {
             if (Validator.NEW_KEYWORDS_DRAFT_07.contains(name)) {
-              addIssue(issues, path, "\"" + name + "\" was added in Draft-07");
+              addIssue.accept("\"" + name + "\" was added in Draft-07");
             }
           });
         }
@@ -374,40 +372,36 @@ public final class Linter {
       if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
         if (object.has(MinContains.NAME)) {
           if (!object.has(Contains.NAME)) {
-            addIssue(issues, path,
-                     "\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
+            addIssue.accept("\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
           }
         }
         if (object.has(MaxContains.NAME)) {
           if (!object.has(Contains.NAME)) {
-            addIssue(issues, path,
-                     "\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
+            addIssue.accept("\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
           }
         }
         if (object.has(UnevaluatedItems.NAME)) {
           JsonElement items = object.get(Items.NAME);
           if (items != null && !items.isJsonArray()) {
-            addIssue(issues, path,
-                     "\"" + UnevaluatedItems.NAME +
-                     "\" without array-form \"" +
-                     Items.NAME + "\"");
+            addIssue.accept("\"" + UnevaluatedItems.NAME +
+                            "\" without array-form \"" +
+                            Items.NAME + "\"");
           }
         }
 
         // Minimum > maximum checks for this draft
-        Optional.ofNullable(compareMinMax(object, MinContains.NAME, MaxContains.NAME))
-            .ifPresent(s -> addIssue(issues, path, s));
+        addIssue.accept(compareMinMax(object, MinContains.NAME, MaxContains.NAME));
       }
 
       if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
         if (object.has("then")) {
           if (!object.has(If.NAME)) {
-            addIssue(issues, path, "\"then\" without \"" + If.NAME + "\"");
+            addIssue.accept("\"then\" without \"" + If.NAME + "\"");
           }
         }
         if (object.has("else")) {
           if (!object.has(If.NAME)) {
-            addIssue(issues, path, "\"else\" without \"" + If.NAME + "\"");
+            addIssue.accept("\"else\" without \"" + If.NAME + "\"");
           }
         }
       }
@@ -415,7 +409,7 @@ public final class Linter {
       // Unknown keywords, but not inside defs
       object.keySet().forEach(name -> {
         if (!KNOWN_KEYWORDS.contains(name)) {
-          addIssue(issues, path, "unknown keyword: \"" + Strings.jsonString(name) + "\"");
+          addIssue.accept("unknown keyword: \"" + Strings.jsonString(name) + "\"");
         }
       });
     });
