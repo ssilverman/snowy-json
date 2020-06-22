@@ -168,7 +168,7 @@ public class Main {
     root.add("valid", new JsonPrimitive(result));
     JsonArray errorArr = new JsonArray();
     root.add("errors", errorArr);
-    errors.forEach((instanceLoc, map) ->
+    errors.forEach((instanceLoc, map) -> {
       map.forEach((schemaLoc, a) -> {
         JsonObject error = new JsonObject();
         error.add("keywordLocation", new JsonPrimitive(a.keywordLocation));
@@ -179,14 +179,14 @@ public class Main {
         if (vr.result) {
           return;
         }
-        error.add("valid", new JsonPrimitive(false));
         if (vr.message == null) {
           error.add(a.name, JsonNull.INSTANCE);
         } else {
           error.add(a.name, new JsonPrimitive(vr.message));
         }
         errorArr.add(error);
-      }));
+      });
+    });
     return root;
   }
 
