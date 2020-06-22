@@ -278,6 +278,23 @@ public final class Linter {
         return;
       }
 
+      boolean inDefs;  // Note: This is only a rudimentary check
+      if (state.spec() != null) {
+        if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+          inDefs = is(path, CoreDefs.NAME);
+        } else {
+          inDefs = is(path, Definitions.NAME);
+        }
+      } else {
+        inDefs = is(path, CoreDefs.NAME) ||
+                 is(path, Definitions.NAME);
+      }
+
+      // Allow anything directly below defs
+      if (inDefs) {
+        return;
+      }
+
       if (object.has(CoreSchema.NAME)) {
         if (parent != null && !object.has(CoreId.NAME)) {
           addIssue.accept("\"" + CoreSchema.NAME +
@@ -349,23 +366,6 @@ public final class Linter {
         }
       }
 
-      boolean inDefs;  // Note: This is only a rudimentary check
-      if (state.spec() != null) {
-        if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          inDefs = is(path, CoreDefs.NAME);
-        } else {
-          inDefs = is(path, Definitions.NAME);
-        }
-      } else {
-        inDefs = is(path, CoreDefs.NAME) ||
-                 is(path, Definitions.NAME);
-      }
-
-      // Allow anything in defs
-      if (inDefs) {
-        return;
-      }
-
       // Schema-specific keyword behaviour
       if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
         if (object.has(MinContains.NAME)) {
@@ -422,12 +422,14 @@ public final class Linter {
         addIssue.accept(checkType(object, ContentMediaType.NAME, List.of("string")));
       }
 
-      // Unknown keywords, but not inside defs
-      object.keySet().forEach(name -> {
-        if (!KNOWN_KEYWORDS.contains(name)) {
-          addIssue.accept("unknown keyword: \"" + Strings.jsonString(name) + "\"");
-        }
-      });
+      // Unknown keywords, but not inside $vocabulary
+      if (!is(path, CoreVocabulary.NAME)) {
+        object.keySet().forEach(name -> {
+          if (!KNOWN_KEYWORDS.contains(name)) {
+            addIssue.accept("unknown keyword: \"" + Strings.jsonString(name) + "\"");
+          }
+        });
+      }
     });
 
     return issues;
