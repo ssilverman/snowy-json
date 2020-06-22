@@ -28,6 +28,7 @@ See: [JSON Schema](https://json-schema.org)
 8. [Building and running](#building-and-running)
    1. [Program execution with Maven](#program-execution-with-maven)
 9. [The linter](#the-linter)
+   1. [Doing your own linting](#doing-your-own-linting)
 10. [Future plans](#future-plans)
 11. [References](#references)
 12. [An ending thought](#an-ending-thought)
@@ -384,6 +385,32 @@ schema. It does currently check for the following things:
 15. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.
+    
+### Doing your own linting
+
+The `JSON` class has a `traverse` method that does a preorder tree traversal.
+It's what the linter uses internally. It's possible to use this to write your
+own linting rules.
+
+The following example snippet tests for the existence of any "anyOf"
+schema keywords:
+
+```java
+JsonElement schema;
+// ...load the schema...
+JSON.traverse(schema, (e, parent, path, state) -> {
+  if (path.isEmpty()) {
+    return;
+  }
+  // Ignore if the parent is "properties" because then it's not a keyword
+  if (path.size() >= 2 && path.get(path.size() - 2).equals("properties")) {
+    return;
+  }
+  if (path.get(path.size() - 1).equals("anyOf")) {
+    System.out.println(path + ": anyOf keyword present");
+  }
+});
+```
 
 ## Future plans
 

@@ -11,6 +11,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * A linter check for `$id` values that have an empty fragment, for Draft 2019-09
   and later.
 * Added "minimum" keyword > "maximum" keyword checks to the linter.
+* Added a custom linting rule example to the README.
 
 ### Changed
 * The EMAIL regex in Format now disallows local parts starting with a dot,
