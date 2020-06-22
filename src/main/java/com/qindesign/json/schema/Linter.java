@@ -35,7 +35,15 @@ import com.qindesign.json.schema.keywords.Format;
 import com.qindesign.json.schema.keywords.If;
 import com.qindesign.json.schema.keywords.Items;
 import com.qindesign.json.schema.keywords.MaxContains;
+import com.qindesign.json.schema.keywords.MaxItems;
+import com.qindesign.json.schema.keywords.MaxLength;
+import com.qindesign.json.schema.keywords.MaxProperties;
+import com.qindesign.json.schema.keywords.Maximum;
 import com.qindesign.json.schema.keywords.MinContains;
+import com.qindesign.json.schema.keywords.MinItems;
+import com.qindesign.json.schema.keywords.MinLength;
+import com.qindesign.json.schema.keywords.MinProperties;
+import com.qindesign.json.schema.keywords.Minimum;
 import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.json.schema.keywords.Type;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
@@ -43,6 +51,7 @@ import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -309,6 +318,16 @@ public final class Linter {
         }
       }
 
+      // Minimum > maximum checks for all drafts
+      Optional.ofNullable(compareMinMax(object, Minimum.NAME, Maximum.NAME))
+          .ifPresent(s -> addIssue(issues, path, s));
+      Optional.ofNullable(compareMinMax(object, MinItems.NAME, MaxItems.NAME))
+          .ifPresent(s -> addIssue(issues, path, s));
+      Optional.ofNullable(compareMinMax(object, MinLength.NAME, MaxLength.NAME))
+          .ifPresent(s -> addIssue(issues, path, s));
+      Optional.ofNullable(compareMinMax(object, MinProperties.NAME, MaxProperties.NAME))
+          .ifPresent(s -> addIssue(issues, path, s));
+
       // Check specification-specific keyword presence
       if (state.spec() != null) {
         if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
@@ -374,6 +393,10 @@ public final class Linter {
                      Items.NAME + "\"");
           }
         }
+
+        // Minimum > maximum checks for this draft
+        Optional.ofNullable(compareMinMax(object, MinContains.NAME, MaxContains.NAME))
+            .ifPresent(s -> addIssue(issues, path, s));
       }
 
       if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
@@ -398,5 +421,30 @@ public final class Linter {
     });
 
     return issues;
+  }
+
+  /**
+   * Compare the specified "minimum" and "maximum" elements and returns any
+   * issue message. This will return {@code null} if there is no issue.
+   *
+   * @param o the JSON object
+   * @param minName the "minimum" element name
+   * @param maxName the "maximum" element name
+   * @return an issue message, or {@code null} for no issue.
+   */
+  private static String compareMinMax(JsonObject o, String minName, String maxName) {
+    if (!o.has(minName) || !o.has(maxName)) {
+      return null;
+    }
+    JsonElement minE = o.get(minName);
+    JsonElement maxE = o.get(maxName);
+    if (JSON.isNumber(minE) && JSON.isNumber(maxE)) {
+      BigDecimal min = Numbers.valueOf(minE.getAsString());
+      BigDecimal max = Numbers.valueOf(maxE.getAsString());
+      if (min.compareTo(max) > 0) {
+        return "\"" + minName + "\" > \"" + maxName + "\"";
+      }
+    }
+    return null;
   }
 }

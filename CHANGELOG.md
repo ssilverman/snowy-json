@@ -10,6 +10,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Added the _source_ and _javadoc_ package plugins to the POM.
 * A linter check for `$id` values that have an empty fragment, for Draft 2019-09
   and later.
+* Added "minimum" keyword > "maximum" keyword checks to the linter.
 
 ### Changed
 * The EMAIL regex in Format now disallows local parts starting with a dot,

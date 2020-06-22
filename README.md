@@ -370,16 +370,18 @@ schema. It does currently check for the following things:
 7. `format` with a sibling non-"string" `type`.
 8. Unnormalized `$id` values.
 9. Locally-pointing `$ref` values that don't exist.
-10. Draft 2019-09 or later schemas having keywords that were removed in
+10. Any "minimum" keyword that is greater than its corresponding "maximum"
+    keyword, for example, `minLength` and `maxLength`.
+11. Draft 2019-09 or later schemas having keywords that were removed in
     Draft 2019-09.
-11. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
-12. Pre-Draft-07 schemas having keywords that were added in Draft-07.
-13. Draft 2019-09 or later, or unspecified, schemas:
+12. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
+13. Pre-Draft-07 schemas having keywords that were added in Draft-07.
+14. Draft 2019-09 or later, or unspecified, schemas:
     1. `minContains` without a sibling `contains`.
     2. `maxContains` without a sibling `contains`.
     3. `unevaluatedItems` without a sibling array-form `items`.
     4. `$id` values that have an empty fragment.
-14. Draft-07 or later, or unspecified, schemas:
+15. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.
 
