@@ -35,6 +35,7 @@ public final class Annotation {
   public Object value;
 
   public boolean valid;  // Invalid annotations are attached to failed schemas
+  // NOTE: This field is not used in equals and hashCode
 
   Annotation(String name) {
     this.name = name;
