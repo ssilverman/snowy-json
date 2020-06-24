@@ -760,6 +760,7 @@ public final class ValidatorContext {
     a.keywordLocation = state.keywordLocation;
     a.absKeywordLocation = state.absKeywordLocation;
     a.value = new ValidationResult(result, message);
+    a.valid = true;
 
     Annotation oldA = errors
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
