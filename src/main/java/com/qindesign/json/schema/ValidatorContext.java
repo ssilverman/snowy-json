@@ -52,6 +52,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -1026,10 +1027,12 @@ public final class ValidatorContext {
    * @return the processed ID, or {@code null} if it's not a new base.
    * @throws MalformedSchemaException if the ID is malformed.
    * @see URIs#isNotFragmentOnly(URI)
-   * @see Validator#getID(JsonElement, Specification, URI)
+   * @see Validator#getID(JsonElement, Specification, Supplier)
    */
   public URI getID(JsonElement e, String path) throws MalformedSchemaException {
-    return Validator.getID(e, specification(), resolveAbsolute(state.absKeywordLocation, path));
+    return Validator.getID(e,
+                           specification(),
+                           () -> resolveAbsolute(state.absKeywordLocation, path));
   }
 
   /**
@@ -1041,9 +1044,10 @@ public final class ValidatorContext {
    * @param path the relative path of the element, may be empty
    * @return the anchor name.
    * @throws MalformedSchemaException if the ID is malformed.
+   * @see Validator#getAnchor(JsonElement, Supplier)
    */
   public String getAnchor(JsonElement e, String path) throws MalformedSchemaException {
-    return Validator.getAnchor(e, resolveAbsolute(state.absKeywordLocation, path));
+    return Validator.getAnchor(e, () -> resolveAbsolute(state.absKeywordLocation, path));
   }
 
   /**
