@@ -158,12 +158,16 @@ public final class Strings {
    *
    * @param s the token to dencode
    * @return the decoded token.
+   * @throws IllegalArgumentException if the token is not valid.
    */
   public static String fromJSONPointerToken(String s) {
     // Note: This does not work because the first transform may result in a
     //       string having '~1':
 //    return s.replace("~0", "~").replace("~1", "/");
 
+    if (s.indexOf('/') >= 0) {
+      throw new IllegalArgumentException("Bad character ('/'): " + s);
+    }
     if (s.indexOf('~') < 0) {
       return s;
     }
