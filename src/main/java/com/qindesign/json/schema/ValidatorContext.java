@@ -119,7 +119,10 @@ public final class ValidatorContext {
     /** Any $recursiveAnchor=true bases we find along the way. */
     URI recursiveBaseURI;
 
+    // Parent state, may be null
     String keywordParentLocation;
+    URI absKeywordParentLocation;
+
     String keywordLocation;
     URI absKeywordLocation;
     String instanceLocation;
@@ -146,6 +149,7 @@ public final class ValidatorContext {
       copy.prevRecursiveBaseURI = this.prevRecursiveBaseURI;
       copy.recursiveBaseURI = this.recursiveBaseURI;
       copy.keywordParentLocation = this.keywordParentLocation;
+      copy.absKeywordParentLocation = this.absKeywordParentLocation;
       copy.keywordLocation = this.keywordLocation;
       copy.absKeywordLocation = this.absKeywordLocation;
       copy.instanceLocation = this.instanceLocation;
@@ -347,6 +351,7 @@ public final class ValidatorContext {
     state.schemaObject = null;
     state.isRoot = true;
     state.keywordParentLocation = null;
+    state.absKeywordParentLocation = null;
     state.keywordLocation = "";
     state.absKeywordLocation = baseURI;
     state.instanceLocation = "";
@@ -1125,6 +1130,7 @@ public final class ValidatorContext {
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
     state.keywordParentLocation = keywordLocation;
+    state.absKeywordParentLocation = absKeywordLocation;
     state.instanceLocation = instanceLocation;
 
     // Sort the names in the schema by their required evaluation order
@@ -1146,57 +1152,79 @@ public final class ValidatorContext {
         }
       }
 
-      state.keywordLocation = resolvePointer(keywordLocation, m.getKey());
-      state.absKeywordLocation = resolveAbsolute(absKeywordLocation, m.getKey());
-      if (!k.apply(m.getValue(), instance, state.schemaObject, this)) {
-        // Remove all subschema annotations that aren't errors
-        // Note that this is still necessary even with the
-        // setCollectSubAnnotations optimization because it either may not be
-        // used or not used early enough
-        if (isCollectAnnotations) {
-          // Note that we're also checking for equality in case the current
-          // failing keyword has set some annotations
-          Predicate<Map.Entry<String, Annotation>> pred = e -> {
-            String key = e.getKey();
-            if (key.startsWith(state.keywordLocation)) {
-              if (key.length() == state.keywordLocation.length()) {
-                return true;
-              }
-              if (key.charAt(state.keywordLocation.length()) == '/') {
-                return true;
-              }
-            }
-            return false;
-          };
-          if (!isCollectFailedAnnotations) {
-            annotations.getOrDefault(instanceLocation, Collections.emptyMap())
-                .values()
-                .forEach(v -> v.entrySet().removeIf(pred));
-          } else {
-            annotations.getOrDefault(instanceLocation, Collections.emptyMap())
-                .values()
-                .forEach(v -> v.entrySet().forEach(e -> {
-                  if (pred.test(e)) {
-                    e.getValue().valid = false;
-                  }
-                }));
-          }
-        }
-        if (!hasError()) {
-          addError(false, k.name() + " didn't validate");
-        }
-
+      if (!applyKeyword(k, m.getValue(), instance)) {
         // Don't escape early if we need to process all the keywords
         result = false;
         if (isFailFast()) {
           break;
         }
-      } else if (!hasError()) {
-        addError(true, k.name());
       }
     }
 
     state = parentState;
+    return result;
+  }
+
+  /**
+   * Applies a keyword to the given schema and instance.
+   *
+   * @param k the keyword
+   * @param schema the schema
+   * @param instance the instance
+   * @return the validation result.
+   * @throws MalformedSchemaException if the schema is not valid.
+   */
+  public boolean applyKeyword(Keyword k, JsonElement schema, JsonElement instance)
+      throws MalformedSchemaException {
+    state.keywordLocation = resolvePointer(state.keywordParentLocation, k.name());
+    state.absKeywordLocation = resolveAbsolute(state.absKeywordParentLocation, k.name());
+
+    boolean result;
+    String msg = k.name();
+    if (k.apply(schema, instance, state.schemaObject, this)) {
+      result = true;
+    } else {
+      // Remove all subschema annotations that aren't errors
+      // Note that this is still necessary even with the
+      // setCollectSubAnnotations optimization because it either may not be
+      // used or not used early enough
+      if (isCollectAnnotations) {
+        // Note that we're also checking for equality in case the current
+        // failing keyword has set some annotations
+        Predicate<Map.Entry<String, Annotation>> pred = e -> {
+          String key = e.getKey();
+          if (key.startsWith(state.keywordLocation)) {
+            if (key.length() == state.keywordLocation.length()) {
+              return true;
+            }
+            if (key.charAt(state.keywordLocation.length()) == '/') {
+              return true;
+            }
+          }
+          return false;
+        };
+        if (!isCollectFailedAnnotations) {
+          annotations.getOrDefault(state.instanceLocation, Collections.emptyMap())
+              .values()
+              .forEach(v -> v.entrySet().removeIf(pred));
+        } else {
+          annotations.getOrDefault(state.instanceLocation, Collections.emptyMap())
+              .values()
+              .forEach(v -> v.entrySet().forEach(e -> {
+                if (pred.test(e)) {
+                  e.getValue().valid = false;
+                }
+              }));
+        }
+      }
+      msg += " didn't validate";
+      result = false;
+    }
+
+    if (!hasError()) {
+      addError(result, msg);
+    }
+
     return result;
   }
 }
