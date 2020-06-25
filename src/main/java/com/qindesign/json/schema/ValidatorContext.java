@@ -1075,14 +1075,14 @@ public final class ValidatorContext {
    * @param name the keyword name, not in JSON Pointer form
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
-   * @param instancePath the relative instance path, not in JSON Pointer form
+   * @param instanceName the instance element name, not in JSON Pointer form
    * @return the result of schema application.
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or
    *         because internal validation is failing.
    */
   public boolean apply(JsonElement schema, String name, URI absSchemaLoc,
-                       JsonElement instance, String instancePath)
+                       JsonElement instance, String instanceName)
       throws MalformedSchemaException
   {
     if (JSON.isBoolean(schema)) {
@@ -1123,7 +1123,7 @@ public final class ValidatorContext {
     }
 
     String keywordLocation = resolvePointer(state.keywordLocation, name);
-    String instanceLocation = resolvePointer(state.instanceLocation, instancePath);
+    String instanceLocation = resolvePointer(state.instanceLocation, instanceName);
 
     State parentState = state;
     state = state.copy();
