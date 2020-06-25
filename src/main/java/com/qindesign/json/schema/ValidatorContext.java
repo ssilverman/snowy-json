@@ -1043,24 +1043,20 @@ public final class ValidatorContext {
 
   /**
    * Gets and processes the given anchor element. This returns the anchor value.
-   * <p>
-   * This expects the path to not be in JSON Pointer form.
    *
    * @param e the anchor element
-   * @param path the relative path of the element, may be empty
    * @return the anchor name.
    * @throws MalformedSchemaException if the ID is malformed.
    * @see Validator#getAnchor(JsonElement, Supplier)
    */
-  public String getAnchor(JsonElement e, String path) throws MalformedSchemaException {
-    return Validator.getAnchor(e, () -> resolveAbsolute(state.absKeywordLocation, path));
+  public String getAnchor(JsonElement e) throws MalformedSchemaException {
+    return Validator.getAnchor(e, () -> state.absKeywordLocation);
   }
 
   /**
-   * Applies a schema to the given instance. The schema and instance path
+   * Applies a schema to the given instance. The keyword and instance name
    * parameters are the relative element name, either a name or a number. An
-   * empty string means the current location. The paths are not expected to be
-   * in JSON Pointer form.
+   * empty string means the current location.
    * <p>
    * This first checks that the schema is valid. A valid schema is either an
    * object or a Boolean.
@@ -1068,14 +1064,14 @@ public final class ValidatorContext {
    * The {@code absSchemaLoc} parameter is used as the new absolute keyword
    * location, unless there's a declared $id, in which case that value is used.
    * If there's no $id and the parameter is {@code null} then the location will
-   * be assigned the schema path resolved against the current location,
+   * be assigned the keyword name resolved against the current location,
    * as usual.
    *
    * @param schema the schema, an object or a Boolean
-   * @param name the keyword name, not in JSON Pointer form
+   * @param name the keyword name
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
-   * @param instanceName the instance element name, not in JSON Pointer form
+   * @param instanceName the instance element name
    * @return the result of schema application.
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or

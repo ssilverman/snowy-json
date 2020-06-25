@@ -48,7 +48,7 @@ public class CoreAnchor extends Keyword {
       return true;
     }
 
-    context.getAnchor(value, "");
+    context.getAnchor(value);
 
     return true;
   }
