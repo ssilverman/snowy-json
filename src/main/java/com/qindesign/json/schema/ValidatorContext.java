@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -850,7 +851,7 @@ public final class ValidatorContext {
    * @return the merged URI.
    */
   private static URI resolveAbsolute(URI base, String path) {
-    if (path.isEmpty()) {
+    if (path == null) {
       return base;
     }
     try {
@@ -868,17 +869,17 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the path with the base pointer. If the given path is empty, this
-   * returns the base pointer. It is assumed that the base path is a valid JSON
-   * Pointer and that the name is not. This encodes the name to a valid
-   * JSON Pointer.
+   * Merges the given name with the base pointer. If the name is {@code null}
+   * then this returns the base pointer. It is assumed that the base path is a
+   * valid JSON Pointer and that the name is not. This encodes the name to a
+   * valid JSON Pointer.
    *
    * @param base the base pointer
-   * @param name the name to append
+   * @param name the name to append, {@code null} to not append anything
    * @return the merged pointer, escaping the path as needed.
    */
   private static String resolvePointer(String base, String name) {
-    if (name.isEmpty()) {
+    if (name == null) {
       return base;
     }
     return base + "/" + Strings.jsonPointerToken(name);
@@ -890,23 +891,23 @@ public final class ValidatorContext {
    * keyword location.
    *
    * @param err the error message
-   * @param path the location of the element, "" to use the current
+   * @param name the child element name, {@code null} for the current element
    * @throws MalformedSchemaException always.
    */
-  public void schemaError(String err, String path) throws MalformedSchemaException {
-    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, path));
+  public void schemaError(String err, String name) throws MalformedSchemaException {
+    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, name));
   }
 
   /**
    * A convenience method that calls {@link #schemaError(String, String)} with a
-   * path of {@code ""}, indicating the current path.
+   * name of {@code null}, indicating the current element.
    *
    * @param err the error message
    * @throws MalformedSchemaException if the given element is not a
    *         valid schema.
    */
   public void schemaError(String err) throws MalformedSchemaException {
-    schemaError(err, "");
+    schemaError(err, null);
   }
 
   /**
@@ -916,34 +917,29 @@ public final class ValidatorContext {
    * <p>
    * Note that this is just a rudimentary check for the base type. It is assumed
    * that the schema will have been deeply checked against the meta-schema.
-   * <p>
-   * A path can be specified that indicates where the relative location of the
-   * checked element. For example, {@code ""} means "current element" and
-   * {@code "../then"} means "element named 'then' under the parent of the
-   * current element."
    *
    * @param e the JSON element to test
-   * @param path the location of the element, "" to use the current
+   * @param name the child element name, {@code null} for the current element
    * @throws MalformedSchemaException if the given element is not a
    *         valid schema.
    */
-  public void checkValidSchema(JsonElement e, String path) throws MalformedSchemaException {
+  public void checkValidSchema(JsonElement e, String name) throws MalformedSchemaException {
     if (!Validator.isSchema(e)) {
       throw new MalformedSchemaException("not a valid JSON Schema",
-                                         resolveAbsolute(state.absKeywordLocation, path));
+                                         resolveAbsolute(state.absKeywordLocation, name));
     }
   }
 
   /**
    * A convenience method that calls {@link #checkValidSchema(JsonElement, String)}
-   * with a path of {@code ""}, indicating the current path.
+   * with a name of {@code null}, indicating the current element.
    *
    * @param e the JSON element to test
    * @throws MalformedSchemaException if the given element is not a
    *         valid schema.
    */
   public void checkValidSchema(JsonElement e) throws MalformedSchemaException {
-    checkValidSchema(e, "");
+    checkValidSchema(e, null);
   }
 
   /**
@@ -1029,7 +1025,8 @@ public final class ValidatorContext {
    * This expects the path to not be in JSON Pointer form.
    *
    * @param e the ID element
-   * @param path the relative path of the element, may be empty
+   * @param path the relative path of the element, {@code null} for the
+   *             current element
    * @return the processed ID, or {@code null} if it's not a new base.
    * @throws MalformedSchemaException if the ID is malformed.
    * @see URIs#isNotFragmentOnly(URI)
@@ -1068,10 +1065,11 @@ public final class ValidatorContext {
    * as usual.
    *
    * @param schema the schema, an object or a Boolean
-   * @param name the keyword name
+   * @param name the keyword name, {@code null} for the current element
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
-   * @param instanceName the instance element name
+   * @param instanceName the instance element name, {@code null} for the
+   *                     current element
    * @return the result of schema application.
    * @throws MalformedSchemaException if the schema is not valid. This could be
    *         because it doesn't validate against any declared meta-schema or
@@ -1092,7 +1090,7 @@ public final class ValidatorContext {
     if (schema.isJsonObject()) {
       JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
-        URI id = getID(idElem, name + "/" + CoreId.NAME);
+        URI id = getID(idElem, Optional.ofNullable(name).orElse("") + "/" + CoreId.NAME);
         if (URIs.isNotFragmentOnly(id)) {
           absKeywordLocation = baseURI.resolve(id);
         }

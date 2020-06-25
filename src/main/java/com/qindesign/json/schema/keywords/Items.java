@@ -90,7 +90,7 @@ public class Items extends Keyword {
     } else {
       int index = 0;
       for (JsonElement e : array) {
-        if (!context.apply(value, "", null, e, Integer.toString(index))) {
+        if (!context.apply(value, null, null, e, Integer.toString(index))) {
           if (context.isFailFast()) {
             return false;
           }

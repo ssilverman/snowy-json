@@ -56,7 +56,7 @@ public class Contains extends Keyword {
 
     // Apply all of them to collect all annotations
     for (JsonElement e : instance.getAsJsonArray()) {
-      if (context.apply(value, "", null, e, Integer.toString(index++))) {
+      if (context.apply(value, null, null, e, Integer.toString(index++))) {
         validCount++;
       }
     }

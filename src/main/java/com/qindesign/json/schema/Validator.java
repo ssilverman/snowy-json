@@ -317,7 +317,7 @@ public final class Validator {
       }
     }
 
-    boolean retval = context.apply(schema, "", null, instance, "");
+    boolean retval = context.apply(schema, null, null, instance, null);
     if (retval) {
       context.addError(true, null);
     } else {
@@ -668,7 +668,7 @@ public final class Validator {
     baseURI = URIs.stripFragment(baseURI).normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
-    URI newBase = scanIDs(baseURI, baseURI, baseURI, null, "", null, e, ids, spec);
+    URI newBase = scanIDs(baseURI, baseURI, baseURI, null, null, null, e, ids, spec);
 
     // Ensure we have at least the base URI, if it's not already there
     Id id = new Id(baseURI);
@@ -691,8 +691,8 @@ public final class Validator {
    * @param rootID the defined root ID, may be the same as {@code baseURI}
    * @param baseURI the current base ID
    * @param parentID the parent ID
-   * @param name the name of the current element, a number for an array element,
-   *             not in JSON Pointer form
+   * @param name the name of the child element, a number for an array element,
+   *             {@code null} for the current element
    * @param parent the parent of the given element
    * @param e the element to scan
    * @param ids the ID map
@@ -731,7 +731,7 @@ public final class Validator {
     }
 
     // Don't look at the $id or $anchor values inside properties
-    boolean inProperties = name.equals(Properties.NAME);
+    boolean inProperties = Properties.NAME.equals(name);
 
     // Process any "$id"
     JsonElement value;

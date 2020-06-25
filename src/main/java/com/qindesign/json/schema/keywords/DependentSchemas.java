@@ -64,7 +64,7 @@ public class DependentSchemas extends Keyword {
       if (!object.has(e.getKey())) {
         continue;
       }
-      if (!context.apply(e.getValue(), e.getKey(), null, instance, "")) {
+      if (!context.apply(e.getValue(), e.getKey(), null, instance, null)) {
         if (context.isFailFast()) {
           return false;
         }

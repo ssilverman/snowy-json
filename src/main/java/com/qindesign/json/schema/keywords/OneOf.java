@@ -54,8 +54,8 @@ public class OneOf extends Keyword {
     int validCount = 0;
     int index = 0;
     for (JsonElement e : value.getAsJsonArray()) {
-      String path = Integer.toString(index);
-      if (context.apply(e, path, null, instance, "")) {
+      String name = Integer.toString(index);
+      if (context.apply(e, name, null, instance, null)) {
         validCount++;
         if (validCount > 1) {
           if (context.isFailFast()) {

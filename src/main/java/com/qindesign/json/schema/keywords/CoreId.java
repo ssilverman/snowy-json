@@ -43,7 +43,7 @@ public class CoreId extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    URI id = context.getID(value, "");
+    URI id = context.getID(value, null);
     if (URIs.isNotFragmentOnly(id)) {
       context.setBaseURI(id);
     }

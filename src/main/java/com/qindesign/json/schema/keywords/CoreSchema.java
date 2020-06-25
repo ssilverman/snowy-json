@@ -124,7 +124,7 @@ public class CoreSchema extends Keyword {
     ValidatorContext context2 = new ValidatorContext(id, ids, context.knownURLs(), validated, opts2,
                                                      Collections.emptyMap(),
                                                      Collections.emptyMap());
-    if (!context2.apply(e, "", null, parent, "")) {
+    if (!context2.apply(e, null, null, parent, null)) {
       context.schemaError("does not validate");
       return false;
     }

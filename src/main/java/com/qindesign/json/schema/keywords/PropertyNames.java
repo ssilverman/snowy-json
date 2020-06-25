@@ -54,7 +54,7 @@ public class PropertyNames extends Keyword {
     StringBuilder sb = new StringBuilder();
 
     for (String name : instance.getAsJsonObject().keySet()) {
-      if (!context.apply(value, "", null, new JsonPrimitive(name), name)) {
+      if (!context.apply(value, null, null, new JsonPrimitive(name), name)) {
         if (context.isFailFast()) {
           return false;
         }

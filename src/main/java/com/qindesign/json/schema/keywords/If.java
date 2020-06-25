@@ -45,7 +45,7 @@ public class If extends Keyword {
     @Override
     protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                             ValidatorContext context) throws MalformedSchemaException {
-      return context.apply(value, "", null, instance, "");
+      return context.apply(value, null, null, instance, null);
     }
   }
 
@@ -64,7 +64,7 @@ public class If extends Keyword {
       return true;
     }
 
-    if (context.apply(value, "", null, instance, "")) {
+    if (context.apply(value, null, null, instance, null)) {
       JsonElement e = parent.get("then");
       if (e != null) {
         return context.applyKeyword(thenK, e, instance);

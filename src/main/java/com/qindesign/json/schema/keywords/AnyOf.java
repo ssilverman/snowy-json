@@ -55,8 +55,8 @@ public class AnyOf extends Keyword {
 
     // Apply all of them to collect all annotations
     for (JsonElement e : value.getAsJsonArray()) {
-      String path = Integer.toString(index);
-      if (context.apply(e, path, null, instance, "")) {
+      String name = Integer.toString(index);
+      if (context.apply(e, name, null, instance, null)) {
         if (sb.length() > 0) {
           sb.append(", ");
         } else {

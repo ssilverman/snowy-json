@@ -97,7 +97,7 @@ public class UnevaluatedProperties extends Keyword {
         if (validated.contains(e.getKey())) {
           continue;
         }
-        if (!context.apply(value, "", null, e.getValue(), e.getKey())) {
+        if (!context.apply(value, null, null, e.getValue(), e.getKey())) {
           if (context.isFailFast()) {
             return false;
           }

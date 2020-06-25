@@ -108,7 +108,7 @@ public class UnevaluatedItems extends Keyword {
 
     JsonArray array = instance.getAsJsonArray();
     for (int i = max; i < array.size(); i++) {
-      if (!context.apply(value, "", null, array.get(i), Integer.toString(i))) {
+      if (!context.apply(value, null, null, array.get(i), Integer.toString(i))) {
         if (context.isFailFast()) {
           return false;
         }

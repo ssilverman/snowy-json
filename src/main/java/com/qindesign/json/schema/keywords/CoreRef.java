@@ -110,6 +110,6 @@ public class CoreRef extends Keyword {
       return false;
     }
 
-    return context.apply(e, "", schemaURI, instance, "");
+    return context.apply(e, null, schemaURI, instance, null);
   }
 }

@@ -70,7 +70,7 @@ public class AdditionalItems extends Keyword {
     StringBuilder sb = new StringBuilder();
 
     for (int i = processedCount; i < array.size(); i++) {
-      if (!context.apply(value, "", null, array.get(i), Integer.toString(i))) {
+      if (!context.apply(value, null, null, array.get(i), Integer.toString(i))) {
         if (context.isFailFast()) {
           return false;
         }
