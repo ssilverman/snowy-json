@@ -4,6 +4,13 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.11.0]
+
+### Fixed
+* `Strings.fromJSONPointerToken` now throws an exception if the token contains
+  a '/' character.
+* "error" annotations are now marked valid=true.
+
 ## [0.10.0]
 
 ### Added
