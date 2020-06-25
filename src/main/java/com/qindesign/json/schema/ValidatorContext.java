@@ -1072,7 +1072,7 @@ public final class ValidatorContext {
    * as usual.
    *
    * @param schema the schema, an object or a Boolean
-   * @param schemaPath the relative schema path, not in JSON Pointer form
+   * @param name the keyword name, not in JSON Pointer form
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
    * @param instancePath the relative instance path, not in JSON Pointer form
@@ -1081,7 +1081,7 @@ public final class ValidatorContext {
    *         because it doesn't validate against any declared meta-schema or
    *         because internal validation is failing.
    */
-  public boolean apply(JsonElement schema, String schemaPath, URI absSchemaLoc,
+  public boolean apply(JsonElement schema, String name, URI absSchemaLoc,
                        JsonElement instance, String instancePath)
       throws MalformedSchemaException
   {
@@ -1096,7 +1096,7 @@ public final class ValidatorContext {
     if (schema.isJsonObject()) {
       JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
-        URI id = getID(idElem, schemaPath + "/" + CoreId.NAME);
+        URI id = getID(idElem, name + "/" + CoreId.NAME);
         if (URIs.isNotFragmentOnly(id)) {
           absKeywordLocation = baseURI.resolve(id);
         }
@@ -1105,7 +1105,7 @@ public final class ValidatorContext {
 
     if (absKeywordLocation == null) {
       if (absSchemaLoc == null) {
-        absKeywordLocation = resolveAbsolute(state.absKeywordLocation, schemaPath);
+        absKeywordLocation = resolveAbsolute(state.absKeywordLocation, name);
       } else {
         absKeywordLocation = absSchemaLoc;
       }
@@ -1122,7 +1122,7 @@ public final class ValidatorContext {
       return true;
     }
 
-    String keywordLocation = resolvePointer(state.keywordLocation, schemaPath);
+    String keywordLocation = resolvePointer(state.keywordLocation, name);
     String instanceLocation = resolvePointer(state.instanceLocation, instancePath);
 
     State parentState = state;

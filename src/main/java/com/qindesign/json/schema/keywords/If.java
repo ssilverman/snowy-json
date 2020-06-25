@@ -34,6 +34,24 @@ import com.qindesign.json.schema.ValidatorContext;
 public class If extends Keyword {
   public static final String NAME = "if";
 
+  /**
+   * A keyword that simply applies a schema.
+   */
+  private static final class Applier extends Keyword {
+    protected Applier(String name) {
+      super(name);
+    }
+
+    @Override
+    protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
+                            ValidatorContext context) throws MalformedSchemaException {
+      return context.apply(value, "", null, instance, "");
+    }
+  }
+
+  private Applier thenK = new Applier("then");
+  private Applier elseK = new Applier("else");
+
   public If() {
     super(NAME);
   }
@@ -42,31 +60,21 @@ public class If extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    context.checkValidSchema(value);
     if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
       return true;
     }
 
-    JsonElement thenElem = parent.get("then");
-    if (thenElem != null) {
-      context.checkValidSchema(thenElem, "../then");
-    }
-    JsonElement elseElem = parent.get("else");
-    if (elseElem != null) {
-      context.checkValidSchema(elseElem, "../else");
-    }
-
-    // TODO: Normalize the schema paths
     if (context.apply(value, "", null, instance, "")) {
-      if (thenElem == null) {
-        return true;
+      JsonElement e = parent.get("then");
+      if (e != null) {
+        return context.applyKeyword(thenK, e, instance);
       }
-      return context.apply(thenElem, "../then", null, instance, "");
     } else {
-      if (elseElem == null) {
-        return true;
+      JsonElement e = parent.get("else");
+      if (e != null) {
+        return context.applyKeyword(elseK, e, instance);
       }
-      return context.apply(elseElem, "../else", null, instance, "");
     }
+    return true;
   }
 }
