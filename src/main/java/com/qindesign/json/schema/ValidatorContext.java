@@ -1198,6 +1198,11 @@ public final class ValidatorContext {
 
     boolean result;
     String msg = k.name();
+
+    // Copy the keyword state in case it changes underfoot
+    JSONPath keywordLoc = state.keywordLocation;
+    URI absKeywordLoc = state.absKeywordLocation;
+
     if (k.apply(schema, instance, state.schemaObject, this)) {
       result = true;
     } else {
@@ -1227,6 +1232,10 @@ public final class ValidatorContext {
       msg += " didn't validate";
       result = false;
     }
+
+    // Restore the keyword state that may have changed underfoot
+    state.keywordLocation = keywordLoc;
+    state.absKeywordParentLocation = absKeywordLoc;
 
     if (!hasError()) {
       addError(result, msg);
