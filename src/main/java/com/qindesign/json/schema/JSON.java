@@ -97,10 +97,9 @@ public final class JSON {
    *
    * @param in the input stream
    * @return the parsed JSON element.
-   * @throws IOException if there was a problem reading from the stream.
    * @throws JsonParseException if there was a parsing error.
    */
-  public static JsonElement parse(InputStream in) throws IOException {
+  public static JsonElement parse(InputStream in) {
     return parse(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
 
@@ -118,7 +117,7 @@ public final class JSON {
    * @see JsonParser#parseReader(Reader)
    * @see JsonParser#parseReader(JsonReader)
    */
-  public static JsonElement parse(Reader r) throws JsonParseException {
+  public static JsonElement parse(Reader r) {
     try {
       JsonReader jsonReader = new JsonReader(r);
       JsonElement e = Streams.parse(jsonReader);

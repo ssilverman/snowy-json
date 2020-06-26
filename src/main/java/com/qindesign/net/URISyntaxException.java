@@ -29,9 +29,9 @@ import java.util.Objects;
  * @see URI
  */
 public class URISyntaxException extends Exception {
-  private String input;
-  private String reason;
-  private int index;
+  private final String input;
+  private final String reason;
+  private final int index;
 
   /**
    * Creates a new exception.

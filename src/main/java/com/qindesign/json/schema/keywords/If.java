@@ -49,8 +49,8 @@ public class If extends Keyword {
     }
   }
 
-  private Applier thenK = new Applier("then");
-  private Applier elseK = new Applier("else");
+  private final Applier thenK = new Applier("then");
+  private final Applier elseK = new Applier("else");
 
   public If() {
     super(NAME);
