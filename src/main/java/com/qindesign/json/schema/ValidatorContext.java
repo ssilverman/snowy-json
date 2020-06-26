@@ -1235,7 +1235,7 @@ public final class ValidatorContext {
 
     // Restore the keyword state that may have changed underfoot
     state.keywordLocation = keywordLoc;
-    state.absKeywordParentLocation = absKeywordLoc;
+    state.absKeywordLocation = absKeywordLoc;
 
     if (!hasError()) {
       addError(result, msg);
