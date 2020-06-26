@@ -1131,9 +1131,6 @@ public final class ValidatorContext {
       throw new MalformedSchemaException("not a valid JSON Schema", absKeywordLocation);
     }
 
-    // Set this here because callers may need this
-    state.absKeywordLocation = absKeywordLocation;
-
     JsonObject schemaObject = schema.getAsJsonObject();
     if (schemaObject.size() == 0) {  // Empty schemas always validate
       return true;
@@ -1149,6 +1146,7 @@ public final class ValidatorContext {
     state.keywordParentLocation = keywordLocation;
     state.absKeywordParentLocation = absKeywordLocation;
     state.instanceLocation = instanceLocation;
+    state.absKeywordLocation = absKeywordLocation;
 
     // Sort the names in the schema by their required evaluation order
     // Also, more fun with streams

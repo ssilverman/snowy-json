@@ -17,6 +17,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * "error" annotations are now marked valid=true.
 * Annotations are now being properly collected for `then` and `else`.
 * Fixed `URI.toString()` and `toDecodedString()` by flipping their behaviour.
+* Fixed an absolute keyword location tracking bug.
 
 ## [0.10.0]
 
