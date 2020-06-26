@@ -422,6 +422,12 @@ public class URI implements Comparable<URI> {
     return decodedPath;
   }
 
+  /**
+   * Returns the raw <em>path</em> component. This will never be {@code null},
+   * but it may be empty.
+   *
+   * @return the raw <em>path</em> component, never {@code null}.
+   */
   public String rawPath() {
     return path;
   }
@@ -951,7 +957,7 @@ public class URI implements Comparable<URI> {
   public String toString() {
     if (string == null) {
       // Call the accessor methods so they can decode
-      string = toRawString(scheme(), authority(), path(), query(), fragment());
+      string = toRawString(scheme, authority, path, query, fragment);
     }
     return string;
   }
@@ -963,7 +969,7 @@ public class URI implements Comparable<URI> {
    */
   public String toDecodedString() {
     if (decodedString == null) {
-      decodedString = toRawString(scheme, authority, path, query, fragment);
+      decodedString = toRawString(scheme(), authority(), path(), query(), fragment());
     }
     return decodedString;
   }
