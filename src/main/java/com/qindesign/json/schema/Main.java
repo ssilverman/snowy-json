@@ -226,7 +226,7 @@ public class Main {
             ae = new JsonPrimitive((Number) a.value);
           } else if (a.value instanceof Collection) {
             JsonArray arr = new JsonArray();
-            for (Object e : (Collection) a.value) {
+            for (Object e : (Collection<?>) a.value) {
               arr.add(String.valueOf(e));
             }
             ae = arr;
