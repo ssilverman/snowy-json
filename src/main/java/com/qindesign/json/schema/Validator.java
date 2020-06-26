@@ -219,8 +219,8 @@ public final class Validator {
                                  URI baseURI,
                                  Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
                                  Options options,
-                                 Map<String, Map<String, Map<String, Annotation>>> annotations,
-                                 Map<String, Map<String, Annotation>> errors)
+                                 Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
+                                 Map<JSONPath, Map<JSONPath, Annotation>> errors)
       throws MalformedSchemaException
   {
     Objects.requireNonNull(schema, "schema");
@@ -674,7 +674,7 @@ public final class Validator {
     Id id = new Id(baseURI);
     id.value = null;
     id.base = null;
-    id.path = "";
+    id.path = JSONPath.absolute();
     id.root = newBase;
     id.rootURI = baseURI;
     ids.putIfAbsent(id, e);
@@ -702,7 +702,7 @@ public final class Validator {
    *         vis-à-vis IDs.
    */
   private static URI scanIDs(URI rootURI, URI rootID, URI baseURI,
-                             String parentID, String name,
+                             JSONPath parentID, String name,
                              JsonElement parent, JsonElement e,
                              Map<Id, JsonElement> ids,
                              Specification spec)
@@ -712,11 +712,11 @@ public final class Validator {
     }
 
     // Create the parent ID of the processed sub-elements
-    String newParentID;
+    JSONPath newParentID;
     if (parent == null) {
-      newParentID = "";
+      newParentID = JSONPath.absolute();
     } else {
-      newParentID = parentID + "/" + Strings.jsonPointerToken(name);
+      newParentID = parentID.append(name);
     }
 
     if (e.isJsonArray()) {
@@ -742,7 +742,7 @@ public final class Validator {
         URI uri = getID(
             value,
             spec,
-            () -> Strings.jsonPointerToURI(newParentID + "/" + CoreId.NAME));
+            () -> Strings.jsonPointerToURI(newParentID.append(CoreId.NAME).toString()));
 
         Id id = new Id(baseURI.resolve(uri));
         id.value = value.getAsString();
@@ -756,12 +756,12 @@ public final class Validator {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
                 " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(newParentID));
+                Strings.jsonPointerToURI(newParentID.toString()));
           }
         } else {
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException("ID not unique",
-                                               Strings.jsonPointerToURI(newParentID));
+                                               Strings.jsonPointerToURI(newParentID.toString()));
           }
 
           baseURI = id.id;
@@ -777,7 +777,7 @@ public final class Validator {
         if (value != null) {
           String anchor = getAnchor(
               value,
-              () -> Strings.jsonPointerToURI(newParentID + "/" + CoreAnchor.NAME));
+              () -> Strings.jsonPointerToURI(newParentID.append(CoreAnchor.NAME).toString()));
 
           Id id = new Id(baseURI.resolve(URI.parseUnchecked("#" + anchor)));
           id.value = anchor;
@@ -789,7 +789,7 @@ public final class Validator {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
                 " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(newParentID));
+                Strings.jsonPointerToURI(newParentID.toString()));
           }
         }
       }

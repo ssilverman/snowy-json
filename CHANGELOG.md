@@ -6,6 +6,11 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ## [0.11.0]
 
+### Changed
+* Introduced a `JSONPath` class that replaces strings for path representation.
+  One of the advantages of this approach is not having to worry about "/"
+  characters in names or JSON Pointer syntax.
+
 ### Fixed
 * `Strings.fromJSONPointerToken` now throws an exception if the token contains
   a '/' character.

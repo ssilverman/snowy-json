@@ -107,8 +107,8 @@ public class Main {
     // Uncomment to do auto-resolution
 //    opts.set(Option.AUTO_RESOLVE, true);
 
-    Map<String, Map<String, Annotation>> errors = new HashMap<>();
-    Map<String, Map<String, Map<String, Annotation>>> annotations = new HashMap<>();
+    Map<JSONPath, Map<JSONPath, Annotation>> errors = new HashMap<>();
+    Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations = new HashMap<>();
 
     long time = System.currentTimeMillis();
     boolean result = Validator.validate(schema, instance, schemaID,
@@ -163,7 +163,7 @@ public class Main {
    * @return a JSON tree containing the formatted Basic output.
    */
   private static JsonObject basicOutput(boolean result,
-                                        Map<String, Map<String, Annotation>> errors) {
+                                        Map<JSONPath, Map<JSONPath, Annotation>> errors) {
     JsonObject root = new JsonObject();
     root.add("valid", new JsonPrimitive(result));
     JsonArray errorArr = new JsonArray();
@@ -171,9 +171,9 @@ public class Main {
     errors.forEach((instanceLoc, map) -> {
       map.forEach((schemaLoc, a) -> {
         JsonObject error = new JsonObject();
-        error.add("keywordLocation", new JsonPrimitive(a.keywordLocation));
+        error.add("keywordLocation", new JsonPrimitive(a.keywordLocation.toString()));
         error.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
-        error.add("instanceLocation", new JsonPrimitive(a.instanceLocation));
+        error.add("instanceLocation", new JsonPrimitive(a.instanceLocation.toString()));
 
         ValidationResult vr = (ValidationResult) a.value;
         if (vr.result) {
@@ -197,7 +197,7 @@ public class Main {
    * @return a JSON tree containing the output.
    */
   private static JsonObject annotationOutput(
-      Map<String, Map<String, Map<String, Annotation>>> annotations) {
+      Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations) {
     JsonObject root = new JsonObject();
     JsonArray annotationArr = new JsonArray();
     root.add("annotations", annotationArr);
@@ -205,8 +205,8 @@ public class Main {
       byName.forEach((name, bySchemaLoc) -> {
         bySchemaLoc.forEach((schemaLoc, a) -> {
           JsonObject o = new JsonObject();
-          o.add("instanceLocation", new JsonPrimitive(a.instanceLocation));
-          o.add("keywordLocation", new JsonPrimitive(a.keywordLocation));
+          o.add("instanceLocation", new JsonPrimitive(a.instanceLocation.toString()));
+          o.add("keywordLocation", new JsonPrimitive(a.keywordLocation.toString()));
           o.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
           JsonObject ao = new JsonObject();
           o.add("annotation", ao);

@@ -24,6 +24,7 @@ package com.qindesign.json.schema.keywords;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.JSON;
+import com.qindesign.json.schema.JSONPath;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Specification;
@@ -93,12 +94,13 @@ public class Dependencies extends Keyword {
         Set<String> names = new HashSet<>();
         for (JsonElement name : e.getValue().getAsJsonArray()) {
           if (!JSON.isString(name)) {
-            context.schemaError("not a string", e.getKey() + "/" + index);
+            context.schemaError("not a string",
+                                JSONPath.fromElement(e.getKey()).append(Integer.toString(index)));
             return false;
           }
           if (!names.add(name.getAsString())) {
             context.schemaError("\"" + Strings.jsonString(name.getAsString()) + "\": not unique",
-                                e.getKey() + "/" + index);
+                                JSONPath.fromElement(e.getKey()).append(Integer.toString(index)));
             return false;
           }
           if (!object.has(name.getAsString())) {

@@ -121,12 +121,12 @@ public final class ValidatorContext {
     URI recursiveBaseURI;
 
     // Parent state, may be null
-    String keywordParentLocation;
+    JSONPath keywordParentLocation;
     URI absKeywordParentLocation;
 
-    String keywordLocation;
+    JSONPath keywordLocation;
     URI absKeywordLocation;
-    String instanceLocation;
+    JSONPath instanceLocation;
 
     /** Flag that indicates whether to collect annotations, an optimization. */
     boolean isCollectSubAnnotations;
@@ -226,13 +226,13 @@ public final class ValidatorContext {
    * Annotations collection, maps element location to its annotations:<br>
    * instance location -> name -> schema location -> value
    */
-  private final Map<String, Map<String, Map<String, Annotation>>> annotations;
+  private final Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations;
 
   /**
    * Error "annotation" collection, maps element location to its errors:<br>
    * instance location -> schema location -> value
    */
-  private final Map<String, Map<String, Annotation>> errors;
+  private final Map<JSONPath, Map<JSONPath, Annotation>> errors;
 
   /**
    * The initial base URI passed in with the constructor. This may or may not
@@ -310,8 +310,8 @@ public final class ValidatorContext {
   public ValidatorContext(URI baseURI,
                           Map<Id, JsonElement> knownIDs, Map<URI, URL> knownURLs,
                           Set<URI> validatedSchemas, Options options,
-                          Map<String, Map<String, Map<String, Annotation>>> annotations,
-                          Map<String, Map<String, Annotation>> errors) {
+                          Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
+                          Map<JSONPath, Map<JSONPath, Annotation>> errors) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(knownURLs, "knownURLs");
@@ -353,9 +353,9 @@ public final class ValidatorContext {
     state.isRoot = true;
     state.keywordParentLocation = null;
     state.absKeywordParentLocation = null;
-    state.keywordLocation = "";
+    state.keywordLocation = JSONPath.absolute();
     state.absKeywordLocation = baseURI;
-    state.instanceLocation = "";
+    state.instanceLocation = JSONPath.absolute();
     state.isCollectSubAnnotations = true;
 
     // Options
@@ -555,7 +555,7 @@ public final class ValidatorContext {
    *
    * @return the location of the parent of the current keyword.
    */
-  public String schemaParentLocation() {
+  public JSONPath schemaParentLocation() {
     return state.keywordParentLocation;
   }
 
@@ -569,7 +569,7 @@ public final class ValidatorContext {
    *
    * @return the location of the current keyword.
    */
-  public String schemaLocation() {
+  public JSONPath schemaLocation() {
     return state.keywordLocation;
   }
 
@@ -817,7 +817,7 @@ public final class ValidatorContext {
    * @param name the annotation name
    * @return a map keyed by schema location.
    */
-  public Map<String, Annotation> annotations(String name) {
+  public Map<JSONPath, Annotation> annotations(String name) {
     if (!isCollectAnnotations) {
       return Collections.emptyMap();
     }
@@ -841,48 +841,65 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the path with the base URI. If the given path is empty, this returns
-   * the base URI. It is assumed that the base contains an absolute part and a
-   * JSON Pointer part in its fragment. It is expected that the path is not in
-   * JSON Pointer form.
+   * Merges the path with the base URI. If the given path is {@code null} then
+   * this returns the base URI. It is assumed that the base contains an absolute
+   * part and a JSON Pointer part in its fragment.
    *
    * @param base the base URI
-   * @param path path to append, not in JSON Pointer form
+   * @param path path to append
    * @return the merged URI.
    */
-  private static URI resolveAbsolute(URI base, String path) {
+  private static URI resolveAbsolute(URI base, JSONPath path) {
     if (path == null) {
       return base;
     }
+
+    String fragment;
+    if (path.isAbsolute()) {
+      fragment = path.toString();
+    } else {
+      fragment = Optional.ofNullable(base.fragment()).orElse("") +
+                 "/" + path;
+    }
+    if (fragment.indexOf('.') >= 0) {  // Very rudimentary check
+      fragment = JSONPath.fromJSONPointer(fragment).normalize().toString();
+    }
     try {
-      if (path.startsWith("/")) {
-        return base.resolve(new URI(null, null, null, null, path));
-      }
-      String fragment = base.fragment();
-      if (fragment == null) {
-        fragment = "";
-      }
-      return base.resolve(new URI(null, null, null, null, fragment + "/" + path));
+      return base.resolve(new URI(null, null, null, null, fragment));
     } catch (URISyntaxException ex) {
       throw new IllegalArgumentException("Unexpected bad URI", ex);
     }
   }
 
   /**
+   * Merges the given name with the base URI. If the name is {@code null} then
+   * this returns the base URI. It is assumed that the base contains an absolute
+   * part and a JSON Pointer part in its fragment.
+   *
+   * @param base the base URI
+   * @param name the name to append
+   * @return the merged URI.
+   */
+  private static URI resolveAbsolute(URI base, String name) {
+    if (name == null) {
+      return resolveAbsolute(base, (JSONPath) null);
+    }
+    return resolveAbsolute(base, JSONPath.fromElement(name));
+  }
+
+  /**
    * Merges the given name with the base pointer. If the name is {@code null}
-   * then this returns the base pointer. It is assumed that the base path is a
-   * valid JSON Pointer and that the name is not. This encodes the name to a
-   * valid JSON Pointer.
+   * then this returns the base pointer.
    *
    * @param base the base pointer
    * @param name the name to append, {@code null} to not append anything
    * @return the merged pointer, escaping the path as needed.
    */
-  private static String resolvePointer(String base, String name) {
+  private static JSONPath resolvePointer(JSONPath base, String name) {
     if (name == null) {
       return base;
     }
-    return base + "/" + Strings.jsonPointerToken(name);
+    return base.append(name);
   }
 
   /**
@@ -891,11 +908,23 @@ public final class ValidatorContext {
    * keyword location.
    *
    * @param err the error message
+   * @param path the relative child element path, {@code null} for the
+   *             current element
+   * @throws MalformedSchemaException always.
+   */
+  public void schemaError(String err, JSONPath path) throws MalformedSchemaException {
+    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, path));
+  }
+
+  /**
+   * Calls {@link #schemaError(String, JSONPath)}.
+   *
+   * @param err the error message
    * @param name the child element name, {@code null} for the current element
    * @throws MalformedSchemaException always.
    */
   public void schemaError(String err, String name) throws MalformedSchemaException {
-    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, name));
+    schemaError(err, JSONPath.fromElement(name));
   }
 
   /**
@@ -907,7 +936,7 @@ public final class ValidatorContext {
    *         valid schema.
    */
   public void schemaError(String err) throws MalformedSchemaException {
-    schemaError(err, null);
+    schemaError(err, (JSONPath) null);
   }
 
   /**
@@ -960,21 +989,13 @@ public final class ValidatorContext {
   public JsonElement followPointer(URI baseURI, JsonElement e, String ptr)
       throws MalformedSchemaException {
     int i = -1;
-    StringBuilder path = new StringBuilder();
+    JSONPath path = JSONPath.absolute();
     URI newBase = baseURI;
 
     // Split using a negative limit so that trailing empty strings are allowed
-    for (String part : ptr.split("/", -1)) {
+    for (String part : JSONPath.fromJSONPointer(ptr)) {
       i++;
-
-      // Only ignore the first empty string, the one before the initial "/"
-      // All others could be zero-length member names
-      if (i == 0) {
-        if (part.isEmpty()) {
-          continue;
-        }
-      }
-      path.append('/').append(part);
+      path = path.append(part);
 
       if (e == null) {
         return null;
@@ -999,14 +1020,14 @@ public final class ValidatorContext {
 
       JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
       if (i > 1 && idElem != null && JSON.isString(idElem)) {
-        URI id = getID(idElem, path + "/" + CoreId.NAME);
+        URI id = getID(idElem, path.append(CoreId.NAME));
         if (URIs.isNotFragmentOnly(id)) {
           newBase = newBase.resolve(id);
         }
       }
 
       // Transform the part
-      e = e.getAsJsonObject().get(Strings.fromJSONPointerToken(part));
+      e = e.getAsJsonObject().get(part);
     }
     if (e != null) {
       state.baseURI = newBase;
@@ -1021,8 +1042,6 @@ public final class ValidatorContext {
    * only a fragment if the ID does not represent a new base, for example if
    * it's an anchor. This condition can be checked with
    * {@link URIs#isNotFragmentOnly(URI)}.
-   * <p>
-   * This expects the path to not be in JSON Pointer form.
    *
    * @param e the ID element
    * @param path the relative path of the element, {@code null} for the
@@ -1032,7 +1051,7 @@ public final class ValidatorContext {
    * @see URIs#isNotFragmentOnly(URI)
    * @see Validator#getID(JsonElement, Specification, Supplier)
    */
-  public URI getID(JsonElement e, String path) throws MalformedSchemaException {
+  public URI getID(JsonElement e, JSONPath path) throws MalformedSchemaException {
     return Validator.getID(e,
                            specification(),
                            () -> resolveAbsolute(state.absKeywordLocation, path));
@@ -1090,7 +1109,11 @@ public final class ValidatorContext {
     if (schema.isJsonObject()) {
       JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
-        URI id = getID(idElem, Optional.ofNullable(name).orElse("") + "/" + CoreId.NAME);
+        URI id = getID(idElem,
+                       Optional.ofNullable(name)
+                           .map(JSONPath::fromElement)
+                           .orElse(JSONPath.relative())
+                           .append(CoreId.NAME));
         if (URIs.isNotFragmentOnly(id)) {
           absKeywordLocation = baseURI.resolve(id);
         }
@@ -1116,8 +1139,8 @@ public final class ValidatorContext {
       return true;
     }
 
-    String keywordLocation = resolvePointer(state.keywordLocation, name);
-    String instanceLocation = resolvePointer(state.instanceLocation, instanceName);
+    JSONPath keywordLocation = resolvePointer(state.keywordLocation, name);
+    JSONPath instanceLocation = resolvePointer(state.instanceLocation, instanceName);
 
     State parentState = state;
     state = state.copy();
@@ -1185,18 +1208,8 @@ public final class ValidatorContext {
       if (isCollectAnnotations) {
         // Note that we're also checking for equality in case the current
         // failing keyword has set some annotations
-        Predicate<Map.Entry<String, Annotation>> pred = e -> {
-          String key = e.getKey();
-          if (key.startsWith(state.keywordLocation)) {
-            if (key.length() == state.keywordLocation.length()) {
-              return true;
-            }
-            if (key.charAt(state.keywordLocation.length()) == '/') {
-              return true;
-            }
-          }
-          return false;
-        };
+        Predicate<Map.Entry<JSONPath, Annotation>> pred =
+            e -> e.getKey().startsWith(state.keywordLocation);
         if (!isCollectFailedAnnotations) {
           annotations.getOrDefault(state.instanceLocation, Collections.emptyMap())
               .values()

@@ -83,7 +83,10 @@ public class CoreRef extends Keyword {
         Id id = context.findID(uri);
         if (id != null) {  // May be no anchor in earlier specs
           try {
-            schemaURI = new URI(id.base.scheme(), id.base.authority(), id.base.path(), id.base.query(), id.path);
+            schemaURI =
+                new URI(id.base.scheme(), id.base.authority(),
+                        id.base.path(),
+                        id.base.query(), id.path.toString());
           } catch (URISyntaxException ex) {
             context.schemaError("unexpected bad URI");
             return false;

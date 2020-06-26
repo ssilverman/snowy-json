@@ -126,8 +126,8 @@ public final class Linter {
    * @param path the path
    * @param msg the message
    */
-  private static void addIssue(Map<List<String>, List<String>> issues,
-                               List<String> path,
+  private static void addIssue(Map<JSONPath, List<String>> issues,
+                               JSONPath path,
                                String msg) {
     issues.computeIfAbsent(path, k -> new ArrayList<>()).add(msg);
   }
@@ -139,7 +139,7 @@ public final class Linter {
    * @param parentName the parent name to check
    * @return whether the parent is {@code parentName}.
    */
-  private static boolean isInParent(List<String> path, String parentName) {
+  private static boolean isInParent(JSONPath path, String parentName) {
     if (path.size() < 2) {
       return false;
     }
@@ -153,7 +153,7 @@ public final class Linter {
    * @param name the name to check
    * @return whether the last element is {@code name}.
    */
-  private static boolean is(List<String> path, String name) {
+  private static boolean is(JSONPath path, String name) {
     if (path.isEmpty()) {
       return false;
     }
@@ -166,7 +166,7 @@ public final class Linter {
    * @param path the path
    * @return whether the last element is unknown.
    */
-  private static boolean isUnknown(List<String> path) {
+  private static boolean isUnknown(JSONPath path) {
     if (path.isEmpty()) {
       return false;
     }
@@ -186,8 +186,8 @@ public final class Linter {
    * @return the linter results, mapping locations to a list of issues.
    * @see Strings#jsonPointerToken(String)
    */
-  public static Map<List<String>, List<String>> check(JsonElement schema) {
-    Map<List<String>, List<String>> issues = new HashMap<>();
+  public static Map<JSONPath, List<String>> check(JsonElement schema) {
+    Map<JSONPath, List<String>> issues = new HashMap<>();
 
     JSON.traverse(schema, (e, parent, path, state) -> {
       if (e.isJsonNull()) {

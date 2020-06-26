@@ -29,8 +29,8 @@ import java.util.Objects;
  */
 public final class Annotation {
   public final String name;
-  public String instanceLocation;
-  public String keywordLocation;
+  public JSONPath instanceLocation;
+  public JSONPath keywordLocation;
   public URI absKeywordLocation;
   public Object value;
 

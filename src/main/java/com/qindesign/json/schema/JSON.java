@@ -39,8 +39,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -178,7 +176,7 @@ public final class JSON {
      * @param path the full path to the element, a list of path elements
      * @param state holds more information about the element
      */
-    void visit(JsonElement e, JsonElement parent, List<String> path, TraverseState state);
+    void visit(JsonElement e, JsonElement parent, JSONPath path, TraverseState state);
   }
 
   /**
@@ -216,7 +214,7 @@ public final class JSON {
    * @param visitor the visitor
    */
   public static void traverse(JsonElement e, JsonElementVisitor visitor) {
-    traverse(e, null, new ArrayList<>(), new TraverseState(), visitor);
+    traverse(e, null, JSONPath.absolute(), new TraverseState(), visitor);
   }
 
   /**
@@ -230,7 +228,7 @@ public final class JSON {
    * @param state the tree state
    * @param visitor the visitor
    */
-  private static void traverse(JsonElement e, JsonElement parent, List<String> path,
+  private static void traverse(JsonElement e, JsonElement parent, JSONPath path,
                                TraverseState state,
                                JsonElementVisitor visitor) {
     // Possibly alter the state
@@ -240,27 +238,23 @@ public final class JSON {
       state.spec = spec;
     }
 
-    visitor.visit(e, parent, Collections.unmodifiableList(new ArrayList<>(path)), state);
+    visitor.visit(e, parent, path, state);
 
     if (e.isJsonPrimitive() || e.isJsonNull()) {
       return;
     }
 
-    path.add("");
     if (e.isJsonArray()) {
       int index = 0;
       for (var item : e.getAsJsonArray()) {
-        path.set(path.size() - 1, Integer.toString(index));
-        traverse(item, e, path, state, visitor);
+        traverse(item, e, path.append(Integer.toString(index)), state, visitor);
         index++;
       }
     } else {
       // Process everything else
       for (var entry : e.getAsJsonObject().entrySet()) {
-        path.set(path.size() - 1, entry.getKey());
-        traverse(entry.getValue(), e, path, state, visitor);
+        traverse(entry.getValue(), e, path.append(entry.getKey()), state, visitor);
       }
     }
-    path.remove(path.size() - 1);
   }
 }

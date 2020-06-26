@@ -28,6 +28,7 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Option;
+import com.qindesign.json.schema.JSONPath;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import java.util.Map;
@@ -61,13 +62,13 @@ public class UnevaluatedItems extends Keyword {
       return true;
     }
 
-    String parentPrefix = context.schemaParentLocation() + "/";
+    JSONPath parentPath = context.schemaParentLocation();
     int max = 0;
 
     // Returns true if we need to return true and false to not return
-    Function<Map<String, Annotation>, Boolean> f = (Map<String, Annotation> a) -> {
+    Function<Map<JSONPath, Annotation>, Boolean> f = (Map<JSONPath, Annotation> a) -> {
       for (var e : a.entrySet()) {
-        if (!e.getKey().startsWith(parentPrefix)) {
+        if (e.getKey().size() <= parentPath.size() || !e.getKey().startsWith(parentPath)) {
           continue;
         }
         if (Boolean.TRUE.equals(e.getValue().value)) {
@@ -85,9 +86,9 @@ public class UnevaluatedItems extends Keyword {
     }
 
     // "items"
-    Map<String, Annotation> annotations = context.annotations(Items.NAME);
+    Map<JSONPath, Annotation> annotations = context.annotations(Items.NAME);
     for (var e : annotations.entrySet()) {
-      if (!e.getKey().startsWith(parentPrefix)) {
+      if (e.getKey().size() <= parentPath.size() || !e.getKey().startsWith(parentPath)) {
         continue;
       }
       Object v = e.getValue().value;

@@ -27,6 +27,7 @@ import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Option;
+import com.qindesign.json.schema.JSONPath;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.ValidatorContext;
@@ -65,15 +66,15 @@ public class UnevaluatedProperties extends Keyword {
     }
     JsonObject object = instance.getAsJsonObject();
 
-    String parentPrefix = context.schemaParentLocation() + "/";
+    JSONPath parentPath = context.schemaParentLocation();
     Set<String> validated = new HashSet<>();
 
-    Consumer<Map<String, Annotation>> f = (Map<String, Annotation> a) -> {
+    Consumer<Map<JSONPath, Annotation>> f = (Map<JSONPath, Annotation> a) -> {
       if (validated.size() >= object.size()) {
         return;
       }
       for (var e : a.entrySet()) {
-        if (!e.getKey().startsWith(parentPrefix)) {
+        if (e.getKey().size() <= parentPath.size() || !e.getKey().startsWith(parentPath)) {
           continue;
         }
         if (e.getValue().value instanceof Set<?>) {

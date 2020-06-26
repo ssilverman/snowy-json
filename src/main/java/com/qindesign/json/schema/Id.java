@@ -51,8 +51,8 @@ public final class Id {
    */
   public URI base;
 
-  /** The JSON Pointer to this element. */
-  public String path;
+  /** The path to this element. */
+  public JSONPath path;
 
   /** The root ID, may or may not be the same as the root URI. */
   public URI root;
