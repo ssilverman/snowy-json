@@ -355,7 +355,7 @@ public final class Validator {
 
   /**
    * Examines the schema for any $schema keyword to see if the value is valid
-   * and known. This will return that value, or {@code null} if the valus is
+   * and known. This will return that value, or {@code null} if the value is
    * invalid or unknown. This will return {@code null} if the schema is not
    * an object, i.e. for Boolean and non-object values.
    *
