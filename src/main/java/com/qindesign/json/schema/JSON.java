@@ -188,21 +188,27 @@ public final class JSON {
     private Specification spec;
 
     /**
+     * Default constructor.
+     */
+    TraverseState() {
+    }
+
+    /**
+     * Copy constructor.
+     *
+     * @param state the state to copy
+     */
+    TraverseState(TraverseState state) {
+      this.spec = state.spec;
+    }
+
+    /**
      * Returns the specification.
      *
      * @return the specification.
      */
     public Specification spec() {
       return spec;
-    }
-
-    /**
-     * Returns a copy of the object.
-     */
-    private TraverseState copy() {
-      TraverseState copy = new TraverseState();
-      copy.spec = this.spec;
-      return copy;
     }
   }
 
@@ -234,7 +240,7 @@ public final class JSON {
     // Possibly alter the state
     Specification spec = Validator.specificationFromSchema(e);
     if (spec != null) {
-      state = state.copy();
+      state = new TraverseState(state);
       state.spec = spec;
     }
 
