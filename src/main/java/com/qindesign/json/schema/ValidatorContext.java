@@ -326,16 +326,6 @@ public final class ValidatorContext {
     if (URIs.hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("baseURI has a non-empty fragment");
     }
-    if (baseURI.rawFragment() == null) {
-      // Ensure there's an empty fragment
-      try {
-        baseURI = new URI(baseURI.scheme(), baseURI.authority(),
-                          baseURI.path(),
-                          baseURI.query(), "");
-      } catch (URISyntaxException ex) {
-        throw new IllegalArgumentException("Unexpected bad base URI");
-      }
-    }
 
     this.baseURI = baseURI.normalize();
     this.knownIDs = knownIDs;
