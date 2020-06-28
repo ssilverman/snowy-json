@@ -2,7 +2,9 @@
 
 Version: 0.11.0
 
-The main goal of this project is to be a reference JSON Schema validator.
+The main goal of this project is to be a reference JSON Schema validator. While
+it provides a few working applications, it's meant primarily as an API for
+building your own toolset.
 
 See: [JSON Schema](https://json-schema.org)
 
