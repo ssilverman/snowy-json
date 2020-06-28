@@ -95,14 +95,11 @@ started right away:
 
 This project uses Google's [Gson](https://github.com/google/gson) and
 [Guava](https://github.com/google/guava) libraries under the hood. Gson is used
-for the JSON parsing, and Guava is used to support things such as validation,
-tree walking, and class finding.
+for the JSON parsing, and Guava is used to support things such as validation and
+class finding.
 
-This means several things:
+This means these things:
 1. The external API for this project uses Gson's JSON object model.
-2. Some validation operations, such as for internationalized hostnames and IRIs,
-   are processed according to earlier standards than what is specified in the
-   JSON Schema specification. These will be updated when Guava is updated.
 
 ## Limitations
 
