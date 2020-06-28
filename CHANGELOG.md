@@ -6,10 +6,19 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ## [0.11.0]
 
+### Added
+* Added a rudimentary schema coverage tool, `Coverage`.
+* Added a `Comparable` implementation to `JSONPath`.
+
 ### Changed
 * Introduced a `JSONPath` class that replaces strings for path representation.
   One of the advantages of this approach is not having to worry about "/"
   characters in names or JSON Pointer syntax.
+* Other updates, optimizations, refactors, and improvements.
+* `JSONPath.fromJSONPointer` changed to return an absolute path for
+  empty strings.
+* Errors are now mapped in schema->instance order instead of instance->schema
+  order. This is now the reverse of how annotations are mapped.
 
 ### Fixed
 * `Strings.fromJSONPointerToken` now throws an exception if the token contains
