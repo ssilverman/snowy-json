@@ -131,6 +131,15 @@
                             <mainClass>com.qindesign.json.schema.Linter</mainClass>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>coverage</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.qindesign.json.schema.Coverage</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
