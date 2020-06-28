@@ -24,6 +24,7 @@ package com.qindesign.json.schema;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.keywords.*;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
@@ -44,7 +45,10 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * A rudimentary linter.
+ * A rudimentary linter. This program takes one argument:
+ * <ol>
+ * <li>Schema path or URL</li>
+ * </ol>
  */
 public final class Linter {
   private static final Class<?> CLASS = Linter.class;
@@ -97,6 +101,13 @@ public final class Linter {
       "required", "title", "type", "unevaluatedItems",
       "unevaluatedProperties", "uniqueItems", "writeOnly");
 
+  /**
+   * Main program entry point.
+   *
+   * @param args the program arguments
+   * @throws IOException if there was an error reading the file.
+   * @throws JsonParseException if there was an error parsing the JSON.
+   */
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
       System.out.println("Usage: " + CLASS.getName() + " <schema>");

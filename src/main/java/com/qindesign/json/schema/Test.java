@@ -46,7 +46,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Runs the test suite for multiple specifications.
+ * Runs the test suite for multiple specifications. This program takes
+ * one argument:
+ * <ol>
+ * <li>The path to the test suite</li>
+ * </ol>
  */
 public class Test {
   private static final Class<?> CLASS = Test.class;
@@ -84,6 +88,12 @@ public class Test {
     long totalDuration;  // The duration including overhead
   }
 
+  /**
+   * Main program entry point.
+   *
+   * @param args the program arguments
+   * @throws IOException if there was some I/O error.
+   */
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
       System.out.println("Usage: " + CLASS.getName() + " <suite location>");

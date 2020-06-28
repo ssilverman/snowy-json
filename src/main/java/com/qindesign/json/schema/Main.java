@@ -46,6 +46,15 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A rudimentary schema coverage checker. This is an example program.
+ * <p>
+ * This program takes two arguments:
+ * <ol>
+ * <li>Schema path or URL</li>
+ * <li>Instance path or URL</li>
+ * </ol>
+ */
 public class Main {
   private static final Class<?> CLASS = Main.class;
 
