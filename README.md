@@ -30,10 +30,11 @@ See: [JSON Schema](https://json-schema.org)
    1. [Program execution with Maven](#program-execution-with-maven)
 9. [The linter](#the-linter)
    1. [Doing your own linting](#doing-your-own-linting)
-10. [Future plans](#future-plans)
-11. [References](#references)
-12. [An ending thought](#an-ending-thought)
-13. [License](#license)
+10. [The coverage checker](#the-coverage-checker)
+11. [Future plans](#future-plans)
+12. [References](#references)
+13. [An ending thought](#an-ending-thought)
+14. [License](#license)
 
 ## Features
 
@@ -318,10 +319,12 @@ to manage the project.  This section only discusses Maven usage.
 Maven takes care of project dependencies for you so you don't have to manage the
 classpath or downloads.
 
-Currently, there are three predefined execution targets:
+Currently, there are four predefined execution targets:
 1. `main`: Executes `Main`. Validates an instance against a schema.
 2. `test`: Executes `Test`. Runs the test suite.
 3. `linter`: Executes `Linter`. Checks a schema.
+4. `coverage`: Executed `Coverage`. Does a schema coverage check
+   after validation.
 
 This section shows some simple execution examples. There's more information
 about the included programs below.
@@ -418,14 +421,54 @@ JSON.traverse(schema, (e, parent, path, state) -> {
 });
 ```
 
+## The coverage checker
+
+The coverage checker works similarly to the main validator, except that after
+validation, it prints out the schema coverage results.
+
+It does not include schema paths that are children of any "properties" or
+"$defs" or "definitions" elements (depending on the specification) because those
+are not schema keywords. This matches how errors and annotations are collected.
+However, this tool implementation will include paths to unknown keywords and
+their children due to its simplicity and rudimentary-ness.
+
+For example:
+```json
+{
+    "properties": {
+        "x": { "type": "number" }
+    },
+    "unknown": {
+        "a": {}
+    },
+    "$defs": {
+        "y": { "type":  "number" }
+    }
+}
+```
+
+The following elements will be included when considering the total set of
+schema paths:
+1. `` (the empty string)
+2. `/properties`
+3. `/properties/x/type`
+4. `/unknown`
+5. `/unknown/a`
+6. `/$defs`
+7. `/$defs/y/type`
+
+The following elements will not be included:
+1. `/properties/x`
+2. `/$defs/y`
+
 ## Future plans
 
 There are plans to explore supporting more features, including:
 
 1. Custom vocabulary support.
-2. Output formatting. All the information is currently there, but the caller
-   must process and organize it.
-3. Schema and instance coverage.
+2. More output formatting. All the information is currently there, but the
+   caller must process and organize it.
+3. Instance coverage.
 
 ## References
 
