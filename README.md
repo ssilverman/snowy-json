@@ -32,6 +32,7 @@ See: [JSON Schema](https://json-schema.org)
    1. [Program execution with Maven](#program-execution-with-maven)
 9. [The linter](#the-linter)
    1. [Doing your own linting](#doing-your-own-linting)
+      1. [Linting by traversing the tree](#linting-by-traversing-the-tree)
 10. [The coverage checker](#the-coverage-checker)
 11. [Future plans](#future-plans)
 12. [References](#references)
@@ -406,11 +407,41 @@ schema. It does currently check for the following things:
 
 ### Doing your own linting
 
-The `JSON` class has a `traverse` method that does a preorder tree traversal.
-It's what the linter uses internally. It's possible to use this to write your
-own linting rules.
+It's possible to add your own rules to the linter. There are four important
+concepts to know about when adding rules:
+1. A rule may optionally be assigned to execute for a specific element type. For
+   example, a rule added via `Linter.addStringRule` will execute if the current
+   element is a primitive string.
+2. A rule learns about the current state of the JSON tree from a context
+   object parameter, an instance of `Linter.Context`.
+3. Any detected issues are sent to the context.
+4. The rules operate in addition to the existing linter rules.
 
 The following example snippet tests for the existence of any "anyOf"
+schema keywords:
+
+```java
+JsonElement schema;
+// ...load the schema...
+Linter linter = new Linter();
+linter.addRule(context -> {
+  // This could optionally check if the parent is "properties" or
+  // a definitions keyword
+  if (context.is("anyOf")) {
+    context.addIssue("anyOf detected");
+  }
+});
+var issues = linter.check();
+// ...print the issues...
+```
+
+#### Linting by traversing the tree
+
+The `JSON` class has a `traverse` method that does a preorder tree traversal.
+It's what the linter uses internally. It's also possible to use this to write
+your own linting rules.
+
+The following example snippet also tests for the existence of any "anyOf"
 schema keywords:
 
 ```java
