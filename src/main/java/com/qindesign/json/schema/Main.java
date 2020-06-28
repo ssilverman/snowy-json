@@ -168,8 +168,8 @@ public class Main {
     root.add("valid", new JsonPrimitive(result));
     JsonArray errorArr = new JsonArray();
     root.add("errors", errorArr);
-    errors.forEach((instanceLoc, map) -> {
-      map.forEach((schemaLoc, a) -> {
+    errors.forEach((schemaPath, map) -> {
+      map.forEach((instancePath, a) -> {
         JsonObject error = new JsonObject();
         error.add("keywordLocation", new JsonPrimitive(a.keywordLocation.toString()));
         error.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
