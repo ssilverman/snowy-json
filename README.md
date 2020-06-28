@@ -68,7 +68,7 @@ These additional features exist:
 
 ## Quick start
 
-There are more details below, but here are three commands that will get you
+There are more details below, but here are four commands that will get you
 started right away:
 
 1. Run the validator on an instance against a schema:
@@ -91,6 +91,13 @@ started right away:
    ```
    The schema file in this example is named `schema.json`. The example assumes
    the file is in the current working directory.
+4. Run the schema coverage checker after a validation:
+   ```bash
+   mvn exec:java@coverage -Dexec.args="schema.json instance.json"
+   ```
+   The two files in this example are named `schema.json` for the schema and
+   `instance.json` for the instance. The example assumes the files are in the
+   current working directory.
 
 ## Under the covers
 
