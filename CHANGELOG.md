@@ -14,8 +14,6 @@ See: [Keep a Changelog](https://keepachangelog.com)
   One of the advantages of this approach is not having to worry about "/"
   characters in names, or JSON Pointer syntax.
 * Other updates, optimizations, refactors, and improvements.
-* `JSONPath.fromJSONPointer` changed to return an absolute path for
-  empty strings.
 * Errors are now mapped in schema->instance order instead of instance->schema
   order. This is now the reverse of how annotations are mapped.
 
