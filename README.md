@@ -107,10 +107,7 @@ This project follows just about everything it can from the latest JSON Schema
 specification draft. There are a few things it does slightly differently due to
 some implementation details.
 
-1. Internationalized hostnames and IRIs are not validated according to the
-   latest required specifications. This is because the Guava library supports
-   earlier specifications.
-2. Regular expressions allow or disallow some things that
+1. Regular expressions allow or disallow some things that
    [ECMA 262](https://www.ecma-international.org/publications/standards/Ecma-262.htm)
    regular expressions do not. For example, Java allows the `\Z` boundary
    matcher but ECMA 262 does not.
