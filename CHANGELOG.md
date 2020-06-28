@@ -4,6 +4,19 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.12.0]
+
+### Added
+* Added the ability to add pluggable rules to the linter.
+
+### Changed
+* Changed a couple linter behaviours:
+  1. A string won't be examined if its parent is a definitions object, in
+     addition to just a "properties" object.
+  2. Unknown non-root keywords will have their properties examined. This is
+     desirable because both definitions and "properties" objects allow unknown
+     keywords. Previously, no unknown keywords had their properties examined.
+
 ## [0.11.0]
 
 ### Added
