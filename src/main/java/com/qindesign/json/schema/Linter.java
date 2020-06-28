@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -52,12 +53,6 @@ import java.util.stream.StreamSupport;
  */
 public final class Linter {
   private static final Class<?> CLASS = Linter.class;
-
-  /**
-   * Disallow instantiation.
-   */
-  private Linter() {
-  }
 
   /** The set of known formats. */
   private static final Set<String> KNOWN_FORMATS = Set.of(
@@ -126,340 +121,561 @@ public final class Linter {
     } catch (MalformedURLException ex) {
       schema = JSON.parse(new File(args[0]));
     }
-    var issues = check(schema);
+    Linter linter = new Linter();
+    var issues = linter.check(schema);
     issues.forEach((path, list) -> list.forEach(msg -> System.out.println(path + ": " + msg)));
   }
 
   /**
-   * Convenience method that adds an issue to the issue map.
-   *
-   * @param issues the map of issues
-   * @param path the path
-   * @param msg the message
+   * String rules. These all assume the parent is not a "properties" and not a
+   * definitions, depending on the specification.
    */
-  private static void addIssue(Map<JSONPath, List<String>> issues,
-                               JSONPath path,
-                               String msg) {
-    issues.computeIfAbsent(path, k -> new ArrayList<>()).add(msg);
-  }
+  private static final List<Consumer<Context>> STRING_RULES = List.of(
+      context -> {
+        if (context.is(Format.NAME)) {
+          if (!KNOWN_FORMATS.contains(context.string())) {
+            context.addIssue(
+                "unknown format: \"" + Strings.jsonString(context.string()) + "\"");
+          }
+        }
+      },
+      context -> {
+        if (context.is(CoreId.NAME)) {
+          try {
+            URI id = URI.parse(context.string());
+            if (!id.normalize().equals(id)) {
+              context.addIssue(
+                  "unnormalized ID: \"" + Strings.jsonString(context.string()) + "\"");
+            }
+            if (context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+              if (id.rawFragment() != null && id.rawFragment().isEmpty()) {
+                context.addIssue(
+                    "empty fragment: \"" + Strings.jsonString(context.string()) + "\"");
+              }
+            }
+          } catch (URISyntaxException ex) {
+            // Ignore
+          }
+        }
+      },
+      context -> {
+        if (context.is(CoreRef.NAME)) {
+          if (context.string().startsWith("#")) {
+            JsonElement o = context.schema();
+            JSONPath path = JSONPath.fromJSONPointer(context.string().substring(1));
+            if (!path.isAbsolute()) {
+              context.addIssue("bad JSON Pointer: \"" + context.string() + "\"");
+            } else {
+              for (String part : path) {
+                if (!o.isJsonObject() || !o.getAsJsonObject().has(part)) {
+                  context.addIssue(
+                      "reference not found: \"" +
+                      Strings.jsonString(context.string()) +
+                      "\"");
+                  break;
+                }
+                o = o.getAsJsonObject().get(part);
+              }
+            }
+          }
+        }
+      }
+  );
+
+  /** Array rules. */
+  private static final List<Consumer<Context>> ARRAY_RULES = List.of(
+      context -> {
+        if (context.is(Items.NAME)) {
+          if (context.array().size() <= 0) {
+            context.addIssue("empty items array");
+          }
+        }
+      }
+  );
 
   /**
-   * Checks if the path has a parent with the name {@code parentName}.
-   *
-   * @param path the path
-   * @param parentName the parent name to check
-   * @return whether the parent is {@code parentName}.
+   * Properties rules. These assume that the current element is a "properties".
    */
-  private static boolean isInParent(JSONPath path, String parentName) {
-    if (path.size() < 2) {
-      return false;
-    }
-    return path.get(path.size() - 2).equals(parentName);
-  }
+  private static final List<Consumer<Context>> PROPERTIES_RULES = List.of(
+      context -> {
+        context.object().keySet().forEach(name -> {
+          if (name.startsWith("$")) {
+            context.addIssue("property name starts with '$': \"" + Strings.jsonString(name) + "\"");
+          }
+        });
+      }
+  );
 
   /**
-   * Checks if the path ends with the given name.
-   *
-   * @param path the path
-   * @param name the name to check
-   * @return whether the last element is {@code name}.
+   * Object rules. These all assume the current element is not a "properties",
+   * not a definitions, and not unknown.
    */
-  private static boolean is(JSONPath path, String name) {
-    if (path.isEmpty()) {
-      return false;
+  private static final List<Consumer<Context>> OBJECT_RULES = List.of(
+      context -> {
+        if (context.object().has(CoreSchema.NAME)) {
+          if (context.parent() != null && !context.object().has(CoreId.NAME)) {
+            context.addIssue("\"" + CoreSchema.NAME +
+                             "\" in subschema without sibling \"" +
+                             CoreId.NAME + "\"");
+          }
+        }
+      },
+      context -> {
+        if (context.object().has(AdditionalItems.NAME)) {
+          JsonElement items = context.object().get(Items.NAME);
+          if (items == null || !items.isJsonArray()) {
+            context.addIssue("\"" + AdditionalItems.NAME + "\" without array-form \"items\"");
+          }
+        }
+      },
+
+      // Minimum > maximum checks for all drafts
+      context -> {
+        context.addIssue(compareExclusiveMinMax(context.object(), ExclusiveMinimum.NAME, ExclusiveMaximum.NAME));
+        context.addIssue(compareMinMax(context.object(), Minimum.NAME, Maximum.NAME));
+        context.addIssue(compareMinMax(context.object(), MinItems.NAME, MaxItems.NAME));
+        context.addIssue(compareMinMax(context.object(), MinLength.NAME, MaxLength.NAME));
+        context.addIssue(compareMinMax(context.object(), MinProperties.NAME, MaxProperties.NAME));
+      },
+
+      // Type checks for all drafts
+      context -> {
+        context.addIssue(checkType(context.object(), AdditionalItems.NAME, List.of("array")));
+        context.addIssue(checkType(context.object(), AdditionalProperties.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), Contains.NAME, List.of("array")));
+        context.addIssue(checkType(context.object(), ExclusiveMaximum.NAME, List.of("number", "integer")));
+        context.addIssue(checkType(context.object(), ExclusiveMinimum.NAME, List.of("number", "integer")));
+        context.addIssue(checkType(context.object(), Format.NAME, List.of("string")));
+        context.addIssue(checkType(context.object(), Items.NAME, List.of("array")));
+        context.addIssue(checkType(context.object(), Maximum.NAME, List.of("number", "integer")));
+        context.addIssue(checkType(context.object(), MaxItems.NAME, List.of("array")));
+        context.addIssue(checkType(context.object(), MaxLength.NAME, List.of("string")));
+        context.addIssue(checkType(context.object(), MaxProperties.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), Minimum.NAME, List.of("number", "integer")));
+        context.addIssue(checkType(context.object(), MinItems.NAME, List.of("array")));
+        context.addIssue(checkType(context.object(), MinLength.NAME, List.of("string")));
+        context.addIssue(checkType(context.object(), MinProperties.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), MultipleOf.NAME, List.of("number", "integer")));
+        context.addIssue(checkType(context.object(), Pattern.NAME, List.of("string")));
+        context.addIssue(checkType(context.object(), PatternProperties.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), Properties.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), PropertyNames.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), Required.NAME, List.of("object")));
+        context.addIssue(checkType(context.object(), UniqueItems.NAME, List.of("array")));
+      },
+
+      // Check specification-specific keyword presence
+      context -> {
+        if (context.spec() != null) {
+          if (context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+            context.object().keySet().forEach(name -> {
+              if (Validator.OLD_KEYWORDS_DRAFT_2019_09.contains(name)) {
+                context.addIssue("\"" + name + "\" was removed in Draft 2019-09");
+              }
+            });
+          } else {  // Before Draft 2019-09
+            context.object().keySet().forEach(name -> {
+              if (Validator.NEW_KEYWORDS_DRAFT_2019_09.contains(name)) {
+                context.addIssue("\"" + name + "\" was added in Draft 2019-09");
+              }
+            });
+          }
+
+          if (context.spec().ordinal() < Specification.DRAFT_07.ordinal()) {
+            context.object().keySet().forEach(name -> {
+              if (Validator.NEW_KEYWORDS_DRAFT_07.contains(name)) {
+                context.addIssue("\"" + name + "\" was added in Draft-07");
+              }
+            });
+          }
+        }
+      },
+
+      // Schema-specific keyword behaviour
+      context -> {
+        if (context.spec() == null || context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+          if (context.object().has(MinContains.NAME)) {
+            if (!context.object().has(Contains.NAME)) {
+              context.addIssue("\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
+            }
+          }
+          if (context.object().has(MaxContains.NAME)) {
+            if (!context.object().has(Contains.NAME)) {
+              context.addIssue("\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
+            }
+          }
+          if (context.object().has(UnevaluatedItems.NAME)) {
+            JsonElement items = context.object().get(Items.NAME);
+            if (items != null && !items.isJsonArray()) {
+              context.addIssue("\"" + UnevaluatedItems.NAME +
+                               "\" without array-form \"" +
+                               Items.NAME + "\"");
+            }
+          }
+
+          // Minimum > maximum checks for this draft
+          context.addIssue(compareMinMax(context.object(), MinContains.NAME, MaxContains.NAME));
+
+          // Type checks for this draft
+          context.addIssue(checkType(context.object(), ContentSchema.NAME, List.of("string")));
+          context.addIssue(checkType(context.object(), DependentRequired.NAME, List.of("object")));
+          context.addIssue(checkType(context.object(), DependentSchemas.NAME, List.of("object")));
+          context.addIssue(checkType(context.object(), MaxContains.NAME, List.of("array")));
+          context.addIssue(checkType(context.object(), MinContains.NAME, List.of("array")));
+          context.addIssue(checkType(context.object(), UnevaluatedItems.NAME, List.of("array")));
+          context.addIssue(checkType(context.object(), UnevaluatedProperties.NAME, List.of("object")));
+        }
+
+        if (context.spec() == null || context.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+          // Type checks for this draft
+          context.addIssue(checkType(context.object(), Dependencies.NAME, List.of("object")));
+        }
+
+        if (context.spec() == null || context.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
+          if (context.object().has("then")) {
+            if (!context.object().has(If.NAME)) {
+              context.addIssue("\"then\" without \"" + If.NAME + "\"");
+            }
+          }
+          if (context.object().has("else")) {
+            if (!context.object().has(If.NAME)) {
+              context.addIssue("\"else\" without \"" + If.NAME + "\"");
+            }
+          }
+
+          // Type checks for this draft
+          context.addIssue(checkType(context.object(), ContentEncoding.NAME, List.of("string")));
+          context.addIssue(checkType(context.object(), ContentMediaType.NAME, List.of("string")));
+        }
+      },
+
+      // Unknown keywords, but not inside $vocabulary
+      context -> {
+        if (!context.is(CoreVocabulary.NAME)) {
+          context.object().keySet().forEach(name -> {
+            if (!KNOWN_KEYWORDS.contains(name)) {
+              context.addIssue("unknown keyword: \"" + Strings.jsonString(name) + "\"");
+            }
+          });
+        }
+      }
+  );
+
+  public static final class Context {
+    private final Map<JSONPath, List<String>> issues;
+
+    JsonElement schema;
+    JsonElement element;
+    JsonElement parent;
+    JSONPath path;
+    Specification spec;
+
+    boolean parentIsProperties;
+    boolean parentIsDefs;
+    boolean isDefs;
+
+    Context(Map<JSONPath, List<String>> issues) {
+      this.issues = issues;
     }
-    return path.get(path.size() - 1).equals(name);
+
+    /**
+     * Checks if the parent of the current element is "properties".
+     *
+     * @return this fact.
+     */
+    public boolean parentIsProperties() {
+      return parentIsProperties;
+    }
+
+    /**
+     * Checks if the parent of the current element is either "$defs" or
+     * "definitions", depending on the current specification.
+     *
+     * @return this fact.
+     */
+    public boolean parentIsDefs() {
+      return parentIsProperties;
+    }
+
+    /**
+     * Checks if the current element is either "$defs" or "definitions",
+     * depending on the current specification.
+     *
+     * @return this fact.
+     */
+    public boolean isDefs() {
+      return isDefs;
+    }
+
+    /**
+     * Gets the schema element.
+     *
+     * @return the schema element.
+     */
+    public JsonElement schema() {
+      return schema;
+    }
+
+    /**
+     * Gets the current element.
+     *
+     * @return the current element.
+     */
+    public JsonElement element() {
+      return element;
+    }
+
+    /**
+     * Gets the element as an object.
+     *
+     * @return the element as an object.
+     * @throws IllegalStateException if the element is not an object.
+     */
+    public String string() {
+      return element.getAsString();
+    }
+
+    /**
+     * Gets the element as an object.
+     *
+     * @return the element as an object.
+     * @throws IllegalStateException if the element is not an object.
+     */
+    public JsonObject object() {
+      return element.getAsJsonObject();
+    }
+
+    /**
+     * Gets the element as an array.
+     *
+     * @return the element as an object.
+     * @throws IllegalStateException if the element is not an array.
+     */
+    public JsonArray array() {
+      return element.getAsJsonArray();
+    }
+
+    /**
+     * Gets the parent of the current element, may be {@code null} if there is
+     * no parent.
+     *
+     * @return the parent of the current element, may be {@code null}.
+     */
+    public JsonElement parent() {
+      return parent;
+    }
+
+    /**
+     * Gets the path of the current element.
+     *
+     * @return the path of the current element.
+     */
+    public JSONPath path() {
+      return path;
+    }
+
+    /**
+     * Gets the specification, if known. This returns {@code null} if the
+     * current specification is unknown.
+     *
+     * @return the current specification, if known, or {@code null} if unknown.
+     */
+    public Specification spec() {
+      return spec;
+    }
+
+    /**
+     * Checks if the current path has a parent with the given name.
+     *
+     * @param name the parent name to check
+     * @return whether the parent has the given name.
+     */
+    public boolean hasParent(String name) {
+      return path.size() >= 2 && path.get(path.size() - 2).equals(name);
+    }
+
+    /**
+     * Checks if the current path ends with the given name.
+     *
+     * @param name the name to check
+     * @return whether the path ends with the given name.
+     */
+    public boolean is(String name) {
+      return !path.isEmpty() && path.get(path.size() - 1).equals(name);
+    }
+
+    /**
+     * Checks if the current path ends with an unknown keyword. This returns
+     * {@code false} if the parent of this element is an array.
+     * <p>
+     * This tests all known schema keywords in a non-specification-specific way.
+     *
+     * @return whether the last element is unknown and not a child of an array.
+     */
+    private boolean isUnknown() {
+      if (path.isEmpty()) {
+        return false;
+      }
+      if (parent != null && parent.isJsonArray()) {
+        return false;
+      }
+      return !KNOWN_KEYWORDS.contains(path.get(path.size() - 1));
+    }
+
+    /**
+     * Adds an issue to the current path. A {@code null} issue indicates that
+     * there's no issue.
+     *
+     * @param issue the issue to add, or {@code null} for no issue
+     */
+    public void addIssue(String issue) {
+      if (issue != null) {
+        issues.computeIfAbsent(path, k -> new ArrayList<>()).add(issue);
+      }
+    }
   }
 
+  // All the rules
+  List<Consumer<Context>> nullRules = new ArrayList<>();
+  List<Consumer<Context>> primitiveRules = new ArrayList<>();
+  List<Consumer<Context>> stringRules = new ArrayList<>();
+  List<Consumer<Context>> objectRules = new ArrayList<>();
+  List<Consumer<Context>> arrayRules = new ArrayList<>();
+  List<Consumer<Context>> otherRules = new ArrayList<>();
+
   /**
-   * Checks if the path ends with an unknown keyword.
-   *
-   * @param path the path
-   * @return whether the last element is unknown.
+   * Creates a new linter.
    */
-  private static boolean isUnknown(JSONPath path) {
-    if (path.isEmpty()) {
-      return false;
-    }
-    return !KNOWN_KEYWORDS.contains(path.get(path.size() - 1));
+  public Linter() {
   }
 
   /**
    * Checks the given schema and returns lists of any issues found for each
-   * element in the tree. This returns a map of JSON element locations to a
-   * list of associated issue messages.
-   * <p>
-   * Each location will be a list of strings, where each element in the location
-   * is the name of a property. To convert each path element to JSON Pointer
-   * form, see {@link Strings#jsonPointerToken(String)}.
+   * element in the tree. This returns a map of JSON element paths to a list of
+   * associated issue messages.
    *
    * @param schema the schema to check
-   * @return the linter results, mapping locations to a list of issues.
-   * @see Strings#jsonPointerToken(String)
+   * @return the linter results, mapping paths to a list of issues.
    */
-  public static Map<JSONPath, List<String>> check(JsonElement schema) {
+  public Map<JSONPath, List<String>> check(JsonElement schema) {
+    // The issue list by location
     Map<JSONPath, List<String>> issues = new HashMap<>();
+    Context context = new Context(issues);
+    context.schema = schema;
+
+    Consumer<List<Consumer<Context>>> processRules =
+        list -> list.forEach(f -> f.accept(context));
 
     JSON.traverse(schema, (e, parent, path, state) -> {
-      if (e.isJsonNull()) {
-        return;
-      }
+      context.element = e;
+      context.parent = parent;
+      context.path = path;
+      context.spec = state.spec();
+      context.parentIsProperties = context.hasParent(Properties.NAME);
 
-      // Convenience function for adding a maybe-null issue
-      Consumer<String> addIssue = (String msg) -> {
-        if (msg != null) {
-          addIssue(issues, path, msg);
-        }
-      };
-
-      if (e.isJsonPrimitive()) {
-        if (isInParent(path, Properties.NAME)) {
-          return;
-        }
-        if (path.isEmpty()) {
-          return;
-        }
-
-        switch (path.get(path.size() - 1)) {
-          case Format.NAME:
-            if (JSON.isString(e)) {
-              if (!KNOWN_FORMATS.contains(e.getAsString())) {
-                addIssue.accept("unknown format: \"" + Strings.jsonString(e.getAsString()) + "\"");
-              }
-            }
-            break;
-
-          case CoreId.NAME:
-            if (JSON.isString(e)) {
-              try {
-                URI id = URI.parse(e.getAsString());
-                if (!id.normalize().equals(id)) {
-                  addIssue.accept("unnormalized ID: \"" + Strings.jsonString(e.getAsString()) + "\"");
-                }
-                if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-                  if (id.rawFragment() != null && id.rawFragment().isEmpty()) {
-                    addIssue.accept("empty fragment: \"" + Strings.jsonString(e.getAsString()) + "\"");
-                  }
-                }
-              } catch (URISyntaxException ex) {
-                // Ignore
-              }
-            }
-            break;
-
-          case CoreRef.NAME:
-            // Only examine $refs that are just fragments
-            if (JSON.isString(e)) {
-              String ref = e.getAsString();
-              if (ref.startsWith("#")) {
-                boolean first = true;
-                JsonElement o = schema;
-                for (String part : ref.substring(1).split("/", -1)) {
-                  if (first) {
-                    if (!part.isEmpty()) {
-                      addIssue.accept("bad JSON Pointer: \"" + ref + "\"");
-                      break;
-                    }
-                    first = false;
-                    continue;
-                  }
-                  if (!o.isJsonObject() || !o.getAsJsonObject().has(part)) {
-                    addIssue.accept("reference not found: \"" + Strings.jsonString(ref) + "\"");
-                    break;
-                  }
-                  o = o.getAsJsonObject().get(part);
-                }
-              }
-            }
-            break;
-        }
-
-        return;
-      }
-
-      if (e.isJsonArray()) {
-        JsonArray array = e.getAsJsonArray();
-
-        if (is(path, Items.NAME)) {
-          if (array.size() <= 0) {
-            addIssue.accept("empty items array");
-          }
-        }
-
-        return;
-      }
-
-      JsonObject object = e.getAsJsonObject();
-
-      // If we're in a properties object then don't look at the names
-      if (is(path, Properties.NAME)) {
-        object.keySet().forEach(name -> {
-          if (name.startsWith("$")) {
-            addIssue.accept("property name starts with '$': \"" + Strings.jsonString(name) + "\"");
-          }
-        });
-
-        return;
-      }
-
-      boolean inDefs;  // Note: This is only a rudimentary check
       if (state.spec() != null) {
         if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          inDefs = is(path, CoreDefs.NAME);
+          context.isDefs = context.is(CoreDefs.NAME);
+          context.parentIsDefs = context.hasParent(CoreDefs.NAME);
         } else {
-          inDefs = is(path, Definitions.NAME);
+          context.isDefs = context.is(Definitions.NAME);
+          context.parentIsDefs = context.hasParent(Definitions.NAME);
         }
       } else {
-        inDefs = is(path, CoreDefs.NAME) ||
-                 is(path, Definitions.NAME);
+        context.isDefs = context.is(CoreDefs.NAME) ||
+                         context.is(Definitions.NAME);
+        context.parentIsDefs = context.hasParent(CoreDefs.NAME) ||
+                               context.hasParent(Definitions.NAME);
       }
 
-      // Allow anything directly below defs or unknown keywords
-      // Note that arrays will have a path that ends in a number, and so is
-      // technically an unknown keyword; this is why we must also test for the
-      // parent being an array
-      if (inDefs || (isUnknown(path) && parent != null && !parent.isJsonArray())) {
-        return;
-      }
-
-      if (object.has(CoreSchema.NAME)) {
-        if (parent != null && !object.has(CoreId.NAME)) {
-          addIssue.accept("\"" + CoreSchema.NAME +
-                          "\" in subschema without sibling \"" +
-                          CoreId.NAME + "\"");
+      if (e.isJsonNull()) {
+        processRules.accept(nullRules);
+      } else if (e.isJsonPrimitive()) {
+        processRules.accept(primitiveRules);
+        if (e.getAsJsonPrimitive().isString()) {
+          if (!context.parentIsProperties() && !context.parentIsDefs()) {
+            processRules.accept(STRING_RULES);
+          }
+          processRules.accept(stringRules);
         }
-      }
-
-      if (object.has(AdditionalItems.NAME)) {
-        JsonElement items = object.get(Items.NAME);
-        if (items == null || !items.isJsonArray()) {
-          addIssue.accept("\"" + AdditionalItems.NAME + "\" without array-form \"items\"");
-        }
-      }
-
-      // Minimum > maximum checks for all drafts
-      addIssue.accept(compareExclusiveMinMax(object, ExclusiveMinimum.NAME, ExclusiveMaximum.NAME));
-      addIssue.accept(compareMinMax(object, Minimum.NAME, Maximum.NAME));
-      addIssue.accept(compareMinMax(object, MinItems.NAME, MaxItems.NAME));
-      addIssue.accept(compareMinMax(object, MinLength.NAME, MaxLength.NAME));
-      addIssue.accept(compareMinMax(object, MinProperties.NAME, MaxProperties.NAME));
-
-      // Type checks for all drafts
-      addIssue.accept(checkType(object, AdditionalItems.NAME, List.of("array")));
-      addIssue.accept(checkType(object, AdditionalProperties.NAME, List.of("object")));
-      addIssue.accept(checkType(object, Contains.NAME, List.of("array")));
-      addIssue.accept(checkType(object, ExclusiveMaximum.NAME, List.of("number", "integer")));
-      addIssue.accept(checkType(object, ExclusiveMinimum.NAME, List.of("number", "integer")));
-      addIssue.accept(checkType(object, Format.NAME, List.of("string")));
-      addIssue.accept(checkType(object, Items.NAME, List.of("array")));
-      addIssue.accept(checkType(object, Maximum.NAME, List.of("number", "integer")));
-      addIssue.accept(checkType(object, MaxItems.NAME, List.of("array")));
-      addIssue.accept(checkType(object, MaxLength.NAME, List.of("string")));
-      addIssue.accept(checkType(object, MaxProperties.NAME, List.of("object")));
-      addIssue.accept(checkType(object, Minimum.NAME, List.of("number", "integer")));
-      addIssue.accept(checkType(object, MinItems.NAME, List.of("array")));
-      addIssue.accept(checkType(object, MinLength.NAME, List.of("string")));
-      addIssue.accept(checkType(object, MinProperties.NAME, List.of("object")));
-      addIssue.accept(checkType(object, MultipleOf.NAME, List.of("number", "integer")));
-      addIssue.accept(checkType(object, Pattern.NAME, List.of("string")));
-      addIssue.accept(checkType(object, PatternProperties.NAME, List.of("object")));
-      addIssue.accept(checkType(object, Properties.NAME, List.of("object")));
-      addIssue.accept(checkType(object, PropertyNames.NAME, List.of("object")));
-      addIssue.accept(checkType(object, Required.NAME, List.of("object")));
-      addIssue.accept(checkType(object, UniqueItems.NAME, List.of("array")));
-
-      // Check specification-specific keyword presence
-      if (state.spec() != null) {
-        if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          object.keySet().forEach(name -> {
-            if (Validator.OLD_KEYWORDS_DRAFT_2019_09.contains(name)) {
-              addIssue.accept("\"" + name + "\" was removed in Draft 2019-09");
-            }
-          });
-        } else {  // Before Draft 2019-09
-          object.keySet().forEach(name -> {
-            if (Validator.NEW_KEYWORDS_DRAFT_2019_09.contains(name)) {
-              addIssue.accept("\"" + name + "\" was added in Draft 2019-09");
-            }
-          });
-        }
-
-        if (state.spec().ordinal() < Specification.DRAFT_07.ordinal()) {
-          object.keySet().forEach(name -> {
-            if (Validator.NEW_KEYWORDS_DRAFT_07.contains(name)) {
-              addIssue.accept("\"" + name + "\" was added in Draft-07");
-            }
-          });
-        }
-      }
-
-      // Schema-specific keyword behaviour
-      if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-        if (object.has(MinContains.NAME)) {
-          if (!object.has(Contains.NAME)) {
-            addIssue.accept("\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
+      } else if (e.isJsonArray()) {
+        processRules.accept(ARRAY_RULES);
+        processRules.accept(arrayRules);
+      } else if (e.isJsonObject()) {
+        if (context.is(Properties.NAME)) {
+          processRules.accept(PROPERTIES_RULES);
+        } else {
+          if (!context.isDefs() && (!context.isUnknown() || context.path().size() > 1)) {
+            processRules.accept(OBJECT_RULES);
           }
         }
-        if (object.has(MaxContains.NAME)) {
-          if (!object.has(Contains.NAME)) {
-            addIssue.accept("\"" + MaxContains.NAME + "\" without \"" + Contains.NAME + "\"");
-          }
-        }
-        if (object.has(UnevaluatedItems.NAME)) {
-          JsonElement items = object.get(Items.NAME);
-          if (items != null && !items.isJsonArray()) {
-            addIssue.accept("\"" + UnevaluatedItems.NAME +
-                            "\" without array-form \"" +
-                            Items.NAME + "\"");
-          }
-        }
-
-        // Minimum > maximum checks for this draft
-        addIssue.accept(compareMinMax(object, MinContains.NAME, MaxContains.NAME));
-
-        // Type checks for this draft
-        addIssue.accept(checkType(object, ContentSchema.NAME, List.of("string")));
-        addIssue.accept(checkType(object, DependentRequired.NAME, List.of("object")));
-        addIssue.accept(checkType(object, DependentSchemas.NAME, List.of("object")));
-        addIssue.accept(checkType(object, MaxContains.NAME, List.of("array")));
-        addIssue.accept(checkType(object, MinContains.NAME, List.of("array")));
-        addIssue.accept(checkType(object, UnevaluatedItems.NAME, List.of("array")));
-        addIssue.accept(checkType(object, UnevaluatedProperties.NAME, List.of("object")));
+        processRules.accept(objectRules);
       }
-
-      if (state.spec() == null || state.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-        // Type checks for this draft
-        addIssue.accept(checkType(object, Dependencies.NAME, List.of("object")));
-      }
-
-      if (state.spec() == null || state.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
-        if (object.has("then")) {
-          if (!object.has(If.NAME)) {
-            addIssue.accept("\"then\" without \"" + If.NAME + "\"");
-          }
-        }
-        if (object.has("else")) {
-          if (!object.has(If.NAME)) {
-            addIssue.accept("\"else\" without \"" + If.NAME + "\"");
-          }
-        }
-
-        // Type checks for this draft
-        addIssue.accept(checkType(object, ContentEncoding.NAME, List.of("string")));
-        addIssue.accept(checkType(object, ContentMediaType.NAME, List.of("string")));
-      }
-
-      // Unknown keywords, but not inside $vocabulary
-      if (!is(path, CoreVocabulary.NAME)) {
-        object.keySet().forEach(name -> {
-          if (!KNOWN_KEYWORDS.contains(name)) {
-            addIssue.accept("unknown keyword: \"" + Strings.jsonString(name) + "\"");
-          }
-        });
-      }
+      processRules.accept(otherRules);
     });
 
     return issues;
+  }
+
+  /**
+   * Adds a rule where the element is guaranteed to be a JSON primitive but
+   * not "null".
+   *
+   * @param rule the rule to add
+   */
+  public void addPrimitiveRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    primitiveRules.add(rule);
+  }
+
+  /**
+   * Adds a rule where the element is guaranteed to be a JSON null.
+   *
+   * @param rule the rule to add
+   */
+  public void addNullRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    nullRules.add(rule);
+  }
+
+  /**
+   * Adds a rule where the element is guaranteed to be a primitive string.
+   *
+   * @param rule the rule to add
+   */
+  public void addStringRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    stringRules.add(rule);
+  }
+
+  /**
+   * Adds a rule where the element is guaranteed to be a JSON object.
+   *
+   * @param rule the rule to add
+   */
+  public void addObjectRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    objectRules.add(rule);
+  }
+
+  /**
+   * Adds a rule where the element is guaranteed to be a JSON array.
+   *
+   * @param rule the rule to add
+   */
+  public void addArrayRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    arrayRules.add(rule);
+  }
+
+  /**
+   * Adds a linter rule. There's no guarantees about the element type.
+   *
+   * @param rule the rule to add
+   */
+  public void addRule(Consumer<Context> rule) {
+    Objects.requireNonNull(rule, "rule");
+    otherRules.add(rule);
   }
 
   /**
