@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 public class Coverage {
   private static final Class<?> CLASS = Coverage.class;
@@ -101,29 +102,49 @@ public class Coverage {
 
     int seenCount = seen.size();
     int totalCount = all.size();
+    boolean seenHasRoot = false;
+    boolean allHasRoot = false;
+    if (seen.remove(JSONPath.absolute())) {
+      seenCount--;
+      seenHasRoot = true;
+    }
+    if (all.remove(JSONPath.absolute())) {
+      totalCount--;
+      allHasRoot = true;
+    }
 
     // More complex analysis could be done here
     // Note that we're removing the empty paths when printing
     System.out.println();
-    System.out.println("Seen (excluding root):");
-    System.out.println("----------------------");
+    System.out.println("Seen " + seenCount + " (excluding root):");
+    IntStream.range(0, Integer.toString(seenCount).length() + 23)
+        .forEach(i -> System.out.print('-'));
+    System.out.println();
     if (!seen.isEmpty()) {
-      seen.stream().sorted().filter(path -> !path.isEmpty()).forEach(System.out::println);
+      seen.stream().sorted().forEach(System.out::println);
     } else {
-      System.out.println("<empty>");
+      System.out.println("<None>");
     }
 
-    System.out.println();
-    System.out.println("Not seen (excluding root):");
-    System.out.println("--------------------------");
     all.removeAll(seen);
+    System.out.println();
+    System.out.println("Not seen " + all.size() + " (excluding root):");
+    IntStream.range(0, Integer.toString(all.size()).length() + 27)
+        .forEach(i -> System.out.print('-'));
+    System.out.println();
     if (!all.isEmpty()) {
-      all.stream().sorted().filter(path -> !path.isEmpty()).forEach(System.out::println);
+      all.stream().sorted().forEach(System.out::println);
     } else {
-      System.out.println("<empty>");
+      System.out.println("<None>");
     }
 
     System.out.println();
+    if (seenHasRoot) {
+      seenCount++;
+    }
+    if (allHasRoot) {
+      totalCount++;
+    }
     float percent = (float) seenCount / (float) totalCount * 100.0f;
     System.out.println("Total (including root): Seen " + seenCount + "/" + totalCount + " (" + percent + "%)");
   }
