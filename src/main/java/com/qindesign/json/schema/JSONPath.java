@@ -21,7 +21,8 @@ import java.util.stream.IntStream;
  *
  * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
  */
-public final class JSONPath extends AbstractList<String> implements Iterable<String> {
+public final class JSONPath extends AbstractList<String>
+    implements Iterable<String>, Comparable<JSONPath> {
   private final boolean isAbsolute;
   private final List<String> list;
 
@@ -300,6 +301,38 @@ public final class JSONPath extends AbstractList<String> implements Iterable<Str
     }
     np.list.addAll(p.list);
     return np.normalize();
+  }
+
+  /**
+   * Compares this path to another path. Absolute paths always compare greater
+   * than relative paths.
+   * <p>
+   * This compares each path element using {@link String#compareTo(String)}.
+   *
+   * @param p the path to be compared
+   * @return the comparison result, negative for less than, 0 for equal to, or
+   *         positive for greater than.
+   */
+  @Override
+  public int compareTo(JSONPath p) {
+    // Absolute sorts after non-absolute
+    if (this.isAbsolute() != p.isAbsolute()) {
+      if (this.isAbsolute()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    }
+
+    int limit = Math.min(this.size(), p.size());
+    for (int i = 0; i < limit; i++) {
+      int r = this.get(i).compareTo(p.get(i));
+      if (r != 0) {
+        return r;
+      }
+    }
+
+    return this.size() - p.size();
   }
 
   /**
