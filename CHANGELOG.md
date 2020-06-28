@@ -12,7 +12,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Changed
 * Introduced a `JSONPath` class that replaces strings for path representation.
   One of the advantages of this approach is not having to worry about "/"
-  characters in names or JSON Pointer syntax.
+  characters in names, or JSON Pointer syntax.
 * Other updates, optimizations, refactors, and improvements.
 * `JSONPath.fromJSONPointer` changed to return an absolute path for
   empty strings.
