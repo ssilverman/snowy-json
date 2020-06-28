@@ -70,9 +70,11 @@ public final class JSONPath extends AbstractList<String> implements Iterable<Str
   /**
    * Creates a new path from the given JSON Pointer string. The rules:
    * <ol>
-   * <li>Starts with "/": absolute path, otherwise: relative path</li>
-   * <li>Empty: empty relative path, otherwise: non-empty path</li>
-   * <li>Relative strings are allowed.</li>
+   * <li>Starts with "/": absolute path, otherwise: relative path
+   *     if non-empty</li>
+   * <li>Empty: empty absolute path, otherwise: non-empty path</li>
+   * <li>Relative non-empty strings are allowed and become relative
+   *     non-empty paths</li>
    * <li>Path elements are separated by "/"</li>
    * </ol>
    * <p>
@@ -87,7 +89,7 @@ public final class JSONPath extends AbstractList<String> implements Iterable<Str
   }
 
   /**
-   * Parses a path, possible as a JSON Pointer.
+   * Parses a path, possibly as a JSON Pointer.
    *
    * @param s the string to parse
    * @param isJSONPtr whether to treat as a JSON Pointer
@@ -95,7 +97,7 @@ public final class JSONPath extends AbstractList<String> implements Iterable<Str
    */
   private static JSONPath fromPath(String s, boolean isJSONPtr) {
     if (s.isEmpty()) {
-      return relative();
+      return isJSONPtr ? absolute() : relative();
     }
 
     JSONPath p = new JSONPath(s.startsWith("/"), new ArrayList<>());
