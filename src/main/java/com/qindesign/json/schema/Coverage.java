@@ -109,6 +109,10 @@ public class Coverage {
           });
     });
 
+    // More complex analysis could be done here
+    // Note that we're removing the empty paths when printing the lists
+
+    // Counts
     int seenCount = seen.size();
     int totalCount = all.size();
     boolean seenHasRoot = false;
@@ -122,8 +126,7 @@ public class Coverage {
       allHasRoot = true;
     }
 
-    // More complex analysis could be done here
-    // Note that we're removing the empty paths when printing
+    // Seen
     System.out.println();
     System.out.println("Seen " + seenCount + " (excluding root):");
     IntStream.range(0, Integer.toString(seenCount).length() + 23)
@@ -135,6 +138,7 @@ public class Coverage {
       System.out.println("<None>");
     }
 
+    // Not seen
     all.removeAll(seen);
     System.out.println();
     System.out.println("Not seen " + all.size() + " (excluding root):");
@@ -147,6 +151,7 @@ public class Coverage {
       System.out.println("<None>");
     }
 
+    // Total
     System.out.println();
     if (seenHasRoot) {
       seenCount++;
