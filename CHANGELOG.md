@@ -21,7 +21,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Fixed
 * `Strings.fromJSONPointerToken` now throws an exception if the token contains
-  a '/' character.
+  a "/" character.
 * "error" annotations are now marked valid=true.
 * Annotations are now being properly collected for `then` and `else`.
 * Fixed `URI.toString()` and `toDecodedString()` by flipping their behaviour.
