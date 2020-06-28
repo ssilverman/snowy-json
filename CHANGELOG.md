@@ -8,7 +8,6 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Added
 * Added a rudimentary schema coverage tool, `Coverage`.
-* Added a `Comparable` implementation to `JSONPath`.
 
 ### Changed
 * Introduced a `JSONPath` class that replaces strings for path representation.
