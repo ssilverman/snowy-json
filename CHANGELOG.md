@@ -16,6 +16,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   2. Unknown non-root keywords will have their properties examined. This is
      desirable because both definitions and "properties" objects allow unknown
      keywords. Previously, no unknown keywords had their properties examined.
+* Errors reverted to instance->schema order for the mapping.
 
 ## [0.11.0]
 

@@ -119,8 +119,8 @@ public class Coverage {
     // Coverage collection using the errors
     Set<JSONPath> all = mapSchema(schema, (Specification) opts.get(Option.DEFAULT_SPECIFICATION));
     Set<JSONPath> seen = new HashSet<>();
-    errors.forEach((schemaPath, byInstance) -> {
-      byInstance.values()
+    errors.forEach((instancePath, bySchema) -> {
+      bySchema.values()
           .forEach(a -> {
             String fragment = Optional.ofNullable(a.absKeywordLocation.fragment()).orElse("");
             seen.add(JSONPath.fromJSONPointer(fragment));

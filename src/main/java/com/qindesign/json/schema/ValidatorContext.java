@@ -759,8 +759,8 @@ public final class ValidatorContext {
     a.valid = true;
 
     Annotation oldA = errors
-        .computeIfAbsent(state.keywordLocation, k -> new HashMap<>())
-        .putIfAbsent(state.instanceLocation, a);
+        .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
+        .putIfAbsent(state.keywordLocation, a);
     if (oldA != null) {
       throw new MalformedSchemaException("error not unique: possible infinite loop",
                                          state.absKeywordLocation);
@@ -796,8 +796,8 @@ public final class ValidatorContext {
     }
 
     return errors
-        .getOrDefault(state.keywordLocation, Collections.emptyMap())
-        .containsKey(state.instanceLocation);
+        .getOrDefault(state.instanceLocation, Collections.emptyMap())
+        .containsKey(state.keywordLocation);
   }
 
   /**
