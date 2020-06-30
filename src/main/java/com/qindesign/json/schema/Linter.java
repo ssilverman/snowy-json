@@ -566,7 +566,7 @@ public final class Linter {
     Consumer<List<Consumer<Context>>> processRules =
         list -> list.forEach(f -> f.accept(context));
 
-    JSON.traverse(schema, (e, parent, path, state) -> {
+    JSON.traverseSchema(schema, (e, parent, path, state) -> {
       context.element = e;
       context.parent = parent;
       context.path = path;

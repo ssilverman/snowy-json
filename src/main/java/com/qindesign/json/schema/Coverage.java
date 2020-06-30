@@ -209,7 +209,7 @@ public class Coverage {
    */
   private static Set<JSONPath> mapSchema(JsonElement schema, Specification defaultSpec) {
     Set<JSONPath> paths = new HashSet<>();
-    JSON.traverse(schema, (e, parent, path, state) -> {
+    JSON.traverseSchema(schema, (e, parent, path, state) -> {
       // Determine the specification
       Specification spec = state.spec();
       if (spec == null) {

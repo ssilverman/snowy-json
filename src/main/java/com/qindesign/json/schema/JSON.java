@@ -163,34 +163,34 @@ public final class JSON {
   }
 
   /**
-   * Visitor for JSON tree traversal.
+   * Visitor for schema tree traversal.
    */
-  public interface JsonElementVisitor {
+  public interface SchemaVisitor {
     /**
-     * Visits a JSON element. The {@code state} argument holds more information
-     * about the element and its position in the tree. It holds information that
-     * won't necessarily change for every element.
+     * Visits a schema element. The {@code state} argument holds more
+     * information about the element and its position in the tree. It holds
+     * information that won't necessarily change for every element.
      *
      * @param e the element being visited
      * @param parent the element's parent, may be {@code null}
      * @param path the full path to the element, a list of path elements
      * @param state holds more information about the element
      */
-    void visit(JsonElement e, JsonElement parent, JSONPath path, TraverseState state);
+    void visit(JsonElement e, JsonElement parent, JSONPath path, SchemaTraverseState state);
   }
 
   /**
-   * Holds state during a JSON tree traversal. It holds information that won't
+   * Holds state during a schema tree traversal. It holds information that won't
    * necessarily change for every element.
    */
-  public static final class TraverseState {
+  public static final class SchemaTraverseState {
     /** The current specification, as determined by the latest $schema value. */
     private Specification spec;
 
     /**
      * Default constructor.
      */
-    TraverseState() {
+    SchemaTraverseState() {
     }
 
     /**
@@ -198,7 +198,7 @@ public final class JSON {
      *
      * @param state the state to copy
      */
-    TraverseState(TraverseState state) {
+    SchemaTraverseState(SchemaTraverseState state) {
       this.spec = state.spec;
     }
 
@@ -213,18 +213,18 @@ public final class JSON {
   }
 
   /**
-   * Traverses a JSON tree and visits each element using {@code visitor}. This
+   * Traverses a JSON schema and visits each element using {@code visitor}. This
    * uses a preorder ordering.
    *
    * @param e the root of the JSON tree
    * @param visitor the visitor
    */
-  public static void traverse(JsonElement e, JsonElementVisitor visitor) {
-    traverse(e, null, JSONPath.absolute(), new TraverseState(), visitor);
+  public static void traverseSchema(JsonElement e, SchemaVisitor visitor) {
+    traverseSchema(e, null, JSONPath.absolute(), new SchemaTraverseState(), visitor);
   }
 
   /**
-   * Recursive method that performs the traversal.
+   * Recursive method that performs the schema traversal.
    * <p>
    * The path is expected to be a modifiable {@link List}.
    *
@@ -234,13 +234,13 @@ public final class JSON {
    * @param state the tree state
    * @param visitor the visitor
    */
-  private static void traverse(JsonElement e, JsonElement parent, JSONPath path,
-                               TraverseState state,
-                               JsonElementVisitor visitor) {
+  private static void traverseSchema(JsonElement e, JsonElement parent, JSONPath path,
+                                     SchemaTraverseState state,
+                                     SchemaVisitor visitor) {
     // Possibly alter the state
     Specification spec = Validator.specificationFromSchema(e);
     if (spec != null) {
-      state = new TraverseState(state);
+      state = new SchemaTraverseState(state);
       state.spec = spec;
     }
 
@@ -253,13 +253,13 @@ public final class JSON {
     if (e.isJsonArray()) {
       int index = 0;
       for (var item : e.getAsJsonArray()) {
-        traverse(item, e, path.append(Integer.toString(index)), state, visitor);
+        traverseSchema(item, e, path.append(Integer.toString(index)), state, visitor);
         index++;
       }
     } else {
       // Process everything else
       for (var entry : e.getAsJsonObject().entrySet()) {
-        traverse(entry.getValue(), e, path.append(entry.getKey()), state, visitor);
+        traverseSchema(entry.getValue(), e, path.append(entry.getKey()), state, visitor);
       }
     }
   }

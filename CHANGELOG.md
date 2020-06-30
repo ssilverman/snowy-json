@@ -19,6 +19,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Errors reverted to instance->schema order for the mapping.
 * All the fields are now final or private in `Annotation` and `Id`.
 * Other internal improvements.
+* Changed `JSON.traverse` to `traverseSchema`, `JSON.JsonElementVisitor` to
+  `JSON.SchemaVisitor`, and `JSON.TraverseState` to `JSON.SchemaTraverseState`.
 
 ## [0.11.0]
 

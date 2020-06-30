@@ -490,7 +490,7 @@ public final class Validator {
     Set<Specification> cantBe = new HashSet<>();
 
     // Collect everything into "could be" and "can't be" sets
-    JSON.traverse(schema, (e, parent, path, state) -> {
+    JSON.traverseSchema(schema, (e, parent, path, state) -> {
       if (!e.isJsonObject()) {
         return;
       }
