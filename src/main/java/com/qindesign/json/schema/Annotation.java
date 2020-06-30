@@ -35,8 +35,8 @@ public final class Annotation {
   public final URI absKeywordLocation;
   public final Object value;
 
-  private boolean valid;  // Invalid annotations are attached to failed schemas
-  // NOTE: This field is not used in equals and hashCode
+  /** Invalid annotations are attached to failed schemas. */
+  private boolean valid;
 
   Annotation(String name,
              JSONPath instanceLoc,
@@ -71,7 +71,7 @@ public final class Annotation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, instanceLocation, keywordLocation, absKeywordLocation, value);
+    return Objects.hash(name, instanceLocation, keywordLocation, absKeywordLocation, value, valid);
   }
 
   @Override
@@ -84,7 +84,8 @@ public final class Annotation {
            Objects.equals(instanceLocation, a.instanceLocation) &&
            Objects.equals(keywordLocation, a.keywordLocation) &&
            Objects.equals(absKeywordLocation, a.absKeywordLocation) &&
-           Objects.equals(value, a.value);
+           Objects.equals(value, a.value) &&
+           valid == a.valid;
   }
 
   @Override
