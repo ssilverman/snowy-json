@@ -39,7 +39,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * Provides JSON tools, including:
@@ -180,6 +179,20 @@ public final class JSON {
   }
 
   /**
+   * Visitor for tree traversal.
+   */
+  public interface Visitor {
+    /**
+     * Visits a JSON element.
+     *
+     * @param e the element being visited
+     * @param parent the element's parent, may be {@code null}
+     * @param path the full path to the element, a list of path elements
+     */
+    void visit(JsonElement e, JsonElement parent, JSONPath path);
+  }
+
+  /**
    * Holds state during a schema tree traversal. It holds information that won't
    * necessarily change for every element.
    */
@@ -225,12 +238,10 @@ public final class JSON {
 
   /**
    * Recursive method that performs the schema traversal.
-   * <p>
-   * The path is expected to be a modifiable {@link List}.
    *
    * @param e the current element
    * @param parent the element's parent
-   * @param path the element's full path, a list of path elements
+   * @param path the element's full path
    * @param state the tree state
    * @param visitor the visitor
    */
@@ -260,6 +271,47 @@ public final class JSON {
       // Process everything else
       for (var entry : e.getAsJsonObject().entrySet()) {
         traverseSchema(entry.getValue(), e, path.append(entry.getKey()), state, visitor);
+      }
+    }
+  }
+
+  /**
+   * Traverses a JSON tree and visits each element using {@code visitor}. This
+   * uses a preorder ordering.
+   *
+   * @param e the root of the JSON tree
+   * @param visitor the visitor
+   */
+  public static void traverse(JsonElement e, Visitor visitor) {
+    traverse(e, null, JSONPath.absolute(), visitor);
+  }
+
+  /**
+   * Recursive method that performs the tree traversal.
+   *
+   * @param e the current element
+   * @param parent the element's parent
+   * @param path the element's full path
+   * @param visitor the visitor
+   */
+  private static void traverse(JsonElement e, JsonElement parent, JSONPath path,
+                               Visitor visitor) {
+    visitor.visit(e, parent, path);
+
+    if (e.isJsonPrimitive() || e.isJsonNull()) {
+      return;
+    }
+
+    if (e.isJsonArray()) {
+      int index = 0;
+      for (var item : e.getAsJsonArray()) {
+        traverse(item, e, path.append(Integer.toString(index)), visitor);
+        index++;
+      }
+    } else {
+      // Process everything else
+      for (var entry : e.getAsJsonObject().entrySet()) {
+        traverse(entry.getValue(), e, path.append(entry.getKey()), visitor);
       }
     }
   }

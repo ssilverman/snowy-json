@@ -8,6 +8,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Added
 * Added the ability to add pluggable rules to the linter.
+* Added non-schema tree traversal to `JSON`.
 
 ### Changed
 * Changed a couple linter behaviours:
