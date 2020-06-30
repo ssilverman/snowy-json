@@ -17,6 +17,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
      desirable because both definitions and "properties" objects allow unknown
      keywords. Previously, no unknown keywords had their properties examined.
 * Errors reverted to instance->schema order for the mapping.
+* All the fields are now final or private in `Annotation` and `Id`.
+* Other internal improvements.
 
 ## [0.11.0]
 
