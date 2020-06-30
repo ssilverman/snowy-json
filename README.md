@@ -508,7 +508,7 @@ There are plans to explore supporting more features, including:
 1. Custom vocabulary support.
 2. More output formatting. All the information is currently there, but the
    caller must process and organize it.
-3. Instance coverage.
+3. Schema coverage.
 
 ## References
 
