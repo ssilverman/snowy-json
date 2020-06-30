@@ -21,8 +21,12 @@
  */
 package com.qindesign.json.schema;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.Definitions;
 import com.qindesign.json.schema.keywords.Properties;
@@ -30,10 +34,13 @@ import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,7 +49,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 /**
  * A rudimentary schema coverage checker. This is an example program.
@@ -116,69 +122,46 @@ public class Coverage {
     time = System.currentTimeMillis() - time;
     logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 
-    // Coverage collection using the errors
-    Set<JSONPath> all = mapSchema(schema, (Specification) opts.get(Option.DEFAULT_SPECIFICATION));
-    Set<JSONPath> seen = new HashSet<>();
-    errors.forEach((instancePath, bySchema) -> {
-      bySchema.values()
-          .forEach(a -> {
-            String fragment = Optional.ofNullable(a.absKeywordLocation.fragment()).orElse("");
-            seen.add(JSONPath.fromJSONPointer(fragment));
-          });
+    // Coverage collection uses the errors
+    // More complex analysis could be done here
+
+    JsonObject root = new JsonObject();
+    JsonArray instanceLocs = new JsonArray();
+    root.add("seen", instanceLocs);
+
+    // All seen instance locations
+    errors.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(entry -> {
+          JsonObject instanceLoc = new JsonObject();
+          instanceLoc.addProperty("instanceLocation", entry.getKey().toString());
+          JsonArray schemaLocs = new JsonArray();
+          instanceLoc.add("schemaLocations", schemaLocs);
+          entry.getValue().values().stream()
+              .sorted(Comparator.comparing(a -> a.keywordLocation))
+              .forEach(a -> {
+                JsonObject schemaLoc = new JsonObject();
+                schemaLoc.addProperty("keywordLocation", a.keywordLocation.toString());
+                schemaLoc.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                schemaLocs.add(schemaLoc);
+              });
+          instanceLocs.add(instanceLoc);
+        });
+
+    // Unseen instance locations
+    JsonArray unseenInstanceLocs = new JsonArray();
+    root.add("unseen", unseenInstanceLocs);
+    JSON.traverse(instance, (e, parent, path) -> {
+      if (!errors.containsKey(path)) {
+        unseenInstanceLocs.add(path.toString());
+      }
     });
 
-    // More complex analysis could be done here
-    // Note that we're removing the empty paths when printing the lists
-
-    // Counts
-    int seenCount = seen.size();
-    int totalCount = all.size();
-    boolean seenHasRoot = false;
-    boolean allHasRoot = false;
-    if (seen.remove(JSONPath.absolute())) {
-      seenCount--;
-      seenHasRoot = true;
-    }
-    if (all.remove(JSONPath.absolute())) {
-      totalCount--;
-      allHasRoot = true;
-    }
-
-    // Seen
-    System.out.println();
-    System.out.println("Seen " + seenCount + " (excluding root):");
-    IntStream.range(0, Integer.toString(seenCount).length() + 23)
-        .forEach(i -> System.out.print('-'));
-    System.out.println();
-    if (!seen.isEmpty()) {
-      seen.stream().sorted().forEach(System.out::println);
-    } else {
-      System.out.println("<None>");
-    }
-
-    // Not seen
-    all.removeAll(seen);
-    System.out.println();
-    System.out.println("Not seen " + all.size() + " (excluding root):");
-    IntStream.range(0, Integer.toString(all.size()).length() + 27)
-        .forEach(i -> System.out.print('-'));
-    System.out.println();
-    if (!all.isEmpty()) {
-      all.stream().sorted().forEach(System.out::println);
-    } else {
-      System.out.println("<None>");
-    }
-
-    // Total
-    System.out.println();
-    if (seenHasRoot) {
-      seenCount++;
-    }
-    if (allHasRoot) {
-      totalCount++;
-    }
-    float percent = (float) seenCount / (float) totalCount * 100.0f;
-    System.out.println("Total (including root): Seen " + seenCount + "/" + totalCount + " (" + percent + "%)");
+    Writer out = new OutputStreamWriter(System.out);
+    JsonWriter w = new JsonWriter(out);
+    w.setIndent("    ");
+    Streams.write(root, w);
+    w.flush();
   }
 
   /**

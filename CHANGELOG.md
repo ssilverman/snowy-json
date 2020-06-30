@@ -22,6 +22,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Other internal improvements.
 * Changed `JSON.traverse` to `traverseSchema`, `JSON.JsonElementVisitor` to
   `JSON.SchemaVisitor`, and `JSON.TraverseState` to `JSON.SchemaTraverseState`.
+* The Coverage tool now prints coverage by instance path and not schema path.
+  It also now outputs in JSON.
 
 ## [0.11.0]
 
