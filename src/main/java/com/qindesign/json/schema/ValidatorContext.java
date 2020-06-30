@@ -244,7 +244,7 @@ public final class ValidatorContext {
   /** The current processing state. */
   private State state;
 
-  private final Map<Id, JsonElement> knownIDs;
+  private final Map<URI, JsonElement> knownIDs;
   private final Map<URI, Id> idsByURI;
   private final Map<URI, URL> knownURLs;
 
@@ -329,7 +329,8 @@ public final class ValidatorContext {
     }
 
     this.baseURI = baseURI.normalize();
-    this.knownIDs = knownIDs;
+    this.knownIDs = knownIDs.entrySet().stream()
+        .collect(Collectors.toMap(e -> e.getKey().id, e -> e.getValue()));
     this.idsByURI = knownIDs.keySet().stream()
         .collect(Collectors.toMap(id -> id.id, Function.identity()));
     this.knownURLs = knownURLs;
@@ -596,7 +597,7 @@ public final class ValidatorContext {
    *         such element.
    */
   public JsonElement findAndSetRoot(URI id) {
-    JsonElement e = knownIDs.get(new Id(id));
+    JsonElement e = knownIDs.get(id);
     if (e != null) {
       return e;
     }

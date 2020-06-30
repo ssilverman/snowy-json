@@ -32,9 +32,6 @@ import java.util.Objects;
  * other fields are merely auxiliary.
  */
 public final class Id {
-  /** The value resolved against the base URI, may be {@code null}. */
-  public String value;
-
   /**
    * The actual ID, after it was resolved against the base URI. If this
    * contains a fragment then the ID was constructed from an anchor, a
@@ -45,23 +42,26 @@ public final class Id {
    */
   public final URI id;
 
+  /** The element value, may be {@code null}. */
+  public final String value;
+
   /**
    * The base URI, against which the value was resolved to produce the ID, may
    * be {@code null}.
    */
-  public URI base;
+  public final URI base;
 
   /** The path to this element. */
-  public JSONPath path;
+  public final JSONPath path;
 
   /** The root ID, may or may not be the same as the root URI. */
-  public URI root;
+  public final URI rootID;
 
   /**
    * The root URI, the resource originally used to retrieve or describe the
    * containing JSON document.
    */
-  public URI rootURI;
+  public final URI rootURI;
 
   /**
    * Creates a new ID with all-null fields.
@@ -69,9 +69,17 @@ public final class Id {
    * @param id the ID, a {@link URI}
    * @throws NullPointerException if the ID is {@code null}.
    */
-  public Id(URI id) {
+  public Id(URI id, String value, URI base, JSONPath path, URI rootID, URI rootURI) {
     Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(path, "path");
+    Objects.requireNonNull(rootID, "rootID");
+    Objects.requireNonNull(rootURI, "rootURI");
     this.id = id;
+    this.value = value;
+    this.base = base;
+    this.path = path;
+    this.rootID = rootID;
+    this.rootURI = rootURI;
   }
 
   /**

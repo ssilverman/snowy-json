@@ -251,7 +251,10 @@ public final class Validator {
     // This is so we have a ValidatorContext we can use during schema validation
     var ids = scanIDs(baseURI, schema, spec);
     if (knownIDs != null) {
-      knownIDs.forEach((uri, e) -> ids.putIfAbsent(new Id(uri), e));
+      knownIDs.forEach((uri, e) -> {
+        Id id = new Id(uri, null, null, JSONPath.absolute(), uri, uri);
+        ids.putIfAbsent(id, e);
+      });
     }
     if (knownURLs == null) {
       knownURLs = new HashMap<>();
@@ -671,12 +674,7 @@ public final class Validator {
     URI newBase = scanIDs(baseURI, baseURI, baseURI, null, null, null, e, ids, spec);
 
     // Ensure we have at least the base URI, if it's not already there
-    Id id = new Id(baseURI);
-    id.value = null;
-    id.base = null;
-    id.path = JSONPath.absolute();
-    id.root = newBase;
-    id.rootURI = baseURI;
+    Id id = new Id(baseURI, null, null, JSONPath.absolute(), newBase, baseURI);
     ids.putIfAbsent(id, e);
 
     return ids;
@@ -744,18 +742,18 @@ public final class Validator {
             spec,
             () -> Strings.jsonPointerToURI(newParentID.append(CoreId.NAME).toString()));
 
-        Id id = new Id(baseURI.resolve(uri));
-        id.value = value.getAsString();
-        id.base = baseURI;
-        id.path = newParentID;
-        id.root = rootID;
-        id.rootURI = rootURI;
+        Id id = new Id(baseURI.resolve(uri),
+                       value.getAsString(),
+                       baseURI,
+                       newParentID,
+                       rootID,
+                       rootURI);
 
         if (URIs.hasNonEmptyFragment(uri)) {
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
-                " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
+                " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
                 Strings.jsonPointerToURI(newParentID.toString()));
           }
         } else {
@@ -779,16 +777,16 @@ public final class Validator {
               value,
               () -> Strings.jsonPointerToURI(newParentID.append(CoreAnchor.NAME).toString()));
 
-          Id id = new Id(baseURI.resolve(URI.parseUnchecked("#" + anchor)));
-          id.value = anchor;
-          id.base = baseURI;
-          id.path = newParentID;
-          id.root = rootID;
-          id.rootURI = rootURI;
+          Id id = new Id(baseURI.resolve(URI.parseUnchecked("#" + anchor)),
+                         anchor,
+                         baseURI,
+                         newParentID,
+                         rootID,
+                         rootURI);
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
-                " base=" + id.base + " rootID=" + id.root + " rootURI=" + id.rootURI,
+                " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
                 Strings.jsonPointerToURI(newParentID.toString()));
           }
         }
