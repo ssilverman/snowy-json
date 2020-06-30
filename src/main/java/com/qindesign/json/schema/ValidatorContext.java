@@ -696,12 +696,12 @@ public final class ValidatorContext {
       return;
     }
 
-    Annotation a = new Annotation(name);
-    a.instanceLocation = state.instanceLocation;
-    a.keywordLocation = state.keywordLocation;
-    a.absKeywordLocation = state.absKeywordLocation;
-    a.value = value;
-    a.valid = state.isCollectSubAnnotations;
+    Annotation a = new Annotation(name,
+                                  state.instanceLocation,
+                                  state.keywordLocation,
+                                  state.absKeywordLocation,
+                                  value);
+    a.setValid(state.isCollectSubAnnotations);
 
     Annotation oldA = annotations
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
@@ -751,12 +751,12 @@ public final class ValidatorContext {
       return;
     }
 
-    Annotation a = new Annotation(result ? "annotation" : "error");
-    a.instanceLocation = state.instanceLocation;
-    a.keywordLocation = state.keywordLocation;
-    a.absKeywordLocation = state.absKeywordLocation;
-    a.value = new ValidationResult(result, message);
-    a.valid = true;
+    Annotation a = new Annotation(result ? "annotation" : "error",
+                                  state.instanceLocation,
+                                  state.keywordLocation,
+                                  state.absKeywordLocation,
+                                  new ValidationResult(result, message));
+    a.setValid(true);
 
     Annotation oldA = errors
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
@@ -1212,7 +1212,7 @@ public final class ValidatorContext {
               .values()
               .forEach(v -> v.entrySet().forEach(e -> {
                 if (pred.test(e)) {
-                  e.getValue().valid = false;
+                  e.getValue().setValid(false);
                 }
               }));
         }

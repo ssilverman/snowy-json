@@ -220,7 +220,7 @@ public class Main {
           JsonObject ao = new JsonObject();
           o.add("annotation", ao);
           ao.add("name", new JsonPrimitive(a.name));
-          if (!a.valid) {
+          if (!a.isValid()) {
             ao.add("valid", new JsonPrimitive(false));
           }
 

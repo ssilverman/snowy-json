@@ -25,20 +25,48 @@ import com.qindesign.net.URI;
 import java.util.Objects;
 
 /**
- * Holds all the information needed to describe an annotation.
+ * Holds all the information needed to describe an annotation. An annotation can
+ * also be marked as "valid" or "invalid". The default is "invalid".
  */
 public final class Annotation {
   public final String name;
-  public JSONPath instanceLocation;
-  public JSONPath keywordLocation;
-  public URI absKeywordLocation;
-  public Object value;
+  public final JSONPath instanceLocation;
+  public final JSONPath keywordLocation;
+  public final URI absKeywordLocation;
+  public final Object value;
 
-  public boolean valid;  // Invalid annotations are attached to failed schemas
+  private boolean valid;  // Invalid annotations are attached to failed schemas
   // NOTE: This field is not used in equals and hashCode
 
-  Annotation(String name) {
+  Annotation(String name,
+             JSONPath instanceLoc,
+             JSONPath keywordLoc,
+             URI absKeywordLoc,
+             Object value) {
     this.name = name;
+    this.instanceLocation = instanceLoc;
+    this.keywordLocation = keywordLoc;
+    this.absKeywordLocation = absKeywordLoc;
+    this.value = value;
+  }
+
+  /**
+   * Sets the "valid" flag. The default value is {@code false}.
+   *
+   * @param flag the new "valid" value
+   */
+  public void setValid(boolean flag) {
+    this.valid = flag;
+  }
+
+  /**
+   * Returns whether this annotation is valid. The default value
+   * is {@code false}.
+   *
+   * @return if this annotation is valid.
+   */
+  public boolean isValid() {
+    return valid;
   }
 
   @Override
