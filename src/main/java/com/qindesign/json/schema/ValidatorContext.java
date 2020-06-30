@@ -97,9 +97,6 @@ public final class ValidatorContext {
    * Tracks context state.
    */
   private static final class State {
-    State() {
-    }
-
     /**
      * The current schema object, could be the parent of the current element.
      */
@@ -138,24 +135,28 @@ public final class ValidatorContext {
     final Map<String, Object> localAnnotations = new HashMap<>();
 
     /**
-     * Copies and returns the object. This does not copy anything that needs to
+     * Creates a new, empty, state object.
+     */
+    State() {
+    }
+
+    /**
+     * Copy constructor. This does not copy anything that needs to
      * remain "local".
      */
-    State copy() {
-      State copy = new State();
-      copy.schemaObject = this.schemaObject;
-      copy.isRoot = this.isRoot;
-      copy.baseURI = this.baseURI;
-      copy.spec = this.spec;
-      copy.prevRecursiveBaseURI = this.prevRecursiveBaseURI;
-      copy.recursiveBaseURI = this.recursiveBaseURI;
-      copy.keywordParentLocation = this.keywordParentLocation;
-      copy.absKeywordParentLocation = this.absKeywordParentLocation;
-      copy.keywordLocation = this.keywordLocation;
-      copy.absKeywordLocation = this.absKeywordLocation;
-      copy.instanceLocation = this.instanceLocation;
-      copy.isCollectSubAnnotations = this.isCollectSubAnnotations;
-      return copy;
+    State(State state) {
+      this.schemaObject = state.schemaObject;
+      this.isRoot = state.isRoot;
+      this.baseURI = state.baseURI;
+      this.spec = state.spec;
+      this.prevRecursiveBaseURI = state.prevRecursiveBaseURI;
+      this.recursiveBaseURI = state.recursiveBaseURI;
+      this.keywordParentLocation = state.keywordParentLocation;
+      this.absKeywordParentLocation = state.absKeywordParentLocation;
+      this.keywordLocation = state.keywordLocation;
+      this.absKeywordLocation = state.absKeywordLocation;
+      this.instanceLocation = state.instanceLocation;
+      this.isCollectSubAnnotations = state.isCollectSubAnnotations;
     }
   }
 
@@ -349,7 +350,7 @@ public final class ValidatorContext {
     state.isCollectSubAnnotations = true;
 
     // Options
-    this.options = options.copy();
+    this.options = new Options(options);
     isCollectAnnotations = isOption(Option.COLLECT_ANNOTATIONS);
     isCollectFailedAnnotations = isOption(Option.COLLECT_ANNOTATIONS_FOR_FAILED);
     isCollectErrors = isOption(Option.COLLECT_ERRORS);
@@ -1130,7 +1131,7 @@ public final class ValidatorContext {
     JSONPath instanceLocation = resolvePointer(state.instanceLocation, instanceName);
 
     State parentState = state;
-    state = state.copy();
+    state = new State(state);
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
     state.keywordParentLocation = keywordLocation;

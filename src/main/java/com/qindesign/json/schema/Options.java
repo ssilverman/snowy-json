@@ -67,6 +67,15 @@ public final class Options {
   }
 
   /**
+   * Copy constructor.
+   *
+   * @param opts the options to copy
+   */
+  public Options(Options opts) {
+    this.options.putAll(opts.options);
+  }
+
+  /**
    * Sets an option to the specified value. This overrides any defaults.
    * <p>
    * The value must be of the correct type.
@@ -153,16 +162,5 @@ public final class Options {
         specDefaults
             .getOrDefault(spec, Collections.emptyMap())
             .getOrDefault(option, defaults.get(option)));
-  }
-
-  /**
-   * Returns a copy of these options.
-   *
-   * @return a copy of the options.
-   */
-  public Options copy() {
-    Options copy = new Options();
-    copy.options.putAll(this.options);
-    return copy;
   }
 }
