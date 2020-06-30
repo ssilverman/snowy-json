@@ -52,7 +52,7 @@ public final class Annotation {
       return false;
     }
     Annotation a = (Annotation) obj;
-    return this.equals(a) && Objects.equals(name, a.name) &&
+    return Objects.equals(name, a.name) &&
            Objects.equals(instanceLocation, a.instanceLocation) &&
            Objects.equals(keywordLocation, a.keywordLocation) &&
            Objects.equals(absKeywordLocation, a.absKeywordLocation) &&
