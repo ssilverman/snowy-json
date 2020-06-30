@@ -180,9 +180,9 @@ public class Main {
     errors.forEach((instancePath, map) -> {
       map.forEach((schemaPath, a) -> {
         JsonObject error = new JsonObject();
-        error.add("keywordLocation", new JsonPrimitive(a.keywordLocation.toString()));
-        error.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
-        error.add("instanceLocation", new JsonPrimitive(a.instanceLocation.toString()));
+        error.addProperty("keywordLocation", a.keywordLocation.toString());
+        error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+        error.addProperty("instanceLocation", a.instanceLocation.toString());
 
         ValidationResult vr = (ValidationResult) a.value;
         if (vr.result) {
@@ -214,9 +214,9 @@ public class Main {
       byName.forEach((name, bySchemaLoc) -> {
         bySchemaLoc.forEach((schemaLoc, a) -> {
           JsonObject o = new JsonObject();
-          o.add("instanceLocation", new JsonPrimitive(a.instanceLocation.toString()));
-          o.add("keywordLocation", new JsonPrimitive(a.keywordLocation.toString()));
-          o.add("absoluteKeywordLocation", new JsonPrimitive(a.absKeywordLocation.toString()));
+          o.addProperty("instanceLocation", a.instanceLocation.toString());
+          o.addProperty("keywordLocation", a.keywordLocation.toString());
+          o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
           JsonObject ao = new JsonObject();
           o.add("annotation", ao);
           ao.add("name", new JsonPrimitive(a.name));
