@@ -10,6 +10,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Added the ability to add pluggable rules to the linter.
 * Added non-schema tree traversal to `JSON`.
 * `JSONPath.endsWith` for checking the last element.
+* New linter rule that checks for `$ref` elements having siblings, for Draft-07
+  and earlier.
 
 ### Changed
 * Changed a couple linter behaviours:
