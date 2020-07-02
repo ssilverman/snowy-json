@@ -409,7 +409,7 @@ public final class JSON {
     }
 
     // Track specification
-    if (!state.isNotKeyword) {
+    if (!state.isNotSchema) {
       Specification spec = Validator.specificationFromSchema(e);
       if (spec != null) {
         state = new SchemaTraverseState(state);
