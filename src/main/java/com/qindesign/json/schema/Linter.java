@@ -359,6 +359,15 @@ public final class Linter {
             }
           });
         }
+      },
+
+      // $ref-with-siblings for Draft-07 and earlier
+      context -> {
+        if (context.spec() != null && context.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+          if (context.object().has(CoreRef.NAME) && context.object().size() > 1) {
+            context.addIssue("\"$ref\" with siblings");
+          }
+        }
       }
   );
 
