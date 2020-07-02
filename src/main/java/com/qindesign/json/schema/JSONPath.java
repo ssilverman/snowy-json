@@ -245,6 +245,8 @@ public final class JSONPath extends AbstractList<String>
   /**
    * Returns whether this path starts with the given path. This ignores the
    * relative/absolute property.
+   * <p>
+   * One way to think of this is a sort of "greater than or equal to" operator.
    *
    * @param p the path to check
    * @return whether this path starts with the given path.
@@ -254,6 +256,16 @@ public final class JSONPath extends AbstractList<String>
       return false;
     }
     return list.subList(0, p.size()).equals(p.list);
+  }
+
+  /**
+   * Returns whether this path ends with the given element.
+   *
+   * @param element the element to check
+   * @return whether this path ends with the given element.
+   */
+  public boolean endsWith(String element) {
+    return !list.isEmpty() && list.get(list.size() - 1).equals(element);
   }
 
   /**
