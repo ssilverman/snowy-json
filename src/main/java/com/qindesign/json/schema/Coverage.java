@@ -192,36 +192,8 @@ public class Coverage {
    */
   private static Set<JSONPath> mapSchema(JsonElement schema, Specification defaultSpec) {
     Set<JSONPath> paths = new HashSet<>();
-    JSON.traverseSchema(schema, (e, parent, path, state) -> {
-      // Determine the specification
-      Specification spec = state.spec();
-      if (spec == null) {
-        spec = defaultSpec;
-      }
-
-      // Checks if the path has a parent with the given name
-      BiFunction<JSONPath, String, Boolean> isIn =
-          (p, name) -> p.size() >= 2 && p.get(p.size() - 2).equals(name);
-
-      boolean inDefs;  // Note: This is only a rudimentary check
-      if (spec != null) {
-        if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          inDefs = isIn.apply(path, CoreDefs.NAME);
-        } else {
-          inDefs = isIn.apply(path, Definitions.NAME);
-        }
-      } else {
-        inDefs = isIn.apply(path, CoreDefs.NAME) ||
-                 isIn.apply(path, Definitions.NAME);
-      }
-
-      // No definitions parent
-      if (inDefs) {
-        return;
-      }
-
-      // No "properties" parent
-      if (isIn.apply(path, Properties.NAME)) {
+    JSON.traverseSchema(null, defaultSpec, schema, (e, parent, path, state) -> {
+      if (state.isNotKeyword()) {
         return;
       }
 

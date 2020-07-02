@@ -25,6 +25,11 @@ See: [Keep a Changelog](https://keepachangelog.com)
   `JSON.SchemaVisitor`, and `JSON.TraverseState` to `JSON.SchemaTraverseState`.
 * The Coverage tool now prints coverage by instance path and not schema path.
   It also now outputs in JSON.
+* Updated how `JSON.traverseSchema` works to be more complete. It now provides
+  a more complete picture of the schema and the state of its members. This also
+  means that all the keyword detection logic is in one place.
+* Updated the linter and coverage tool to utilize the new schema
+  traverser features.
 
 ## [0.11.0]
 

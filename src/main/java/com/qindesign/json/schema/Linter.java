@@ -194,7 +194,8 @@ public final class Linter {
   );
 
   /**
-   * Properties rules. These assume that the current element is a "properties".
+   * Properties rules. These assume that the current element is a
+   * proper "properties".
    */
   private static final List<Consumer<Context>> PROPERTIES_RULES = List.of(
       context -> {
@@ -208,7 +209,7 @@ public final class Linter {
 
   /**
    * Object rules. These all assume the current element is not a "properties",
-   * not a definitions, and not unknown.
+   * not a definitions, and not a root element if unknown.
    */
   private static final List<Consumer<Context>> OBJECT_RULES = List.of(
       context -> {
@@ -370,41 +371,32 @@ public final class Linter {
     JSONPath path;
     Specification spec;
 
-    boolean parentIsProperties;
-    boolean parentIsDefs;
-    boolean isDefs;
+    boolean isKeyword;
+    boolean isSchema;
 
     Context(Map<JSONPath, List<String>> issues) {
       this.issues = issues;
     }
 
     /**
-     * Checks if the parent of the current element is "properties".
+     * Checks if the current element is a possible keyword. An element is not a
+     * possible keyword if it's a member of a "properties" or
+     * definitions element.
      *
-     * @return this fact.
+     * @return whether the current element might be a keyword.
      */
-    public boolean parentIsProperties() {
-      return parentIsProperties;
+    public boolean isKeyword() {
+      return isKeyword;
     }
 
     /**
-     * Checks if the parent of the current element is either "$defs" or
-     * "definitions", depending on the current specification.
+     * Checks if the current element is a possible schema. An element is not a
+     * possible schema if it's a "properties" or definitions element.
      *
-     * @return this fact.
+     * @return whether the current element might be a schema.
      */
-    public boolean parentIsDefs() {
-      return parentIsProperties;
-    }
-
-    /**
-     * Checks if the current element is either "$defs" or "definitions",
-     * depending on the current specification.
-     *
-     * @return this fact.
-     */
-    public boolean isDefs() {
-      return isDefs;
+    public boolean isSchema() {
+      return isSchema;
     }
 
     /**
@@ -485,23 +477,13 @@ public final class Linter {
     }
 
     /**
-     * Checks if the current path has a parent with the given name.
-     *
-     * @param name the parent name to check
-     * @return whether the parent has the given name.
-     */
-    public boolean hasParent(String name) {
-      return path.size() >= 2 && path.get(path.size() - 2).equals(name);
-    }
-
-    /**
      * Checks if the current path ends with the given name.
      *
      * @param name the name to check
      * @return whether the path ends with the given name.
      */
     public boolean is(String name) {
-      return !path.isEmpty() && path.get(path.size() - 1).equals(name);
+      return path.endsWith(name);
     }
 
     /**
@@ -566,34 +548,20 @@ public final class Linter {
     Consumer<List<Consumer<Context>>> processRules =
         list -> list.forEach(f -> f.accept(context));
 
-    JSON.traverseSchema(schema, (e, parent, path, state) -> {
+    JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
       context.element = e;
       context.parent = parent;
       context.path = path;
       context.spec = state.spec();
-      context.parentIsProperties = context.hasParent(Properties.NAME);
-
-      if (state.spec() != null) {
-        if (state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-          context.isDefs = context.is(CoreDefs.NAME);
-          context.parentIsDefs = context.hasParent(CoreDefs.NAME);
-        } else {
-          context.isDefs = context.is(Definitions.NAME);
-          context.parentIsDefs = context.hasParent(Definitions.NAME);
-        }
-      } else {
-        context.isDefs = context.is(CoreDefs.NAME) ||
-                         context.is(Definitions.NAME);
-        context.parentIsDefs = context.hasParent(CoreDefs.NAME) ||
-                               context.hasParent(Definitions.NAME);
-      }
+      context.isKeyword = !state.isNotKeyword();
+      context.isSchema = !state.isNotSchema();
 
       if (e.isJsonNull()) {
         processRules.accept(nullRules);
       } else if (e.isJsonPrimitive()) {
         processRules.accept(primitiveRules);
         if (e.getAsJsonPrimitive().isString()) {
-          if (!context.parentIsProperties() && !context.parentIsDefs()) {
+          if (context.isKeyword()) {
             processRules.accept(STRING_RULES);
           }
           processRules.accept(stringRules);
@@ -602,10 +570,10 @@ public final class Linter {
         processRules.accept(ARRAY_RULES);
         processRules.accept(arrayRules);
       } else if (e.isJsonObject()) {
-        if (context.is(Properties.NAME)) {
+        if (state.isProperties()) {
           processRules.accept(PROPERTIES_RULES);
         } else {
-          if (!context.isDefs() && (!context.isUnknown() || context.path().size() > 1)) {
+          if (context.isSchema() && (!context.isUnknown() || context.path().size() > 1)) {
             processRules.accept(OBJECT_RULES);
           }
         }
