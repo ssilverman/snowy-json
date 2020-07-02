@@ -299,7 +299,7 @@ public final class JSON {
      * @return whether the element is definitely not a keyword.
      */
     public boolean isNotKeyword() {
-      return isNotSchema;
+      return isNotKeyword;
     }
 
     /**
