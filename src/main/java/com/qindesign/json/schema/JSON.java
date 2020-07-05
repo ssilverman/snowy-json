@@ -180,8 +180,10 @@ public final class JSON {
      * @param parent the element's parent, may be {@code null}
      * @param path the full path to the element, a list of path elements
      * @param state holds more information about the element
+     * @throws MalformedSchemaException if there was a problem with the schema.
      */
-    void visit(JsonElement e, JsonElement parent, JSONPath path, SchemaTraverseState state);
+    void visit(JsonElement e, JsonElement parent, JSONPath path, SchemaTraverseState state)
+        throws MalformedSchemaException;
   }
 
   /**
@@ -216,9 +218,11 @@ public final class JSON {
     boolean isNotSchema;
 
     // ID tracking
-    URI baseURI;
+    URI root;
+    URI base;
+    URI baseParent;
     JSONPath pathFromBase;
-    boolean hasID;
+    JsonElement idElem;
     boolean isIDMalformed;
 
     /**
@@ -303,14 +307,34 @@ public final class JSON {
     }
 
     /**
+     * Returns the document root ID, if detected. This may be {@code null} if
+     * there is no root ID.
+     *
+     * @return the document root URI, may be {@code null}.
+     */
+    public URI rootID() {
+      return root;
+    }
+
+    /**
      * Returns the current base URI. This may be {@code null} if the initial
      * base URI was set to {@code null} and there's no intervening ID. This will
-     * not necessarily be normalized.
+     * be normalized.
      *
      * @return the current base URI, may be {@code null}.
      */
     public URI baseURI() {
-      return baseURI;
+      return base;
+    }
+
+    /**
+     * Returns the base URI used to resolve the current base URI. This may be
+     * {@code null} null.
+     *
+     * @return the base used to resolve the current base.
+     */
+    public URI baseURIParent() {
+      return baseParent;
     }
 
     /**
@@ -326,19 +350,31 @@ public final class JSON {
 
     /**
      * Returns whether the current element is an object and contains an
-     * "$id" member.
+     * "$id" member. The member may or may not be a string.
      *
-     * @return whether the current element contains an "$id".
+     * @return whether the current element contains an "$id", but not whether
+     *         it's a string.
      */
-    public boolean hasID() {
-      return hasID;
+    public boolean hasIDElement() {
+      return idElem != null;
     }
 
     /**
-     * Returns whether the current element contains an "$id" and if the value
-     * is malformed.
+     * Returns the "$id" element if the current element is an object and has an
+     * "$id" member. Otherwise, this returns {@code null}.
      *
-     * @return
+     * @return the "$id" element of the current object, or {@code null} if there
+     *         is no such member or if the current element is not an object.
+     */
+    public JsonElement idElement() {
+      return idElem;
+    }
+
+    /**
+     * Returns whether the current element contains a string-valued "$id" and if
+     * the value is a malformed URI.
+     *
+     * @return whether the $id is a malformed URL.
      */
     public boolean isIDMalformed() {
       return isIDMalformed;
@@ -352,37 +388,52 @@ public final class JSON {
    * The initial base URI is set to the given base URI after removing any
    * fragment and after normalization. The default specification will be used in
    * the case that one could not be determined. Both are optional.
+   * <p>
+   * This returns any found root ID, or {@code null} if one is not found.
+   * <p>
+   * This does not internally throw a {@link MalformedSchemaException}. Only
+   * visitors possibly throw this. For example, malformed IDs are detected with
+   * {@link SchemaTraverseState#isIDMalformed()}.
    *
    * @param baseURI an optional initial base URI
    * @param spec the optional default specification to use
    * @param e the root of the JSON tree
    * @param visitor the visitor
+   * @return the root ID, if one is found, otherwise {@code null}.
+   * @throws MalformedSchemaException if there was a problem with the schema.
    */
-  public static void traverseSchema(URI baseURI, Specification spec, JsonElement e, SchemaVisitor visitor) {
+  public static URI traverseSchema(URI baseURI, Specification spec, JsonElement e,
+                                   SchemaVisitor visitor) throws MalformedSchemaException {
     SchemaTraverseState state = new SchemaTraverseState();
-    if (baseURI != null) {
-      state.baseURI = URIs.stripFragment(baseURI).normalize();
-    }
     state.spec = spec;
-    traverseSchema(e, null, JSONPath.absolute(), state, visitor);
+    if (baseURI != null) {
+      state.base = URIs.stripFragment(baseURI).normalize();
+    }
+    return traverseSchema(e, null, JSONPath.absolute(), state, visitor);
   }
 
   /**
-   * Recursive method that performs the schema traversal.
+   * Recursive method that performs the schema traversal. This returns any
+   * discovered root ID.
    *
    * @param e the current element
    * @param parent the element's parent
    * @param path the element's full path
    * @param state the tree state
    * @param visitor the visitor
+   * @return the root ID, if one is found, otherwise {@code null}.
+   * @throws MalformedSchemaException if there was a problem with the schema, as
+   *         thrown by the visitor.
    */
-  private static void traverseSchema(JsonElement e, JsonElement parent, JSONPath path,
-                                     SchemaTraverseState state,
-                                     SchemaVisitor visitor) {
+  private static URI traverseSchema(JsonElement e, JsonElement parent, JSONPath path,
+                                    SchemaTraverseState state,
+                                    SchemaVisitor visitor) throws MalformedSchemaException {
     SchemaTraverseState oldState = state;
     state = new SchemaTraverseState();
     state.spec = oldState.spec;
-    state.baseURI = oldState.baseURI;
+    state.root = oldState.root;
+    state.base = oldState.base;
+    state.baseParent = oldState.baseParent;
     state.pathFromBase = oldState.pathFromBase;
 
     // If we're inside a "properties" or a definitions then the contents of any
@@ -418,7 +469,7 @@ public final class JSON {
     }
 
     // Find any ID
-    state.hasID = false;
+    state.idElem = null;
     state.isIDMalformed = false;
     if (parent == null) {
       state.pathFromBase = JSONPath.absolute();
@@ -427,13 +478,23 @@ public final class JSON {
     }
     if (!state.isNotSchema && e.isJsonObject()) {
       JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
-      if (idElem != null && isString(idElem)) {
-        state.hasID = true;
-        try {
-          state.baseURI = URI.parse(idElem.getAsString());
-          state.pathFromBase = JSONPath.absolute();
-        } catch (URISyntaxException ex) {
-          state.isIDMalformed = true;
+      if (idElem != null) {
+        state.idElem = idElem;
+        if (isString(idElem)) {
+          try {
+            URI id = URI.parse(idElem.getAsString()).normalize();
+            if (state.base != null) {
+              id = state.base.resolve(id);
+            }
+            state.baseParent = state.base;
+            state.base = id;
+            state.pathFromBase = JSONPath.absolute();
+            if (parent == null) {
+              state.root = id;
+            }
+          } catch (URISyntaxException ex) {
+            state.isIDMalformed = true;
+          }
         }
       }
     }
@@ -441,7 +502,7 @@ public final class JSON {
     visitor.visit(e, parent, path, state);
 
     if (e.isJsonPrimitive() || e.isJsonNull()) {
-      return;
+      return state.root;
     }
 
     if (e.isJsonArray()) {
@@ -456,6 +517,8 @@ public final class JSON {
         traverseSchema(entry.getValue(), e, path.append(entry.getKey()), state, visitor);
       }
     }
+
+    return state.root;
   }
 
   /**

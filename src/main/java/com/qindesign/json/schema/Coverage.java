@@ -192,18 +192,22 @@ public class Coverage {
    */
   private static Set<JSONPath> mapSchema(JsonElement schema, Specification defaultSpec) {
     Set<JSONPath> paths = new HashSet<>();
-    JSON.traverseSchema(null, defaultSpec, schema, (e, parent, path, state) -> {
-      if (state.isNotKeyword()) {
-        return;
-      }
+    try {
+      JSON.traverseSchema(null, defaultSpec, schema, (e, parent, path, state) -> {
+        if (state.isNotKeyword()) {
+          return;
+        }
 
-      // No array parent
-      if (parent != null && parent.isJsonArray()) {
-        return;
-      }
+        // No array parent
+        if (parent != null && parent.isJsonArray()) {
+          return;
+        }
 
-      paths.add(path);
-    });
+        paths.add(path);
+      });
+    } catch (MalformedSchemaException ex) {
+      throw new RuntimeException(ex);
+    }
     return paths;
   }
 

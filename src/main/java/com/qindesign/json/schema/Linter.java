@@ -557,39 +557,43 @@ public final class Linter {
     Consumer<List<Consumer<Context>>> processRules =
         list -> list.forEach(f -> f.accept(context));
 
-    JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
-      context.element = e;
-      context.parent = parent;
-      context.path = path;
-      context.spec = state.spec();
-      context.isKeyword = !state.isNotKeyword();
-      context.isSchema = !state.isNotSchema();
+    try {
+      JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
+        context.element = e;
+        context.parent = parent;
+        context.path = path;
+        context.spec = state.spec();
+        context.isKeyword = !state.isNotKeyword();
+        context.isSchema = !state.isNotSchema();
 
-      if (e.isJsonNull()) {
-        processRules.accept(nullRules);
-      } else if (e.isJsonPrimitive()) {
-        processRules.accept(primitiveRules);
-        if (e.getAsJsonPrimitive().isString()) {
-          if (context.isKeyword()) {
-            processRules.accept(STRING_RULES);
+        if (e.isJsonNull()) {
+          processRules.accept(nullRules);
+        } else if (e.isJsonPrimitive()) {
+          processRules.accept(primitiveRules);
+          if (e.getAsJsonPrimitive().isString()) {
+            if (context.isKeyword()) {
+              processRules.accept(STRING_RULES);
+            }
+            processRules.accept(stringRules);
           }
-          processRules.accept(stringRules);
-        }
-      } else if (e.isJsonArray()) {
-        processRules.accept(ARRAY_RULES);
-        processRules.accept(arrayRules);
-      } else if (e.isJsonObject()) {
-        if (state.isProperties()) {
-          processRules.accept(PROPERTIES_RULES);
-        } else {
-          if (context.isSchema() && (!context.isUnknown() || context.path().size() > 1)) {
-            processRules.accept(OBJECT_RULES);
+        } else if (e.isJsonArray()) {
+          processRules.accept(ARRAY_RULES);
+          processRules.accept(arrayRules);
+        } else if (e.isJsonObject()) {
+          if (state.isProperties()) {
+            processRules.accept(PROPERTIES_RULES);
+          } else {
+            if (context.isSchema() && (!context.isUnknown() || context.path().size() > 1)) {
+              processRules.accept(OBJECT_RULES);
+            }
           }
+          processRules.accept(objectRules);
         }
-        processRules.accept(objectRules);
-      }
-      processRules.accept(otherRules);
-    });
+        processRules.accept(otherRules);
+      });
+    } catch (MalformedSchemaException ex) {
+      throw new RuntimeException(ex);
+    }
 
     return issues;
   }

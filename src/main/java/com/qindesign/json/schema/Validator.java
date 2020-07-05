@@ -45,7 +45,6 @@ import com.qindesign.json.schema.keywords.Format;
 import com.qindesign.json.schema.keywords.If;
 import com.qindesign.json.schema.keywords.MaxContains;
 import com.qindesign.json.schema.keywords.MinContains;
-import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.json.schema.keywords.ReadOnly;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
@@ -64,6 +63,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -490,78 +490,82 @@ public final class Validator {
     Set<Specification> cantBe = new HashSet<>();
 
     // Collect everything into "could be" and "can't be" sets
-    JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
-      if (!e.isJsonObject()) {
-        return;
-      }
+    try {
+      JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
+        if (!e.isJsonObject()) {
+          return;
+        }
 
-      e.getAsJsonObject().entrySet().forEach(entry -> {
-        // Look into the keyword
-        switch (entry.getKey()) {
-          case CoreId.NAME:
-            if (JSON.isString(entry.getValue())) {
-              try {
-                if (URIs.hasNonEmptyFragment(URI.parse(entry.getValue().getAsString()))) {
-                  cantBe.add(Specification.DRAFT_2019_09);
+        e.getAsJsonObject().entrySet().forEach(entry -> {
+          // Look into the keyword
+          switch (entry.getKey()) {
+            case CoreId.NAME:
+              if (JSON.isString(entry.getValue())) {
+                try {
+                  if (URIs.hasNonEmptyFragment(URI.parse(entry.getValue().getAsString()))) {
+                    cantBe.add(Specification.DRAFT_2019_09);
+                    couldBe.add(Specification.DRAFT_07);
+                    couldBe.add(Specification.DRAFT_06);
+                  } else {
+                    couldBe.add(Specification.DRAFT_2019_09);
+                    couldBe.add(Specification.DRAFT_07);
+                    couldBe.add(Specification.DRAFT_06);
+                  }
+                } catch (URISyntaxException ex) {
+                  // Ignore and continue
+                }
+              }
+              break;
+
+            case Format.NAME:
+              if (JSON.isString(entry.getValue())) {
+                String format = entry.getValue().getAsString();
+                if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
+                  couldBe.add(Specification.DRAFT_2019_09);
+                  cantBe.add(Specification.DRAFT_07);
+                  cantBe.add(Specification.DRAFT_06);
+                } else if (NEW_FORMATS_DRAFT_07.contains(format)) {
+                  couldBe.add(Specification.DRAFT_2019_09);
                   couldBe.add(Specification.DRAFT_07);
-                  couldBe.add(Specification.DRAFT_06);
+                  cantBe.add(Specification.DRAFT_06);
                 } else {
                   couldBe.add(Specification.DRAFT_2019_09);
                   couldBe.add(Specification.DRAFT_07);
                   couldBe.add(Specification.DRAFT_06);
                 }
-              } catch (URISyntaxException ex) {
-                // Ignore and continue
               }
-            }
-            break;
+              break;
 
-          case Format.NAME:
-            if (JSON.isString(entry.getValue())) {
-              String format = entry.getValue().getAsString();
-              if (NEW_FORMATS_DRAFT_2019_09.contains(format)) {
+            default:
+              if (NEW_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
+                // Ignore if there are old keywords because they'll get ignored
+                // during processing
                 couldBe.add(Specification.DRAFT_2019_09);
                 cantBe.add(Specification.DRAFT_07);
                 cantBe.add(Specification.DRAFT_06);
-              } else if (NEW_FORMATS_DRAFT_07.contains(format)) {
+              } else if (NEW_KEYWORDS_DRAFT_07.contains(entry.getKey())) {
                 couldBe.add(Specification.DRAFT_2019_09);
                 couldBe.add(Specification.DRAFT_07);
                 cantBe.add(Specification.DRAFT_06);
+              } else if (OLD_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
+                cantBe.add(Specification.DRAFT_2019_09);
+                couldBe.add(Specification.DRAFT_07);
+                couldBe.add(Specification.DRAFT_06);
               } else {
                 couldBe.add(Specification.DRAFT_2019_09);
                 couldBe.add(Specification.DRAFT_07);
                 couldBe.add(Specification.DRAFT_06);
               }
-            }
-            break;
+          }
 
-          default:
-            if (NEW_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
-              // Ignore if there are old keywords because they'll get ignored
-              // during processing
-              couldBe.add(Specification.DRAFT_2019_09);
-              cantBe.add(Specification.DRAFT_07);
-              cantBe.add(Specification.DRAFT_06);
-            } else if (NEW_KEYWORDS_DRAFT_07.contains(entry.getKey())) {
-              couldBe.add(Specification.DRAFT_2019_09);
-              couldBe.add(Specification.DRAFT_07);
-              cantBe.add(Specification.DRAFT_06);
-            } else if (OLD_KEYWORDS_DRAFT_2019_09.contains(entry.getKey())) {
-              cantBe.add(Specification.DRAFT_2019_09);
-              couldBe.add(Specification.DRAFT_07);
-              couldBe.add(Specification.DRAFT_06);
-            } else {
-              couldBe.add(Specification.DRAFT_2019_09);
-              couldBe.add(Specification.DRAFT_07);
-              couldBe.add(Specification.DRAFT_06);
-            }
-        }
-
-        // Don't continue if it can't be any of the specs
-//        return (cantBe.size() < specsSize);
-        // TODO: Implement early breaking from the visiting
+          // Don't continue if it can't be any of the specs
+          //        return (cantBe.size() < specsSize);
+          // TODO: Implement early breaking from the visiting
+        });
       });
-    });
+    } catch (MalformedSchemaException ex) {
+      throw new RuntimeException(ex);
+    }
 
     if (cantBe.size() >= Specification.values().length) {
       return null;
@@ -655,158 +659,87 @@ public final class Validator {
    * {@link #guessSpecification(JsonElement)}
    *
    * @param baseURI the base URI
-   * @param e the JSON document
-   * @param spec the specification to use for processing
+   * @param schema the JSON schema
+   * @param spec the default specification to use for processing
    * @return a map of IDs to JSON elements.
    * @throws IllegalArgumentException if the base URI has a non-empty fragment.
    * @throws MalformedSchemaException if the schema is considered malformed.
    * @see #specificationFromSchema(JsonElement)
    * @see #guessSpecification(JsonElement)
    */
-  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement e, Specification spec)
+  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement schema, Specification spec)
       throws MalformedSchemaException {
     if (URIs.hasNonEmptyFragment(baseURI)) {
       throw new IllegalArgumentException("Base UI has a non-empty fragment");
     }
-    baseURI = URIs.stripFragment(baseURI).normalize();
+    URI rootURI = URIs.stripFragment(baseURI).normalize();
 
     Map<Id, JsonElement> ids = new HashMap<>();
-    URI newBase = scanIDs(baseURI, baseURI, baseURI, null, null, null, e, ids, spec);
-
-    // Ensure we have at least the base URI, if it's not already there
-    Id id = new Id(baseURI, null, null, JSONPath.absolute(), newBase, baseURI);
-    ids.putIfAbsent(id, e);
-
-    return ids;
-  }
-
-  /**
-   * Scans a JSON element for IDs. The element is described by the
-   * {@code parentID} combined with the {@code name}, encoded into JSON Pointer
-   * form. It is expected that the name is not in JSON Pointer form.
-   *
-   * @param rootURI the URI of the document
-   * @param rootID the defined root ID, may be the same as {@code baseURI}
-   * @param baseURI the current base ID
-   * @param parentID the parent ID
-   * @param name the name of the child element, a number for an array element,
-   *             {@code null} for the current element
-   * @param parent the parent of the given element
-   * @param e the element to scan
-   * @param ids the ID map
-   * @param spec the current specification
-   * @return the root ID, may change from the original.
-   * @throws MalformedSchemaException if the schema is considered malformed
-   *         vis-à-vis IDs.
-   */
-  private static URI scanIDs(URI rootURI, URI rootID, URI baseURI,
-                             JSONPath parentID, String name,
-                             JsonElement parent, JsonElement e,
-                             Map<Id, JsonElement> ids,
-                             Specification spec)
-      throws MalformedSchemaException {
-    if (e.isJsonPrimitive() || e.isJsonNull()) {
-      return rootID;
-    }
-
-    // Create the parent ID of the processed sub-elements
-    JSONPath newParentID;
-    if (parent == null) {
-      newParentID = JSONPath.absolute();
-    } else {
-      newParentID = parentID.append(name);
-    }
-
-    if (e.isJsonArray()) {
-      int index = 0;
-      for (var elem : e.getAsJsonArray()) {
-        scanIDs(rootURI, rootID, baseURI,
-                newParentID, Integer.toString(index++),
-                e, elem,
-                ids, spec);
+    URI rootID = JSON.traverseSchema(rootURI, spec, schema, (e, parent, path, state) -> {
+      if (state.isNotSchema() || !e.isJsonObject()) {
+        return;
       }
-      return rootID;
-    }
 
-    // Don't look at the $id or $anchor values inside properties
-    boolean inProperties = Properties.NAME.equals(name);
-
-    // Process any "$id"
-    JsonElement value;
-
-    if (!inProperties) {
-      value = e.getAsJsonObject().get(CoreId.NAME);
-      if (value != null) {
-        URI uri = getID(
-            value,
-            spec,
-            () -> Strings.jsonPointerToURI(newParentID.append(CoreId.NAME).toString()));
-
-        Id id = new Id(baseURI.resolve(uri),
-                       value.getAsString(),
-                       baseURI,
-                       newParentID,
-                       rootID,
+      if (state.hasIDElement()) {
+        URI uri = getID(state.idElement(),
+                        state.spec(),
+                        () -> Strings.jsonPointerToURI(path.append(CoreId.NAME).toString()));
+        Id id = new Id(state.baseURIParent().resolve(uri),
+                       state.idElement().toString(),
+                       state.baseURIParent(),
+                       path,
+                       Optional.ofNullable(state.rootID()).orElse(rootURI),
                        rootURI);
 
-        if (URIs.hasNonEmptyFragment(uri)) {
+        if (URIs.hasNonEmptyFragment(id.id)) {
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
                 " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(newParentID.toString()));
+                Strings.jsonPointerToURI(path.toString()));
           }
         } else {
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException("ID not unique",
-                                               Strings.jsonPointerToURI(newParentID.toString()));
-          }
-
-          baseURI = id.id;
-          if (parent == null) {
-            rootID = id.id;
+                                               Strings.jsonPointerToURI(path.toString()));
           }
         }
       }
 
       // Process any "$anchor"
-      if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-        value = e.getAsJsonObject().get(CoreAnchor.NAME);
+      if (state.spec() != null &&
+          state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        JsonElement value = e.getAsJsonObject().get(CoreAnchor.NAME);
         if (value != null) {
-          String anchor = getAnchor(
-              value,
-              () -> Strings.jsonPointerToURI(newParentID.append(CoreAnchor.NAME).toString()));
+          Supplier<URI> loc =
+              () -> Strings.jsonPointerToURI(path.append(CoreAnchor.NAME).toString());
 
-          Id id = new Id(baseURI.resolve(URI.parseUnchecked("#" + anchor)),
+          String anchor = getAnchor(value, loc);
+
+          Id id = new Id(state.baseURI().resolve(URI.parseUnchecked("#" + anchor)),
                          anchor,
-                         baseURI,
-                         newParentID,
-                         rootID,
+                         state.baseURI(),
+                         path,
+                         Optional.ofNullable(state.rootID()).orElse(rootURI),
                          rootURI);
           if (ids.put(id, e) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
                 " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(newParentID.toString()));
+                Strings.jsonPointerToURI(path.toString()));
           }
         }
       }
-    }  // !inProperties
+    });
 
-    // Process everything else
-    // Only process $id and $anchor if not inside properties
-    for (var entry : e.getAsJsonObject().entrySet()) {
-      if (!inProperties) {
-        if (entry.getKey().equals(CoreId.NAME) || entry.getKey().equals(CoreAnchor.NAME)) {
-          continue;
-        }
-      }
-      scanIDs(rootURI, rootID, baseURI,
-              newParentID, entry.getKey(),
-              e, entry.getValue(),
-              ids, spec);
+    if (rootID == null) {
+      rootID = rootURI;
     }
 
-    return rootID;
+    // Ensure we have at least the base URI, if it's not already there
+    Id id = new Id(rootURI, null, null, JSONPath.absolute(), rootID, rootURI);
+    ids.putIfAbsent(id, schema);
+
+    return ids;
   }
 }
