@@ -46,14 +46,14 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -244,9 +244,11 @@ public final class ValidatorContext {
   /** The current processing state. */
   private State state;
 
-  private final Map<URI, JsonElement> knownIDs;
-  private final Map<URI, Id> idsByURI;
+  private final Map<URI, Id> knownIDs;
   private final Map<URI, URL> knownURLs;
+
+  /** Ids are unique and it's guaranteed that there's only one anchorless ID. */
+  private final IdentityHashMap<JsonElement, Set<Id>> idsByElem;
 
   // https://www.baeldung.com/java-sneaky-throws
   @SuppressWarnings("unchecked")
@@ -298,6 +300,7 @@ public final class ValidatorContext {
    * unmodifiable wrappers.
    *
    * @param baseURI the initial base URI
+   * @param schema the schema having the base URI
    * @param knownIDs known JSON contents
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
@@ -308,12 +311,13 @@ public final class ValidatorContext {
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments are {@code null}.
    */
-  public ValidatorContext(URI baseURI,
-                          Map<Id, JsonElement> knownIDs, Map<URI, URL> knownURLs,
+  public ValidatorContext(URI baseURI, JsonElement schema,
+                          Map<URI, Id> knownIDs, Map<URI, URL> knownURLs,
                           Set<URI> validatedSchemas, Options options,
                           Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
                           Map<JSONPath, Map<JSONPath, Annotation>> errors) {
     Objects.requireNonNull(baseURI, "baseURI");
+    Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(knownURLs, "knownURLs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
@@ -328,11 +332,50 @@ public final class ValidatorContext {
       throw new IllegalArgumentException("baseURI has a non-empty fragment");
     }
 
-    this.baseURI = baseURI.normalize();
-    this.knownIDs = knownIDs.entrySet().stream()
-        .collect(Collectors.toMap(e -> e.getKey().id, e -> e.getValue()));
-    this.idsByURI = knownIDs.keySet().stream()
-        .collect(Collectors.toMap(id -> id.id, Function.identity()));
+    baseURI = baseURI.normalize();
+    this.baseURI = baseURI;
+    this.knownIDs = knownIDs;
+
+    // Gather the known IDs by element
+    this.idsByElem = new IdentityHashMap<>();
+    Id rootID = null;
+    if (!knownIDs.isEmpty()) {
+      for (Id id : knownIDs.values()) {
+        // Ensure:
+        // 1. IDs are unique
+        // 2. There exists only one anchorless ID
+        Set<Id> ids = idsByElem.computeIfAbsent(id.element, elem -> new HashSet<>());
+
+        // Ensure only one anchorless ID
+        if (id.id.rawFragment() == null) {
+          if (ids.stream().anyMatch(x -> x.id.rawFragment() == null)) {
+            throw new IllegalArgumentException("Duplicate known ID: " + baseURI + ": " + id.id);
+          }
+        }
+
+        // Ensure no duplicates
+        if (!ids.add(id)) {
+          throw new IllegalArgumentException("Duplicate known ID: " + baseURI + ": " + id.id);
+        }
+
+        // Note the root ID
+        if (id.path.isEmpty()) {
+          if (rootID != null) {
+            throw new IllegalArgumentException("Duplicate root ID: " + baseURI + ": " + id.rootURI);
+          }
+          rootID = new Id(id.rootURI, null, null, JSONPath.absolute(), id.element,
+                          id.rootID, id.rootURI);
+        }
+      }
+    } else {
+      rootID = new Id(baseURI, null, null, JSONPath.absolute(), schema, null, baseURI);
+    }
+
+    // Add the base URI
+    if (rootID != null) {
+      this.knownIDs.putIfAbsent(rootID.id, rootID);
+    }
+
     this.knownURLs = knownURLs;
     this.validatedSchemas = validatedSchemas;
 
@@ -577,10 +620,10 @@ public final class ValidatorContext {
   }
 
   /**
-   * Finds the element associated with the given ID. If there is no such element
-   * having the ID then this returns {@code null}. If the returned element was
-   * from a new resource and is a schema then the current state will be set as
-   * the root.
+   * Finds the element associated with the given ID and sets a new base URI. If
+   * there is no such element having the ID then this returns {@code null} and
+   * the base URI is not set. If the returned element was from a new resource
+   * and is a schema then the current state will be set as the root.
    * <p>
    * The search order is as follows:
    * <ol>
@@ -597,9 +640,10 @@ public final class ValidatorContext {
    *         such element.
    */
   public JsonElement findAndSetRoot(URI id) {
-    JsonElement e = knownIDs.get(id);
-    if (e != null) {
-      return e;
+    Id theID = knownIDs.get(id);
+    if (theID != null) {
+      state.baseURI = theID.id;
+      return theID.element;
     }
 
     // Strip off the fragment, but after we know we don't know about it
@@ -617,6 +661,7 @@ public final class ValidatorContext {
           JsonElement data = urlCache.access(new URL(url, sb.toString()));
           if (data != null) {
             state.schemaObject = null;
+            state.baseURI = uri;
             return data;
           }
         } catch (IOException | JsonParseException ex) {
@@ -658,9 +703,10 @@ public final class ValidatorContext {
       }
     } while (!path.isEmpty());
 
-    e = Validator.loadResource(id);
+    JsonElement e = Validator.loadResource(id);
     if (e != null && Validator.isSchema(e)) {
       state.schemaObject = null;
+      state.baseURI = id;
     }
     return e;
   }
@@ -675,7 +721,7 @@ public final class ValidatorContext {
    * @see Id
    */
   public Id findID(URI id) {
-    return idsByURI.get(id);
+    return knownIDs.get(id);
   }
 
   /**
@@ -976,32 +1022,25 @@ public final class ValidatorContext {
    * @param e the element to traverse
    * @param ptr the JSON Pointer
    * @return the specified sub-element, or {@code null} if not found.
-   * @throws MalformedSchemaException if an invalid $id was encountered
    */
-  public JsonElement followPointer(URI baseURI, JsonElement e, String ptr)
-      throws MalformedSchemaException {
-    int i = -1;
-    JSONPath path = JSONPath.absolute();
+  public JsonElement followPointer(URI baseURI, JsonElement e, String ptr) {
+    if (e == null) {
+      return null;
+    }
+
     URI newBase = baseURI;
 
-    // Split using a negative limit so that trailing empty strings are allowed
     for (String part : JSONPath.fromJSONPointer(ptr)) {
-      i++;
-      path = path.append(part);
-
-      if (e == null) {
-        return null;
-      }
+      // First try as an array index
       try {
         int index = Integer.parseInt(part);
-        if (!e.isJsonArray()) {
-          return null;
+        if (e.isJsonArray()) {
+          if (index >= e.getAsJsonArray().size()) {
+            return null;
+          }
+          e = e.getAsJsonArray().get(index);
+          continue;
         }
-        if (index >= e.getAsJsonArray().size()) {
-          return null;
-        }
-        e = e.getAsJsonArray().get(index);
-        continue;
       } catch (NumberFormatException ex) {
         // Nothing, skip to name processing
       }
@@ -1010,55 +1049,24 @@ public final class ValidatorContext {
         return null;
       }
 
-      JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
-      if (i > 1 && idElem != null && JSON.isString(idElem)) {
-        URI id = getID(idElem, path.append(CoreId.NAME));
-        if (URIs.isNotFragmentOnly(id)) {
-          newBase = newBase.resolve(id);
-        }
+      var id = idsByElem.computeIfAbsent(e, elem -> Collections.emptySet()).stream()
+          .filter(x -> x.id.rawFragment() == null)
+          .findFirst();
+      if (id.isPresent()) {
+        newBase = id.get().id;
       }
 
       // Transform the part
       e = e.getAsJsonObject().get(part);
+      if (e == null) {
+        return null;
+      }
     }
-    if (e != null) {
-      state.baseURI = newBase;
-      // Note: Don't set the state's absKeywordLocation here
-    }
+
+    state.baseURI = newBase;
+    // Note: Don't set the state's absKeywordLocation here
+
     return e;
-  }
-
-  /**
-   * Gets and processes the given ID element. This returns a URI suitable for
-   * resolving against the current base URI. This will return a URI containing
-   * only a fragment if the ID does not represent a new base, for example if
-   * it's an anchor. This condition can be checked with
-   * {@link URIs#isNotFragmentOnly(URI)}.
-   *
-   * @param e the ID element
-   * @param path the relative path of the element, {@code null} for the
-   *             current element
-   * @return the processed ID, or {@code null} if it's not a new base.
-   * @throws MalformedSchemaException if the ID is malformed.
-   * @see URIs#isNotFragmentOnly(URI)
-   * @see Validator#getID(JsonElement, Specification, Supplier)
-   */
-  public URI getID(JsonElement e, JSONPath path) throws MalformedSchemaException {
-    return Validator.getID(e,
-                           specification(),
-                           () -> resolveAbsolute(state.absKeywordLocation, path));
-  }
-
-  /**
-   * Gets and processes the given anchor element. This returns the anchor value.
-   *
-   * @param e the anchor element
-   * @return the anchor name.
-   * @throws MalformedSchemaException if the ID is malformed.
-   * @see Validator#getAnchor(JsonElement, Supplier)
-   */
-  public String getAnchor(JsonElement e) throws MalformedSchemaException {
-    return Validator.getAnchor(e, () -> state.absKeywordLocation);
   }
 
   /**
@@ -1096,19 +1104,15 @@ public final class ValidatorContext {
 
     URI absKeywordLocation = null;
 
-    // See if the absolute keyword location needs to change
+    // See if the absolute keyword location and base URI needs to change
     // Note: The base URI will change when CoreId is executed
     if (schema.isJsonObject()) {
-      JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
-      if (idElem != null) {
-        URI id = getID(idElem,
-                       Optional.ofNullable(name)
-                           .map(JSONPath::fromElement)
-                           .orElse(JSONPath.relative())
-                           .append(CoreId.NAME));
-        if (URIs.isNotFragmentOnly(id)) {
-          absKeywordLocation = baseURI.resolve(id);
-        }
+      var id = idsByElem.computeIfAbsent(schema, elem -> Collections.emptySet()).stream()
+          .filter(x -> x.id.rawFragment() == null)
+          .findFirst();
+      if (id.isPresent()) {
+        absKeywordLocation = id.get().id;
+        state.baseURI = id.get().id;
       }
     }
 

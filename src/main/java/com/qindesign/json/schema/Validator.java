@@ -23,7 +23,6 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.keywords.ContentEncoding;
 import com.qindesign.json.schema.keywords.ContentMediaType;
 import com.qindesign.json.schema.keywords.ContentSchema;
@@ -53,7 +52,6 @@ import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -145,12 +143,6 @@ public final class Validator {
       "time");
 
   /**
-   * @see <a href="https://www.w3.org/TR/2006/REC-xml-names11-20060816/#NT-NCName">Namespaces in XML 1.1 (Second Edition): NCName</a>
-   */
-  public static final java.util.regex.Pattern ANCHOR_PATTERN =
-      java.util.regex.Pattern.compile("[A-Z_a-z][-A-Z_a-z.0-9]*");
-
-  /**
    * Disallow instantiation.
    */
   private Validator() {
@@ -169,7 +161,46 @@ public final class Validator {
   }
 
   /**
-   * Validates an instance against a schema. Known JSON contents and resources
+   * Prepares a schema by scanning and checking it.
+   *
+   * @param baseURI the schema's base URI
+   * @param schema the schema
+   * @param options any options
+   * @return all the known IDs from the schema.
+   * @throws MalformedSchemaException if the schema is not valid.
+   * @throws NullPointerException if any of the arguments is {@code null}.
+   */
+  private static Map<URI, Id> prepareSchema(URI baseURI, JsonElement schema, Options options)
+      throws MalformedSchemaException {
+    Objects.requireNonNull(baseURI, "baseURI");
+    Objects.requireNonNull(schema, "schema");
+    Objects.requireNonNull(options, "options");
+
+    if (!isSchema(schema)) {
+      throw new MalformedSchemaException("Not a schema", baseURI);
+    }
+
+    // Determine the schema specification
+    Specification spec = specificationFromSchema(schema);
+
+    // If there's no explicit specification, try to guess it and then fall back
+    // on the default specification
+    boolean isDefaultSpec = (spec == null);
+    if (isDefaultSpec) {
+      spec = (Specification) options.get(Option.SPECIFICATION);
+      if (spec == null) {
+        spec = guessSpecification(schema);
+        if (spec == null) {
+          spec = (Specification) options.get(Option.DEFAULT_SPECIFICATION);
+        }
+      }
+    }
+
+    return scanIDs(baseURI, schema, spec);
+  }
+
+  /**
+   * Validates an instance against a schema. Known JSON schemas and resources
    * can be added, however the IDs in the schema will override those resources
    * if there are duplicates.
    * <p>
@@ -204,7 +235,7 @@ public final class Validator {
    * @param schema the schema, must not be {@code null}
    * @param instance the instance, must not be {@code null}
    * @param baseURI the schema's base URI, must not be {@code null}
-   * @param knownIDs any known JSON contents, searched first
+   * @param knownIDs any known JSON schemas, searched first
    * @param knownURLs any known resources, searched second
    * @param options any options
    * @param annotations annotations get stored here, if not {@code null}
@@ -223,66 +254,46 @@ public final class Validator {
                                  Map<JSONPath, Map<JSONPath, Annotation>> errors)
       throws MalformedSchemaException
   {
-    Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(instance, "instance");
-    Objects.requireNonNull(baseURI, "baseURI");
 
-    if (options == null) {
-      options = new Options();
+    options = Optional.ofNullable(options).orElse(new Options());
+
+    // Prepare the main schema
+    var ids = prepareSchema(baseURI, schema, options);
+
+    // Prepare all the known schemas
+    for (var e : Optional.ofNullable(knownIDs).orElse(Collections.emptyMap()).entrySet()) {
+      var ids2 = prepareSchema(e.getKey(), e.getValue(), options);
+      ids2.forEach(ids::putIfAbsent);
     }
 
-    // First, determine the schema specification
-    Specification spec = specificationFromSchema(schema);
-
-    // If there's no explicit specification, try to guess it and then fall back
-    // on the default specification
-    boolean isDefaultSpec = (spec == null);
-    if (isDefaultSpec) {
-      spec = (Specification) options.get(Option.SPECIFICATION);
-      if (spec == null) {
-        spec = guessSpecification(schema);
-        if (spec == null) {
-          spec = (Specification) options.get(Option.DEFAULT_SPECIFICATION);
-        }
-      }
-    }
-
-    // Prepare the schema and instance
-    // This is so we have a ValidatorContext we can use during schema validation
-    var ids = scanIDs(baseURI, schema, spec);
-    if (knownIDs != null) {
-      knownIDs.forEach((uri, e) -> {
-        Id id = new Id(uri, null, null, JSONPath.absolute(), uri, uri);
-        ids.putIfAbsent(id, e);
-      });
-    }
     if (knownURLs == null) {
       knownURLs = new HashMap<>();
     } else {
       knownURLs = new HashMap<>(knownURLs);
     }
 
-    // If auto-resolving
-    if (options.is(Option.AUTO_RESOLVE)) {
-      URL baseURL = null;
-      try {
-        baseURL = baseURI.toURL();
-      } catch (IllegalArgumentException | MalformedURLException ex) {
-        // Ignore
-      }
-      if (baseURL != null) {
-        knownURLs.putIfAbsent(baseURI, baseURL);
-        if (schema.isJsonObject()) {
-          JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
-          if (idElem != null) {
-            URI id = getID(idElem, spec, () -> baseURI);
-            if (URIs.isNotFragmentOnly(id)) {
-              knownURLs.putIfAbsent(id, baseURL);
-            }
-          }
-        }
-      }
-    }
+//    // If auto-resolving
+//    if (options.is(Option.AUTO_RESOLVE)) {
+//      URL baseURL = null;
+//      try {
+//        baseURL = baseURI.toURL();
+//      } catch (IllegalArgumentException | MalformedURLException ex) {
+//        // Ignore
+//      }
+//      if (baseURL != null) {
+//        knownURLs.putIfAbsent(baseURI, baseURL);
+//        if (schema.isJsonObject()) {
+//          JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
+//          if (idElem != null) {
+//            URI id = getID(idElem, spec, () -> baseURI);
+//            if (URIs.isNotFragmentOnly(id)) {
+//              knownURLs.putIfAbsent(id, baseURL);
+//            }
+//          }
+//        }
+//      }
+//    }
 
     // Annotations and errors collection
     if (annotations == null) {
@@ -302,23 +313,26 @@ public final class Validator {
 
     // Assume all the known specs have been validated
     ValidatorContext context =
-        new ValidatorContext(baseURI, ids, knownURLs, KNOWN_SCHEMAS, options, annotations, errors);
+        new ValidatorContext(baseURI, schema,
+                             ids, knownURLs, KNOWN_SCHEMAS,
+                             options,
+                             annotations, errors);
 
-    // If the spec is known, the $schema keyword will process it
-    // Next, validate the schema if it's unknown
-    if (isDefaultSpec && schema.isJsonObject()) {
-      try {
-        if (!new CoreSchema()
-            .apply(new JsonPrimitive(spec.id().toString()), instance, schema.getAsJsonObject(),
-                   context)) {
-          throw new MalformedSchemaException("schema does not validate against " + spec.id(),
-                                             baseURI);
-        }
-      } catch (MalformedSchemaException ex) {
-        // Ignore a bad or unknown meta-schema
-        // The whole point here, after all, is to get the vocabularies
-      }
-    }
+//    // If the spec is known, the $schema keyword will process it
+//    // Next, validate the schema if it's unknown
+//    if (isDefaultSpec && schema.isJsonObject()) {
+//      try {
+//        if (!new CoreSchema()
+//            .apply(new JsonPrimitive(spec.id().toString()), instance, schema.getAsJsonObject(),
+//                   context)) {
+//          throw new MalformedSchemaException("schema does not validate against " + spec.id(),
+//                                             baseURI);
+//        }
+//      } catch (MalformedSchemaException ex) {
+//        // Ignore a bad or unknown meta-schema
+//        // The whole point here, after all, is to get the vocabularies
+//      }
+//    }
 
     boolean retval = context.apply(schema, null, null, instance, null);
     if (retval) {
@@ -491,7 +505,8 @@ public final class Validator {
 
     // Collect everything into "could be" and "can't be" sets
     try {
-      JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
+      // TODO: What base URI to use?
+      JSON.traverseSchema(URI.parseUnchecked(""), null, schema, (e, parent, path, state) -> {
         if (!e.isJsonObject()) {
           return;
         }
@@ -577,81 +592,12 @@ public final class Validator {
   }
 
   /**
-   * Gets and processes the given ID element. This returns a URI suitable for
-   * resolving against the current base URI. This will return a URI containing
-   * only a fragment if the ID does not represent a new base, for example if
-   * it's an anchor. This condition can be checked with
-   * {@link URIs#isNotFragmentOnly(URI)}.
-   *
-   * @param idElem the ID element
-   * @param spec the specification
-   * @param loc the absolute path of the element, not used unless the ID
-   *            is malformed
-   * @return the processed ID, or {@code null} if it's not a new base.
-   * @throws MalformedSchemaException if the ID is malformed.
-   * @see URIs#isNotFragmentOnly(URI)
-   */
-  public static URI getID(JsonElement idElem, Specification spec, Supplier<URI> loc)
-      throws MalformedSchemaException {
-    if (!JSON.isString(idElem)) {
-      throw new MalformedSchemaException("not a string", loc.get());
-    }
-
-    URI id;
-    try {
-      id = URI.parse(idElem.getAsString()).normalize();
-    } catch (URISyntaxException ex) {
-      throw new MalformedSchemaException("not a valid URI-reference", loc.get());
-    }
-
-    if (URIs.hasNonEmptyFragment(id)) {
-      if (spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-        throw new MalformedSchemaException("has a non-empty fragment", loc.get());
-      }
-
-      // TODO: Should we use the non-raw fragment here?
-      if (!ANCHOR_PATTERN.matcher(id.rawFragment()).matches()) {
-        throw new MalformedSchemaException("invalid plain name", loc.get());
-      }
-
-      // If it's not just a fragment then it represents a new base URI
-    } else {
-      id = URIs.stripFragment(id);
-    }
-
-    return id;
-  }
-
-  /**
-   * Gets and processes the given anchor element. This returns the anchor name.
-   *
-   * @param anchorElem the anchor element
-   * @param loc the absolute path of the element, not used unless the anchor
-   *            is malformed
-   * @return the anchor name.
-   * @throws MalformedSchemaException if the anchor is malformed.
-   */
-  public static String getAnchor(JsonElement anchorElem, Supplier<URI> loc)
-      throws MalformedSchemaException {
-    if (!JSON.isString(anchorElem)) {
-      throw new MalformedSchemaException("not a string", loc.get());
-    }
-
-    String anchor = anchorElem.getAsString();
-    if (!Validator.ANCHOR_PATTERN.matcher(anchor).matches()) {
-      throw new MalformedSchemaException("invalid plain name", loc.get());
-    }
-
-    return anchor;
-  }
-
-  /**
    * Scans all the IDs in a JSON document starting from a given base URI. The
    * base URI is the initial known document resource ID. It will be normalized
    * and have any fragment, even an empty one, removed.
    * <p>
-   * This will return at least one ID mapping to the base element, which may
-   * be redefined by an ID element.
+   * The returned map will not contain the given base URI if it's different than
+   * the document root ID.
    * <p>
    * The given specification is the one used for processing. It can be
    * identified by the caller via a call to
@@ -667,78 +613,75 @@ public final class Validator {
    * @see #specificationFromSchema(JsonElement)
    * @see #guessSpecification(JsonElement)
    */
-  public static Map<Id, JsonElement> scanIDs(URI baseURI, JsonElement schema, Specification spec)
+  public static Map<URI, Id> scanIDs(URI baseURI, JsonElement schema, Specification spec)
       throws MalformedSchemaException {
     if (URIs.hasNonEmptyFragment(baseURI)) {
-      throw new IllegalArgumentException("Base UI has a non-empty fragment");
+      throw new IllegalArgumentException("Base URI has a non-empty fragment");
     }
     URI rootURI = URIs.stripFragment(baseURI).normalize();
 
-    Map<Id, JsonElement> ids = new HashMap<>();
-    URI rootID = JSON.traverseSchema(rootURI, spec, schema, (e, parent, path, state) -> {
+    Map<URI, Id> ids = new HashMap<>();
+    JSON.traverseSchema(rootURI, spec, schema, (e, parent, path, state) -> {
       if (state.isNotSchema() || !e.isJsonObject()) {
         return;
       }
 
+      // Absolute location of this object
+      Supplier<URI> loc = () -> state.rootURI().resolve(Strings.jsonPointerToURI(path.toString()));
+
+      // Process any $id
       if (state.hasIDElement()) {
-        URI uri = getID(state.idElement(),
-                        state.spec(),
-                        () -> Strings.jsonPointerToURI(path.append(CoreId.NAME).toString()));
-        Id id = new Id(state.baseURIParent().resolve(uri),
-                       state.idElement().toString(),
+        Id id = new Id(state.baseURI(),
+                       state.idElement().getAsString(),
                        state.baseURIParent(),
                        path,
-                       Optional.ofNullable(state.rootID()).orElse(rootURI),
+                       e,
+                       state.rootID(),
                        rootURI);
 
         if (URIs.hasNonEmptyFragment(id.id)) {
-          if (ids.put(id, e) != null) {
+          if (ids.put(id.id, id) != null) {
             throw new MalformedSchemaException(
                 "anchor not unique: name=" + id.value +
                 " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(path.toString()));
+                loc.get());
+          }
+
+          // Add the non-anchor part if this isn't only an anchor
+          if (URIs.isNotFragmentOnly(state.idURI())) {
+            id = new Id(URIs.stripFragment(id.id), id.value,
+                        id.base,
+                        id.path, id.element,
+                        id.rootID, id.rootURI);
+            if (ids.put(id.id, id) != null) {
+              throw new MalformedSchemaException("ID not unique", loc.get());
+            }
           }
         } else {
-          if (ids.put(id, e) != null) {
-            throw new MalformedSchemaException("ID not unique",
-                                               Strings.jsonPointerToURI(path.toString()));
+          if (ids.put(id.id, id) != null) {
+            throw new MalformedSchemaException("ID not unique", loc.get());
           }
         }
       }
 
       // Process any "$anchor"
-      if (state.spec() != null &&
-          state.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
-        JsonElement value = e.getAsJsonObject().get(CoreAnchor.NAME);
-        if (value != null) {
-          Supplier<URI> loc =
-              () -> Strings.jsonPointerToURI(path.append(CoreAnchor.NAME).toString());
+      if (state.hasAnchorElement()) {
+        Id id = new Id(state.baseURI().resolve(URI.parseUnchecked("#" + state.anchorElement().getAsString())),
+                       state.anchorElement().getAsString(),
+                       state.baseURI(),
+                       path,
+                       e,
+                       state.rootID(),
+                       rootURI);
 
-          String anchor = getAnchor(value, loc);
-
-          Id id = new Id(state.baseURI().resolve(URI.parseUnchecked("#" + anchor)),
-                         anchor,
-                         state.baseURI(),
-                         path,
-                         Optional.ofNullable(state.rootID()).orElse(rootURI),
-                         rootURI);
-          if (ids.put(id, e) != null) {
-            throw new MalformedSchemaException(
-                "anchor not unique: name=" + id.value +
-                " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
-                Strings.jsonPointerToURI(path.toString()));
-          }
+        if (ids.put(id.id, id) != null) {
+          throw new MalformedSchemaException(
+              "anchor not unique: name=" + id.value +
+              " base=" + id.base + " rootID=" + id.rootID + " rootURI=" + id.rootURI,
+              loc.get());
         }
       }
     });
-
-    if (rootID == null) {
-      rootID = rootURI;
-    }
-
-    // Ensure we have at least the base URI, if it's not already there
-    Id id = new Id(rootURI, null, null, JSONPath.absolute(), rootID, rootURI);
-    ids.putIfAbsent(id, schema);
 
     return ids;
   }

@@ -25,7 +25,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 
 /**
@@ -42,12 +41,7 @@ public class CoreAnchor extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
-      return true;
-    }
-
-    context.getAnchor(value);
-
+    // All processing has already been done during ID scanning
     return true;
   }
 }

@@ -25,9 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.ValidatorContext;
-import com.qindesign.net.URI;
 
 /**
  * Implements "$id".
@@ -43,10 +41,7 @@ public class CoreId extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    URI id = context.getID(value, null);
-    if (URIs.isNotFragmentOnly(id)) {
-      context.setBaseURI(id);
-    }
+    // All processing has already been done during ID scanning
     return true;
   }
 }

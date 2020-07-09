@@ -30,6 +30,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
+import com.qindesign.json.schema.keywords.CoreAnchor;
 import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.Definitions;
@@ -45,6 +46,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Provides JSON tools, including:
@@ -55,6 +58,14 @@ import java.nio.charset.StandardCharsets;
  * </ol>
  */
 public final class JSON {
+  /**
+   * Valid anchor pattern.
+   *
+   * @see <a href="https://www.w3.org/TR/2006/REC-xml-names11-20060816/#NT-NCName">Namespaces in XML 1.1 (Second Edition): NCName</a>
+   */
+  private static final java.util.regex.Pattern ANCHOR_PATTERN =
+      java.util.regex.Pattern.compile("[A-Z_a-z][-A-Z_a-z.0-9]*");
+
   /**
    * Disallow instantiation.
    */
@@ -218,26 +229,19 @@ public final class JSON {
     boolean isNotSchema;
 
     // ID tracking
-    URI root;
-    URI base;
-    URI baseParent;
-    JSONPath pathFromBase;
-    JsonElement idElem;
-    boolean isIDMalformed;
+    URI rootURI;             // The original base URI
+    URI rootID;              // The root ID, if it exists
+    URI base;                // The current base URI
+    URI id;                  // The normalized $id value, if it exists
+    URI baseParent;          // The parent of the current base, if it exists
+    JSONPath pathFromBase;   // The path from the current base to the current
+    JsonElement idElem;      // The $id element, if it exists
+    JsonElement anchorElem;  // The $anchor element, if it exists
 
     /**
      * Default constructor.
      */
     SchemaTraverseState() {
-    }
-
-    /**
-     * Copy constructor.
-     *
-     * @param state the state to copy
-     */
-    SchemaTraverseState(SchemaTraverseState state) {
-      this.spec = state.spec;
     }
 
     /**
@@ -308,18 +312,38 @@ public final class JSON {
 
     /**
      * Returns the document root ID, if detected. This may be {@code null} if
-     * there is no root ID.
+     * there is no root ID. This will be normalized.
+     * <p>
+     * This will be the same as the $id of the root object, if it exists.
+     * <p>
+     * Any empty fragment will have been removed.
      *
      * @return the document root URI, may be {@code null}.
      */
     public URI rootID() {
-      return root;
+      return rootID;
     }
 
     /**
-     * Returns the current base URI. This may be {@code null} if the initial
-     * base URI was set to {@code null} and there's no intervening ID. This will
-     * be normalized.
+     * Returns the initial base URI of the schema. This is likely the URI that
+     * was used to retrieve the document, but may also be something else. This
+     * will be normalized.
+     * <p>
+     * Any fragment will have been removed.
+     *
+     * @return the initial schema base URI.
+     */
+    public URI rootURI() {
+      return rootURI;
+    }
+
+    /**
+     * Returns the current base URI. This is the value of the latest $id
+     * resolved against its parent base URI. This may be {@code null} if the
+     * initial base URI was set to {@code null} and there's no intervening ID.
+     * This will be normalized.
+     * <p>
+     * Any empty fragment will have been removed.
      *
      * @return the current base URI, may be {@code null}.
      */
@@ -328,10 +352,26 @@ public final class JSON {
     }
 
     /**
+     * Returns the unresolved and normalized URI for the current object's $id.
+     * This will return {@code null} if the current element is not an object or
+     * if the object does not contain an $id element.
+     * <p>
+     * Any empty fragment will have been removed.
+     *
+     * @return the current $id value, or {@code null} if there's no $id in the
+     *         current object.
+     */
+    public URI idURI() {
+      return id;
+    }
+
+    /**
      * Returns the base URI used to resolve the current base URI. This may be
      * {@code null} null.
+     * <p>
+     * Any empty fragment will have been removed.
      *
-     * @return the base used to resolve the current base.
+     * @return the base used to resolve the current base, may be {@code null}.
      */
     public URI baseURIParent() {
       return baseParent;
@@ -349,19 +389,18 @@ public final class JSON {
     }
 
     /**
-     * Returns whether the current element is an object and contains an
-     * "$id" member. The member may or may not be a string.
+     * Returns whether the current element is an object and contains a valid
+     * "$id" member.
      *
-     * @return whether the current element contains an "$id", but not whether
-     *         it's a string.
+     * @return whether the current object contains a valid "$id".
      */
     public boolean hasIDElement() {
       return idElem != null;
     }
 
     /**
-     * Returns the "$id" element if the current element is an object and has an
-     * "$id" member. Otherwise, this returns {@code null}.
+     * Returns the "$id" element if the current element is an object and has a
+     * valid "$id" member. Otherwise, this returns {@code null}.
      *
      * @return the "$id" element of the current object, or {@code null} if there
      *         is no such member or if the current element is not an object.
@@ -371,13 +410,30 @@ public final class JSON {
     }
 
     /**
-     * Returns whether the current element contains a string-valued "$id" and if
-     * the value is a malformed URI.
+     * Returns whether the current element is an object and contains a valid
+     * "$anchor" member. This will return {@code false} if the current
+     * specification does not support this keyword.
      *
-     * @return whether the $id is a malformed URL.
+     * @return whether the current element contains a valid "$anchor", or
+     *         {@code false} if the current specification does not support
+     *         this keyword.
      */
-    public boolean isIDMalformed() {
-      return isIDMalformed;
+    public boolean hasAnchorElement() {
+      return anchorElem != null;
+    }
+
+    /**
+     * Returns the "$anchor" element if the current element is an object and has
+     * a valid "$anchor" member. Otherwise, this returns {@code null}. This will
+     * also return {@code null} if the current specification does not support
+     * this keyword.
+     *
+     * @return the "$anchor" element of the current object, or {@code null} if
+     *         there is no such member, if the current element is not an object,
+     *         or if the current specification does not support this keyword.
+     */
+    public JsonElement anchorElement() {
+      return anchorElem;
     }
   }
 
@@ -386,30 +442,26 @@ public final class JSON {
    * uses a preorder ordering.
    * <p>
    * The initial base URI is set to the given base URI after removing any
-   * fragment and after normalization. The default specification will be used in
-   * the case that one could not be determined. Both are optional.
+   * fragment and after normalization. The optional default specification will
+   * be used in the case that one could not be determined.
    * <p>
    * This returns any found root ID, or {@code null} if one is not found.
-   * <p>
-   * This does not internally throw a {@link MalformedSchemaException}. Only
-   * visitors possibly throw this. For example, malformed IDs are detected with
-   * {@link SchemaTraverseState#isIDMalformed()}.
    *
-   * @param baseURI an optional initial base URI
-   * @param spec the optional default specification to use
-   * @param e the root of the JSON tree
+   * @param baseURI a non-optional initial base URI
+   * @param defaultSpec the optional default specification to use
+   * @param schema the root of the JSON schema tree
    * @param visitor the visitor
-   * @return the root ID, if one is found, otherwise {@code null}.
+   * @return the root ID if one is found, otherwise {@code null}.
    * @throws MalformedSchemaException if there was a problem with the schema.
    */
-  public static URI traverseSchema(URI baseURI, Specification spec, JsonElement e,
+  public static URI traverseSchema(URI baseURI, Specification defaultSpec, JsonElement schema,
                                    SchemaVisitor visitor) throws MalformedSchemaException {
+    Objects.requireNonNull(baseURI, "baseURI");
     SchemaTraverseState state = new SchemaTraverseState();
-    state.spec = spec;
-    if (baseURI != null) {
-      state.base = URIs.stripFragment(baseURI).normalize();
-    }
-    return traverseSchema(e, null, JSONPath.absolute(), state, visitor);
+    state.spec = defaultSpec;
+    state.base = URIs.stripFragment(baseURI).normalize();
+    state.rootURI = state.base;
+    return traverseSchema(schema, null, JSONPath.absolute(), state, visitor);
   }
 
   /**
@@ -421,7 +473,7 @@ public final class JSON {
    * @param path the element's full path
    * @param state the tree state
    * @param visitor the visitor
-   * @return the root ID, if one is found, otherwise {@code null}.
+   * @return the root ID if one is found, otherwise {@code null}.
    * @throws MalformedSchemaException if there was a problem with the schema, as
    *         thrown by the visitor.
    */
@@ -431,7 +483,8 @@ public final class JSON {
     SchemaTraverseState oldState = state;
     state = new SchemaTraverseState();
     state.spec = oldState.spec;
-    state.root = oldState.root;
+    state.rootURI = oldState.rootURI;
+    state.rootID = oldState.rootID;
     state.base = oldState.base;
     state.baseParent = oldState.baseParent;
     state.pathFromBase = oldState.pathFromBase;
@@ -463,38 +516,80 @@ public final class JSON {
     if (!state.isNotSchema) {
       Specification spec = Validator.specificationFromSchema(e);
       if (spec != null) {
-        state = new SchemaTraverseState(state);
         state.spec = spec;
       }
     }
 
-    // Find any ID
+    // Find and process any ID and anchor
     state.idElem = null;
-    state.isIDMalformed = false;
+    state.anchorElem = null;
+    state.id = null;
     if (parent == null) {
       state.pathFromBase = JSONPath.absolute();
     } else {
       state.pathFromBase = state.pathFromBase.append(path.get(path.size() - 1));
     }
+
     if (!state.isNotSchema && e.isJsonObject()) {
+      // ID element
       JsonElement idElem = e.getAsJsonObject().get(CoreId.NAME);
       if (idElem != null) {
-        state.idElem = idElem;
-        if (isString(idElem)) {
-          try {
-            URI id = URI.parse(idElem.getAsString()).normalize();
-            if (state.base != null) {
-              id = state.base.resolve(id);
+        // Absolute location of the ID element
+        Supplier<URI> loc = () ->
+            oldState.rootURI
+                .resolve(Strings.jsonPointerToURI(path.append(CoreId.NAME).toString()));
+
+        if (!isString(idElem)) {
+          throw new MalformedSchemaException("not a string", loc.get());
+        }
+        try {
+          URI unresolvedID = URI.parse(idElem.getAsString()).normalize();
+          URI id = state.base.resolve(unresolvedID).normalize();
+
+          if (URIs.hasNonEmptyFragment(id)) {
+            // Draft 2019-09 and later can't have anchors
+            if (state.spec != null &&
+                state.spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+              throw new MalformedSchemaException("has a non-empty fragment", loc.get());
             }
-            state.baseParent = state.base;
-            state.base = id;
-            state.pathFromBase = JSONPath.absolute();
-            if (parent == null) {
-              state.root = id;
+
+            // TODO: Should we use the non-raw fragment here?
+            if (!ANCHOR_PATTERN.matcher(id.fragment()).matches()) {
+              throw new MalformedSchemaException("invalid plain name", loc.get());
             }
-          } catch (URISyntaxException ex) {
-            state.isIDMalformed = true;
+          } else {
+            id = URIs.stripFragment(id);
           }
+
+          state.idElem = idElem;
+          state.baseParent = state.base;
+          state.base = id;
+          state.id = unresolvedID;
+          state.pathFromBase = JSONPath.absolute();
+          if (parent == null) {
+            state.rootID = id;
+          }
+        } catch (URISyntaxException ex) {
+          throw new MalformedSchemaException("not a valid URI-reference", loc.get());
+        }
+      }
+
+      // Anchor element
+      if (state.spec != null && state.spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        JsonElement anchorElem = e.getAsJsonObject().get(CoreAnchor.NAME);
+        if (anchorElem != null) {
+          // Absolute location of the anchor element
+          Supplier<URI> loc = () ->
+              oldState.rootURI
+                  .resolve(Strings.jsonPointerToURI(path.append(CoreAnchor.NAME).toString()));
+
+          if (!isString(anchorElem)) {
+            throw new MalformedSchemaException("not a string", loc.get());
+          }
+          if (!ANCHOR_PATTERN.matcher(anchorElem.getAsString()).matches()) {
+            throw new MalformedSchemaException("invalid plain name", loc.get());
+          }
+          state.anchorElem = anchorElem;
         }
       }
     }
@@ -502,7 +597,7 @@ public final class JSON {
     visitor.visit(e, parent, path, state);
 
     if (e.isJsonPrimitive() || e.isJsonNull()) {
-      return state.root;
+      return state.rootID;
     }
 
     if (e.isJsonArray()) {
@@ -518,7 +613,7 @@ public final class JSON {
       }
     }
 
-    return state.root;
+    return state.rootID;
   }
 
   /**

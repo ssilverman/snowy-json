@@ -27,9 +27,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
-import com.qindesign.json.schema.keywords.CoreDefs;
-import com.qindesign.json.schema.keywords.Definitions;
-import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import java.io.File;
@@ -46,7 +43,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -193,7 +189,8 @@ public class Coverage {
   private static Set<JSONPath> mapSchema(JsonElement schema, Specification defaultSpec) {
     Set<JSONPath> paths = new HashSet<>();
     try {
-      JSON.traverseSchema(null, defaultSpec, schema, (e, parent, path, state) -> {
+      // TODO: What base URI to use?
+      JSON.traverseSchema(URI.parseUnchecked(""), defaultSpec, schema, (e, parent, path, state) -> {
         if (state.isNotKeyword()) {
           return;
         }

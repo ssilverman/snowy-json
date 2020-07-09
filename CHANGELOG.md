@@ -12,6 +12,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * `JSONPath.endsWith` for checking the last element.
 * New linter rule that checks for `$ref` elements having siblings, for Draft-07
   and earlier.
+* New `Id.element` field that contains the ID's JSON parent element.
 
 ### Changed
 * Changed a couple linter behaviours:

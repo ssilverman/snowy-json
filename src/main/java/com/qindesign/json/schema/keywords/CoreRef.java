@@ -95,13 +95,6 @@ public class CoreRef extends Keyword {
       }
 
       e = context.findAndSetRoot(uri);
-      if (e != null) {
-        // Since we're following to another schema, CoreId will set the new base
-        // URI, so don't set it here
-        if (e.isJsonObject() && !e.getAsJsonObject().has(CoreId.NAME)) {
-          context.setBaseURI(uri);
-        }
-      }
     }
 
     if (e == null) {

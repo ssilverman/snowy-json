@@ -558,7 +558,8 @@ public final class Linter {
         list -> list.forEach(f -> f.accept(context));
 
     try {
-      JSON.traverseSchema(null, null, schema, (e, parent, path, state) -> {
+      // TODO: What base URI to use?
+      JSON.traverseSchema(URI.parseUnchecked(""), null, schema, (e, parent, path, state) -> {
         context.element = e;
         context.parent = parent;
         context.path = path;

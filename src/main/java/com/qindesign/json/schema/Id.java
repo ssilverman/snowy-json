@@ -21,6 +21,7 @@
  */
 package com.qindesign.json.schema;
 
+import com.google.gson.JsonElement;
 import com.qindesign.net.URI;
 import java.util.Objects;
 
@@ -29,7 +30,8 @@ import java.util.Objects;
  * constructed, including the resource and ID of the containing document.
  * <p>
  * This class is considered to be represented by the {@link #id} field. All
- * other fields are merely auxiliary.
+ * other fields are merely auxiliary. In other words, equality and the hash code
+ * are computed only with this single field.
  */
 public final class Id {
   /**
@@ -51,10 +53,16 @@ public final class Id {
    */
   public final URI base;
 
-  /** The path to this element. */
+  /** The path to this element, from the root. */
   public final JSONPath path;
 
-  /** The root ID, may or may not be the same as the root URI. */
+  /** The element containing this ID. */
+  public final JsonElement element;
+
+  /**
+   * The root ID, may or may not be the same as the root URI, and may
+   * be {@code null}.
+   */
   public final URI rootID;
 
   /**
@@ -67,17 +75,23 @@ public final class Id {
    * Creates a new ID with all-null fields.
    *
    * @param id the ID, a {@link URI}
+   * @throws NullPointerException if {@code id}, {@code path}, {@code element},
+   *         or {@code rootURI} are {@code null}.
    * @throws NullPointerException if the ID is {@code null}.
    */
-  public Id(URI id, String value, URI base, JSONPath path, URI rootID, URI rootURI) {
+  public Id(URI id, String value,
+            URI base,
+            JSONPath path, JsonElement element,
+            URI rootID, URI rootURI) {
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(path, "path");
-    Objects.requireNonNull(rootID, "rootID");
+    Objects.requireNonNull(element, "element");
     Objects.requireNonNull(rootURI, "rootURI");
     this.id = id;
     this.value = value;
     this.base = base;
     this.path = path;
+    this.element = element;
     this.rootID = rootID;
     this.rootURI = rootURI;
   }

@@ -99,18 +99,21 @@ public class CoreSchema extends Keyword {
       return false;
     }
 
-    JsonElement e = Validator.loadResource(id);
-    if (e == null) {
+    JsonElement schema = Validator.loadResource(id);
+    if (schema == null) {
       context.schemaError("unknown schema resource");
       return false;
+    }
+    if (!Validator.isSchema(schema)) {
+      context.schemaError("resource not a schema: " + id);
     }
 
     validated = new HashSet<>(validated);
     validated.add(context.baseURI());
 
-    Map<Id, JsonElement> ids;
+    Map<URI, Id> ids;
     try {
-      ids = Validator.scanIDs(id, e, spec);
+      ids = Validator.scanIDs(id, schema, spec);
     } catch (MalformedSchemaException ex) {
       context.schemaError("malformed schema: " + id + ": " + ex.getMessage());
       return false;
@@ -121,10 +124,12 @@ public class CoreSchema extends Keyword {
     opts2.set(Option.COLLECT_ANNOTATIONS, false);
     opts2.set(Option.COLLECT_ERRORS, false);
     opts2.set(Option.DEFAULT_SPECIFICATION, spec);
-    ValidatorContext context2 = new ValidatorContext(id, ids, context.knownURLs(), validated, opts2,
+    ValidatorContext context2 = new ValidatorContext(id, schema,
+                                                     ids, context.knownURLs(), validated,
+                                                     opts2,
                                                      Collections.emptyMap(),
                                                      Collections.emptyMap());
-    if (!context2.apply(e, null, null, parent, null)) {
+    if (!context2.apply(schema, null, null, parent, null)) {
       context.schemaError("does not validate");
       return false;
     }
