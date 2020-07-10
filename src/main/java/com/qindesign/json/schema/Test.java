@@ -110,6 +110,7 @@ public class Test {
     File testSchemaFile = root.resolve(TEST_SCHEMA).toFile();
 
     // Load the test schema
+    long time = System.currentTimeMillis();
     JsonElement testSchema;
     try {
       testSchema = JSON.parse(testSchemaFile);
@@ -118,12 +119,14 @@ public class Test {
       System.exit(1);
       return;
     }
-    logger.info("Loaded test schema");
+    time = System.currentTimeMillis() - time;
+    logger.info("Loaded test schema (" + time/1000.0f + "s)");
 
     Map<URI, JsonElement> knownIDs = Collections.emptyMap();
     Map<URI, URL> knownURLs = Map.of(URI.parseUnchecked("http://localhost:1234"),
                                      root.resolve("remotes").toUri().toURL());
 
+    time = System.currentTimeMillis();
     for (Specification spec : Specification.values()) {
       if (!testDirs.containsKey(spec)) {
         continue;
@@ -143,6 +146,9 @@ public class Test {
                                   knownIDs, knownURLs);
       printSpecResults(spec, specResult, results);
     }
+    time = System.currentTimeMillis() - time;
+    System.out.println();
+    logger.info("Total test time: " + time/1000.0f + "s");
   }
 
   /**
