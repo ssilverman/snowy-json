@@ -47,6 +47,9 @@ public final class Id {
   /** The element value, may be {@code null}. */
   public final String value;
 
+  /** The ID value as a URI before it was resolved. */
+  public final URI unresolvedID;
+
   /**
    * The base URI, against which the value was resolved to produce the ID, may
    * be {@code null}.
@@ -75,20 +78,22 @@ public final class Id {
    * Creates a new ID with all-null fields.
    *
    * @param id the ID, a {@link URI}
-   * @throws NullPointerException if {@code id}, {@code path}, {@code element},
-   *         or {@code rootURI} are {@code null}.
+   * @throws NullPointerException if {@code id}, {@code unresolvedID},
+   *         {@code path}, {@code element}, or {@code rootURI} is {@code null}.
    * @throws NullPointerException if the ID is {@code null}.
    */
-  public Id(URI id, String value,
+  public Id(URI id, String value, URI unresolvedID,
             URI base,
             JSONPath path, JsonElement element,
             URI rootID, URI rootURI) {
     Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(unresolvedID, "unresolvedID");
     Objects.requireNonNull(path, "path");
     Objects.requireNonNull(element, "element");
     Objects.requireNonNull(rootURI, "rootURI");
     this.id = id;
     this.value = value;
+    this.unresolvedID = unresolvedID;
     this.base = base;
     this.path = path;
     this.element = element;

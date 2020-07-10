@@ -52,6 +52,7 @@ import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,7 +62,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -161,16 +161,23 @@ public final class Validator {
   }
 
   /**
-   * Prepares a schema by scanning and checking it.
+   * Prepares a schema by scanning and checking it. It is expected that the base
+   * URI is already normalized.
+   * <p>
+   * If auto-resolution of URLs is desired, set {@code knownURLs} to
+   * non-{@code null}.
    *
-   * @param baseURI the schema's base URI
+   * @param baseURI the schema's base URI, expected to be normalized
    * @param schema the schema
    * @param options any options
+   * @param knownURLs a map into which to put auto-resolved URLs, {@code null}
+   *                  to not track auto-resolution
    * @return all the known IDs from the schema.
    * @throws MalformedSchemaException if the schema is not valid.
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
-  private static Map<URI, Id> prepareSchema(URI baseURI, JsonElement schema, Options options)
+  private static Map<URI, Id> prepareSchema(URI baseURI, JsonElement schema, Options options,
+                                            Map<URI, URL> knownURLs)
       throws MalformedSchemaException {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(schema, "schema");
@@ -196,7 +203,60 @@ public final class Validator {
       }
     }
 
-    return scanIDs(baseURI, schema, spec);
+    Map<URI, Id> ids = scanIDs(baseURI, schema, spec);
+    if (knownURLs == null) {
+      return ids;
+    }
+
+    URL url = null;
+    try {
+      url = baseURI.toURL();
+    } catch (IllegalArgumentException | MalformedURLException ex) {
+      logger.warning("AUTO_RESOLVE: Not a valid base URL: " + baseURI);
+    }
+    URL baseURL = url;  // So that baseURL is effectively final
+    if (baseURL != null) {
+      JSON.traverseSchema(baseURI, spec, schema, (e, parent, path, state) -> {
+        if (state.isNotKeyword() || !path.endsWith(CoreRef.NAME)) {
+          return;
+        }
+
+        Supplier<URI> loc =
+            () -> state.rootURI().resolve(Strings.jsonPointerToURI(path.toString()));
+
+        if (!JSON.isString(e)) {
+          throw new MalformedSchemaException("not a string", loc.get());
+        }
+
+        URI ref;
+        try {
+          ref = URI.parse(e.getAsString());
+        } catch (URISyntaxException ex) {
+          throw new MalformedSchemaException("not a valid URI", loc.get());
+        }
+
+        // Only guess URLs for raw URIs having no scheme and no authority
+        if (ref.scheme() != null || ref.rawAuthority() != null) {
+          return;
+        }
+
+        // Don't guess URLs for URIs that are just fragments
+        if (!URIs.isNotFragmentOnly(ref)) {
+          return;
+        }
+
+        ref = URIs.stripFragment(ref).normalize();
+        URI uri = state.baseURI().resolve(ref);
+
+        try {
+          knownURLs.putIfAbsent(uri, new URL(baseURL, ref.toString()));
+        } catch (MalformedURLException ex) {
+          logger.warning("AUTO_RESOLVE: Not a valid URL: " + ref);
+        }
+      });
+    }
+
+    return ids;
   }
 
   /**
@@ -231,6 +291,9 @@ public final class Validator {
    *     the result is {@code false} and "annotation" when the result is
    *     {@code true}.
    * </ul>
+   * <p>
+   * All known IDs and URLs are loaded and scanned so that their IDs can be
+   * checked and catalogued.
    *
    * @param schema the schema, must not be {@code null}
    * @param instance the instance, must not be {@code null}
@@ -242,7 +305,7 @@ public final class Validator {
    * @param errors errors get stored here, if not {@code null}
    * @return the validation result.
    * @throws NullPointerException if {@code schema}, {@code instance}, or
-   *         {@code baseURI} are {@code null}.
+   *         {@code baseURI} is {@code null}.
    * @throws MalformedSchemaException if the schema is somehow malformed.
    * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
    */
@@ -254,17 +317,31 @@ public final class Validator {
                                  Map<JSONPath, Map<JSONPath, Annotation>> errors)
       throws MalformedSchemaException
   {
+    Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(instance, "instance");
+    Objects.requireNonNull(baseURI, "baseURI");
 
-    options = Optional.ofNullable(options).orElse(new Options());
+    if (options == null) {
+      options = new Options();
+    }
 
     // Prepare the main schema
-    var ids = prepareSchema(baseURI, schema, options);
+    baseURI = baseURI.normalize();
+
+    // If auto-resolving then collect new URLs
+    Map<URI, URL> autoResolved = null;
+    if (options.is(Option.AUTO_RESOLVE)) {
+      autoResolved = new HashMap<>();
+    }
+    var ids = prepareSchema(baseURI, schema, options, autoResolved);
 
     // Prepare all the known schemas
-    for (var e : Optional.ofNullable(knownIDs).orElse(Collections.emptyMap()).entrySet()) {
-      var ids2 = prepareSchema(e.getKey(), e.getValue(), options);
-      ids2.forEach(ids::putIfAbsent);
+    if (knownIDs != null) {
+      for (var e : knownIDs.entrySet()) {
+        URI uri = e.getKey().normalize();
+        var ids2 = prepareSchema(uri, e.getValue(), options, autoResolved);
+        ids2.forEach(ids::putIfAbsent);
+      }
     }
 
     if (knownURLs == null) {
@@ -273,27 +350,60 @@ public final class Validator {
       knownURLs = new HashMap<>(knownURLs);
     }
 
-//    // If auto-resolving
-//    if (options.is(Option.AUTO_RESOLVE)) {
-//      URL baseURL = null;
-//      try {
-//        baseURL = baseURI.toURL();
-//      } catch (IllegalArgumentException | MalformedURLException ex) {
-//        // Ignore
-//      }
-//      if (baseURL != null) {
-//        knownURLs.putIfAbsent(baseURI, baseURL);
-//        if (schema.isJsonObject()) {
-//          JsonElement idElem = schema.getAsJsonObject().get(CoreId.NAME);
-//          if (idElem != null) {
-//            URI id = getID(idElem, spec, () -> baseURI);
-//            if (URIs.isNotFragmentOnly(id)) {
-//              knownURLs.putIfAbsent(id, baseURL);
-//            }
-//          }
-//        }
-//      }
-//    }
+    // Add all the auto-resolved values to the set of known URLs
+    Set<URL> checkedURLs = new HashSet<>();
+    if (autoResolved != null) {
+      for (var e : autoResolved.entrySet()) {
+        if (knownURLs.putIfAbsent(e.getKey(), e.getValue()) != null) {
+          logger.warning("Duplicate URL: " + e.getKey() + ": " + e.getValue());
+        }
+      }
+      autoResolved.clear();
+    }
+
+    // Prepare the contents of all known URLs
+    // Loop until we've seen all URLs
+    do {
+      for (var e : knownURLs.entrySet()) {
+        URI uri = e.getKey().normalize();
+        URL url = e.getValue();
+        if (!checkedURLs.add(url)) {
+          continue;
+        }
+
+        if (url.getPath().endsWith("/")) {
+          continue;
+        }
+
+        try (InputStream in = url.openStream()) {
+          try {
+            var ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved);
+            ids2.forEach((uri1, id) -> {
+              if (ids.putIfAbsent(uri1, id) != null) {
+                logger.warning("Duplicate URI: " + uri1 + ": from " + id.rootURI);
+              }
+            });
+          } catch (JsonParseException ex) {
+            logger.log(Level.SEVERE, "Error parsing resource: " + uri + ": " + url, ex);
+          }
+        } catch (IOException ex) {
+          logger.log(Level.SEVERE, "Error loading resource: " + uri + ": " + url, ex);
+        }
+      }
+      if (autoResolved != null) {
+        autoResolved.values().removeAll(checkedURLs);
+        for (var e : autoResolved.entrySet()) {
+          if (knownURLs.putIfAbsent(e.getKey(), e.getValue()) != null) {
+            logger.warning("Duplicate URL: " + e.getKey() + ": " + e.getValue());
+          }
+        }
+        if (autoResolved.isEmpty()) {
+          break;
+        }
+      } else {
+        break;
+      }
+    } while (true);
 
     // Annotations and errors collection
     if (annotations == null) {
@@ -633,6 +743,7 @@ public final class Validator {
       if (state.hasIDElement()) {
         Id id = new Id(state.baseURI(),
                        state.idElement().getAsString(),
+                       state.idURI(),
                        state.baseURIParent(),
                        path,
                        e,
@@ -649,7 +760,7 @@ public final class Validator {
 
           // Add the non-anchor part if this isn't only an anchor
           if (URIs.isNotFragmentOnly(state.idURI())) {
-            id = new Id(URIs.stripFragment(id.id), id.value,
+            id = new Id(URIs.stripFragment(id.id), id.value, state.idURI(),
                         id.base,
                         id.path, id.element,
                         id.rootID, id.rootURI);
@@ -666,8 +777,10 @@ public final class Validator {
 
       // Process any "$anchor"
       if (state.hasAnchorElement()) {
-        Id id = new Id(state.baseURI().resolve(URI.parseUnchecked("#" + state.anchorElement().getAsString())),
+        URI unresolvedID = URI.parseUnchecked("#" + state.anchorElement().getAsString());
+        Id id = new Id(state.baseURI().resolve(unresolvedID),
                        state.anchorElement().getAsString(),
+                       unresolvedID,
                        state.baseURI(),
                        path,
                        e,

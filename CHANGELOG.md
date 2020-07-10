@@ -13,6 +13,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * New linter rule that checks for `$ref` elements having siblings, for Draft-07
   and earlier.
 * New `Id.element` field that contains the ID's JSON parent element.
+* New `Id.unresolvedID` field that holds the unresolved ID URI.
 
 ### Changed
 * Changed a couple linter behaviours:
@@ -33,6 +34,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
   means that all the keyword detection logic is in one place.
 * Updated the linter and coverage tool to utilize the new schema
   traverser features.
+
+### Fixed
+* AUTO_RESOLVE now behaves properly for relative IDs.
 
 ## [0.11.0]
 

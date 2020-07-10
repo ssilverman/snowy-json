@@ -309,7 +309,7 @@ public final class ValidatorContext {
    * @param errors errors get stored here
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
-   * @throws NullPointerException if any of the arguments are {@code null}.
+   * @throws NullPointerException if any of the arguments is {@code null}.
    */
   public ValidatorContext(URI baseURI, JsonElement schema,
                           Map<URI, Id> knownIDs, Map<URI, URL> knownURLs,
@@ -363,12 +363,14 @@ public final class ValidatorContext {
           if (rootID != null) {
             throw new IllegalArgumentException("Duplicate root ID: " + baseURI + ": " + id.rootURI);
           }
-          rootID = new Id(id.rootURI, null, null, JSONPath.absolute(), id.element,
+          // TODO: Verify that the unresolved ID is the same as the unresolved rootID
+          rootID = new Id(id.rootURI, null, id.unresolvedID,
+                          null, JSONPath.absolute(), id.element,
                           id.rootID, id.rootURI);
         }
       }
     } else {
-      rootID = new Id(baseURI, null, null, JSONPath.absolute(), schema, null, baseURI);
+      rootID = new Id(baseURI, null, baseURI, null, JSONPath.absolute(), schema, null, baseURI);
     }
 
     // Add the base URI
