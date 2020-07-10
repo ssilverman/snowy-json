@@ -14,6 +14,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   and earlier.
 * New `Id.element` field that contains the ID's JSON parent element.
 * New `Id.unresolvedID` field that holds the unresolved ID URI.
+* ID scanning and validation is now performed on all known IDs and URLs before
+  validation so that all references (to valid IDs) will resolve.
 
 ### Changed
 * Changed a couple linter behaviours:
