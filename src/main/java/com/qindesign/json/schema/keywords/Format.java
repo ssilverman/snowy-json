@@ -21,7 +21,6 @@
  */
 package com.qindesign.json.schema.keywords;
 
-import com.google.common.net.InetAddresses;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.qindesign.json.schema.JSON;
@@ -33,6 +32,7 @@ import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
 import com.qindesign.net.Hostname;
 import com.qindesign.net.URI;
+import com.qindesign.net.URIParser;
 import com.qindesign.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
@@ -332,19 +332,16 @@ public class Format extends Keyword {
         }
         break;
       case "ipv4":
+        try {
+          URIParser.parseIPv4(string, 0, string.length(), "");
+        } catch (URISyntaxException ex) {
+          return false;
+        }
+        break;
       case "ipv6":
         try {
-          int len;
-          if (value.getAsString().equals("ipv4")) {
-            len = 4;
-          } else {
-            len = 16;
-          }
-          if (InetAddresses.forString(string).getAddress().length != len) {
-            return false;
-          }
-        } catch (IllegalArgumentException ex) {
-          // Not a valid literal
+          URIParser.parseIPv6(string, 0, string.length(), "");
+        } catch (URISyntaxException ex) {
           return false;
         }
         break;

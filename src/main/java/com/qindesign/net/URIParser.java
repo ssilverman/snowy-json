@@ -28,7 +28,7 @@ import java.util.BitSet;
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc3986.html">RFC 3986: Uniform Resource Identifier (URI): Generic Syntax</a>
  */
-final class URIParser {
+public final class URIParser {
   private static final BitSet ALPHA = new BitSet(128);
   private static final BitSet DIGIT = new BitSet(128);
   private static final BitSet HEXDIG = new BitSet(128);
@@ -339,8 +339,9 @@ final class URIParser {
    * @param failMsg the failure message, for any failures
    * @throws URISyntaxException if there was a parsing error.
    * @see <a href="https://www.rfc-editor.org/rfc/rfc5952">RFC 5952: A Recommendation for IPv6 Address Text Representation</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2">RFC 3986: Section 3.2.2.: Host</a>
    */
-  static void parseIPv6(String s, int start, int end, String failMsg) throws URISyntaxException {
+  public static void parseIPv6(String s, int start, int end, String failMsg) throws URISyntaxException {
     int partIndex = 0;
     int compressedIndex = -1;
     boolean lastPartEmpty = false;
@@ -436,7 +437,7 @@ final class URIParser {
    * @param failMsg the failure message, for any failures
    * @throws IllegalArgumentException if there was a parsing error.
    */
-  static void parseIPv4(String s, int start, int end, String failMsg) throws URISyntaxException {
+  public static void parseIPv4(String s, int start, int end, String failMsg) throws URISyntaxException {
     for (int i = 0; i < 4; i++) {
       int next = scan(s, start, end, ".");
       if (next <= start) {

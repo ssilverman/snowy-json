@@ -39,6 +39,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Updated the linter and coverage tool to utilize the new schema
   traverser features.
 * `Options.set` now returns itself, for easy chaining.
+* The "ipv4" and "ipv6" formats are now parsed using the internal URI parser.
+  That uses a more current specification.
 
 ### Fixed
 * AUTO_RESOLVE now behaves properly for relative IDs.
