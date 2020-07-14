@@ -42,6 +42,8 @@ import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,6 +58,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -250,23 +253,28 @@ public final class ValidatorContext {
   /** Ids are unique and it's guaranteed that there's only one anchorless ID. */
   private final IdentityHashMap<JsonElement, Set<Id>> idsByElem;
 
-  // https://www.baeldung.com/java-sneaky-throws
-  @SuppressWarnings("unchecked")
-  private static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
-    throw (E) e;
-  }
+//  // https://www.baeldung.com/java-sneaky-throws
+//  @SuppressWarnings("unchecked")
+//  private static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
+//    throw (E) e;
+//  }
 
   // URL cache
   private static final int MAX_URL_CACHE_SIZE = 10;
-  // Function throws IOException (checked) or JsonParseException (unchecked)
+
+  /**
+   * The pattern cache.
+   *
+   * On access, throws {@link UncheckedIOException} if the URL could not be
+   * read, or {@link JsonParseException} if there was a JSON parsing error.
+   */
   private final LRUCache<URL, JsonElement> urlCache = new LRUCache<>(
       MAX_URL_CACHE_SIZE,
       url -> {
         try (InputStream in = url.openStream()) {
           return JSON.parse(in);
         } catch (IOException ex) {
-          sneakyThrow(ex);
-          return null;
+          throw new UncheckedIOException(ex);
         }
       });
 
@@ -286,7 +294,13 @@ public final class ValidatorContext {
   private final boolean isCollectErrors;
 
   // Pattern cache
-  private static final int MAX_PATTERN_CACHE_SIZE = 20;
+  private static final int MAX_PATTERN_CACHE_SIZE = Integer.MAX_VALUE;
+
+  /**
+   * The pattern cache.
+   *
+   * Throws {@link PatternSyntaxException} on access for a bad pattern.
+   */
   private final LRUCache<String, java.util.regex.Pattern> patternCache =
       new LRUCache<>(MAX_PATTERN_CACHE_SIZE, java.util.regex.Pattern::compile);
 
@@ -463,7 +477,8 @@ public final class ValidatorContext {
   }
 
   /**
-   * Returns the pattern cache.
+   * Returns the pattern cache. The cache may throw a
+   * {@link PatternSyntaxException} on access for a bad pattern.
    *
    * @return the pattern cache.
    */
@@ -666,7 +681,7 @@ public final class ValidatorContext {
             state.baseURI = uri;
             return data;
           }
-        } catch (IOException | JsonParseException ex) {
+        } catch (MalformedURLException | UncheckedIOException | JsonParseException ex) {
           // Ignore and try next
         }
       }
