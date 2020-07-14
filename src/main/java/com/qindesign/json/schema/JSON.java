@@ -339,13 +339,11 @@ public final class JSON {
 
     /**
      * Returns the current base URI. This is the value of the latest $id
-     * resolved against its parent base URI. This may be {@code null} if the
-     * initial base URI was set to {@code null} and there's no intervening ID.
-     * This will be normalized.
+     * resolved against its parent base URI. This will be normalized.
      * <p>
      * Any empty fragment will have been removed.
      *
-     * @return the current base URI, may be {@code null}.
+     * @return the current base URI.
      */
     public URI baseURI() {
       return base;
@@ -457,6 +455,7 @@ public final class JSON {
   public static URI traverseSchema(URI baseURI, Specification defaultSpec, JsonElement schema,
                                    SchemaVisitor visitor) throws MalformedSchemaException {
     Objects.requireNonNull(baseURI, "baseURI");
+
     SchemaTraverseState state = new SchemaTraverseState();
     state.spec = defaultSpec;
     state.base = URIs.stripFragment(baseURI).normalize();
