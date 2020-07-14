@@ -474,7 +474,14 @@ There are plans to explore supporting more features, including:
 1. Custom vocabulary support.
 2. More output formatting. All the information is currently there, but the
    caller must process and organize it.
-   
+3. Better caching. The current implementation doesn't cache things such as URLs
+   and regex Patterns across different instances of `ValidatorContext`, i.e.
+   across calls to `Validator.validate`.
+4. Compilation into an internal representation that provides both speed and
+   optimizations for non-dynamic validation paths.
+5. Improved performance across calls to `Validator.validate` for the same schema
+   and other arguments.
+
 ### Possible future plans
 
 These are plans that may or may not be explored:
