@@ -54,6 +54,9 @@ import java.util.logging.Logger;
  * <li>Schema path or URL</li>
  * <li>Instance path or URL</li>
  * </ol>
+ * <p>
+ * There are two output JSON objects: one by instance location and another
+ * by seen schema locations.
  */
 public class Coverage {
   private static final Class<?> CLASS = Coverage.class;
@@ -121,9 +124,9 @@ public class Coverage {
     // Coverage collection uses the errors
     // More complex analysis could be done here
 
-    JsonObject root = new JsonObject();
-    JsonArray instanceLocs = new JsonArray();
-    root.add("seen", instanceLocs);
+    JsonObject instanceRoot = new JsonObject();
+    JsonArray seenInstanceLocs = new JsonArray();
+    instanceRoot.add("seen", seenInstanceLocs);
 
     // All seen instance locations
     errors.entrySet().stream()
@@ -141,22 +144,49 @@ public class Coverage {
                 schemaLoc.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
                 schemaLocs.add(schemaLoc);
               });
-          instanceLocs.add(instanceLoc);
+          seenInstanceLocs.add(instanceLoc);
         });
 
     // Unseen instance locations
     JsonArray unseenInstanceLocs = new JsonArray();
-    root.add("unseen", unseenInstanceLocs);
+    instanceRoot.add("unseen", unseenInstanceLocs);
     JSON.traverse(instance, (e, parent, path) -> {
       if (!errors.containsKey(path)) {
         unseenInstanceLocs.add(path.toString());
       }
     });
 
+    // Gather just the seen schema locations
+    // It's a more difficult problem to collect unseen, so leave that out in
+    // this example program
+    JsonObject schemaRoot = new JsonObject();
+    JsonArray seenSchemaLocs = new JsonArray();
+    schemaRoot.add("seen", seenSchemaLocs);
+    errors.forEach((instanceLoc, bySchema) -> {
+      bySchema.values()
+          .forEach(a -> {
+            JsonObject schemaLoc = new JsonObject();
+            schemaLoc.addProperty("keywordLocation", a.keywordLocation.toString());
+            schemaLoc.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+            seenSchemaLocs.add(schemaLoc);
+          });
+    });
+
+    // Output
     Writer out = new OutputStreamWriter(System.out);
+
+    System.out.println("By instance location:");
     JsonWriter w = new JsonWriter(out);
     w.setIndent("    ");
-    Streams.write(root, w);
+    Streams.write(instanceRoot, w);
+    w.flush();
+    System.out.println();
+
+    System.out.println();
+    System.out.println("By schema location (seen only):");
+    w = new JsonWriter(out);
+    w.setIndent("    ");
+    Streams.write(schemaRoot, w);
     w.flush();
   }
 
