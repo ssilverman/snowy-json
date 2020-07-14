@@ -325,6 +325,18 @@ public final class Validator {
    * <p>
    * All known IDs and URLs are loaded and scanned so that their IDs can be
    * checked and catalogued.
+   * <p>
+   * The following errors will show up in the log, but will not cause a
+   * {@link MalformedSchemaException}:
+   * <ol>
+   * <li>When auto-resolving, base URIs or references that are not also
+   *     valid URLs.</li>
+   * <li>When auto-resolving, duplicate URLs.</li>
+   * <li>Duplicate URIs encountered when loading from the set of known URLs.
+   *     Note that duplicate URIs encountered when processing the set of known
+   *     IDs are ignored.</li>
+   * <li>Errors loading or parsing URLs.</li>
+   * </ol>
    *
    * @param schema the schema, must not be {@code null}
    * @param instance the instance, must not be {@code null}
@@ -337,7 +349,8 @@ public final class Validator {
    * @return the validation result.
    * @throws NullPointerException if {@code schema}, {@code instance}, or
    *         {@code baseURI} is {@code null}.
-   * @throws MalformedSchemaException if the schema is somehow malformed.
+   * @throws MalformedSchemaException if the main schema or any of the other
+   *        known schemas is somehow malformed.
    * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
    */
   public static boolean validate(JsonElement schema, JsonElement instance,
