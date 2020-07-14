@@ -37,6 +37,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   means that all the keyword detection logic is in one place.
 * Updated the linter and coverage tool to utilize the new schema
   traverser features.
+* `Options.set` now returns itself, for easy chaining.
+* All known schemas, including from URLs, are now validated.
 
 ### Fixed
 * AUTO_RESOLVE now behaves properly for relative IDs.
