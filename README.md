@@ -35,6 +35,7 @@ See: [JSON Schema](https://json-schema.org)
       1. [Linting by traversing the tree](#linting-by-traversing-the-tree)
 10. [The coverage checker](#the-coverage-checker)
 11. [Future plans](#future-plans)
+    1. [Possible future plans](#possible-future-plans)
 12. [References](#references)
 13. [An ending thought](#an-ending-thought)
 14. [License](#license)
@@ -244,6 +245,9 @@ obtain a copy of the test suite by cloning the
 
 The third program is `Linter`, a rudimentary linter for JSON Schema files. It
 takes one argument, the schema file to check.
+
+The fouth program is `Coverage`, a simple coverage tool for JSON Schemas and
+instances. It's similar to `Main`, but prints different output.
 
 ### API
 
@@ -459,40 +463,9 @@ JSON.traverseSchema(schema, (e, parent, path, state) -> {
 The coverage checker works similarly to the main validator, except that after
 validation, it prints out some coverage results.
 
-It does not include schema paths that are children of any "properties" or
-"$defs" or "definitions" elements (depending on the specification) because those
-are not schema keywords. This matches how errors and annotations are collected.
-However, this tool implementation will include paths to unknown keywords and
-their children due to its simplicity and rudimentary-ness.
-
-For example:
-```json
-{
-    "properties": {
-        "x": { "type": "number" }
-    },
-    "unknown": {
-        "a": {}
-    },
-    "$defs": {
-        "y": { "type":  "number" }
-    }
-}
-```
-
-The following elements will be included when considering the total set of
-schema paths:
-1. `` (the empty string)
-2. `/properties`
-3. `/properties/x/type`
-4. `/unknown`
-5. `/unknown/a`
-6. `/$defs`
-7. `/$defs/y/type`
-
-The following elements will not be included:
-1. `/properties/x`
-2. `/$defs/y`
+It outputs two JSON objects:
+1. Seen and unseen schema locations organized by instance location.
+2. Seen schema locations only.
 
 ## Future plans
 
@@ -501,7 +474,12 @@ There are plans to explore supporting more features, including:
 1. Custom vocabulary support.
 2. More output formatting. All the information is currently there, but the
    caller must process and organize it.
-3. Schema coverage.
+   
+### Possible future plans
+
+These are plans that may or may not be explored:
+
+1. Linter rule IDs for selective linting.
 
 ## References
 

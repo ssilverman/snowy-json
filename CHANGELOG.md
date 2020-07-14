@@ -17,6 +17,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * ID scanning and validation is now performed on all known IDs and URLs before
   validation so that all references (to valid IDs) will resolve.
 * Added some total load and run times to the test runner.
+* All known schemas, including from URLs, are now validated.
 
 ### Changed
 * Changed a couple linter behaviours:
@@ -30,15 +31,14 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Other internal improvements.
 * Changed `JSON.traverse` to `traverseSchema`, `JSON.JsonElementVisitor` to
   `JSON.SchemaVisitor`, and `JSON.TraverseState` to `JSON.SchemaTraverseState`.
-* The Coverage tool now prints coverage by instance path and not schema path.
-  It also now outputs in JSON.
+* The Coverage tool now outputs two JSON objects: coverage by instance location
+  and the seen-only schema locations.
 * Updated how `JSON.traverseSchema` works to be more complete. It now provides
   a more complete picture of the schema and the state of its members. This also
   means that all the keyword detection logic is in one place.
 * Updated the linter and coverage tool to utilize the new schema
   traverser features.
 * `Options.set` now returns itself, for easy chaining.
-* All known schemas, including from URLs, are now validated.
 
 ### Fixed
 * AUTO_RESOLVE now behaves properly for relative IDs.
