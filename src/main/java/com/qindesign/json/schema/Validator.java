@@ -23,6 +23,7 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.keywords.ContentEncoding;
 import com.qindesign.json.schema.keywords.ContentMediaType;
 import com.qindesign.json.schema.keywords.ContentSchema;
@@ -166,18 +167,27 @@ public final class Validator {
    * <p>
    * If auto-resolution of URLs is desired, set {@code knownURLs} to
    * non-{@code null}.
+   * <p>
+   * This also validates the schema if it has no root $schema element. During
+   * this validation, the vocabularies are optionally collected into
+   * {@code vocabularies} if it's non-{@code null}. If there is a root $schema
+   * element or if the vocabularies map is {@code null}, then no vocabularies
+   * will be collected.
    *
    * @param baseURI the schema's base URI, expected to be normalized
    * @param schema the schema
    * @param options any options
    * @param knownURLs a map into which to put auto-resolved URLs, {@code null}
    *                  to not track auto-resolution
+   * @param vocabularies a map into which to put recognized
+   *                     vocabularies, optional
    * @return all the known IDs from the schema.
    * @throws MalformedSchemaException if the schema is not valid.
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
   private static Map<URI, Id> prepareSchema(URI baseURI, JsonElement schema, Options options,
-                                            Map<URI, URL> knownURLs)
+                                            Map<URI, URL> knownURLs,
+                                            Map<URI, Boolean> vocabularies)
       throws MalformedSchemaException {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(schema, "schema");
@@ -204,56 +214,77 @@ public final class Validator {
     }
 
     Map<URI, Id> ids = scanIDs(baseURI, schema, spec);
-    if (knownURLs == null) {
-      return ids;
+
+    // Possibly auto-resolve
+    if (knownURLs != null) {
+      URL url = null;
+      try {
+        url = baseURI.toURL();
+      } catch (IllegalArgumentException | MalformedURLException ex) {
+        logger.warning("AUTO_RESOLVE: Not a valid base URL: " + baseURI);
+      }
+      URL baseURL = url;  // So that baseURL is effectively final
+      if (baseURL != null) {
+        JSON.traverseSchema(baseURI, spec, schema, (e, parent, path, state) -> {
+          if (state.isNotKeyword() || !path.endsWith(CoreRef.NAME)) {
+            return;
+          }
+
+          Supplier<URI> loc =
+              () -> state.rootURI().resolve(Strings.jsonPointerToURI(path.toString()));
+
+          if (!JSON.isString(e)) {
+            throw new MalformedSchemaException("not a string", loc.get());
+          }
+
+          URI ref;
+          try {
+            ref = URI.parse(e.getAsString());
+          } catch (URISyntaxException ex) {
+            throw new MalformedSchemaException("not a valid URI", loc.get());
+          }
+
+          // Only guess URLs for raw URIs having no scheme and no authority
+          if (ref.scheme() != null || ref.rawAuthority() != null) {
+            return;
+          }
+
+          // Don't guess URLs for URIs that are just fragments
+          if (!URIs.isNotFragmentOnly(ref)) {
+            return;
+          }
+
+          ref = URIs.stripFragment(ref).normalize();
+          URI uri = state.baseURI().resolve(ref);
+
+          try {
+            knownURLs.putIfAbsent(uri, new URL(baseURL, ref.toString()));
+          } catch (MalformedURLException ex) {
+            logger.warning("AUTO_RESOLVE: Not a valid URL: " + ref);
+          }
+        });
+      }
     }
 
-    URL url = null;
-    try {
-      url = baseURI.toURL();
-    } catch (IllegalArgumentException | MalformedURLException ex) {
-      logger.warning("AUTO_RESOLVE: Not a valid base URL: " + baseURI);
-    }
-    URL baseURL = url;  // So that baseURL is effectively final
-    if (baseURL != null) {
-      JSON.traverseSchema(baseURI, spec, schema, (e, parent, path, state) -> {
-        if (state.isNotKeyword() || !path.endsWith(CoreRef.NAME)) {
-          return;
-        }
-
-        Supplier<URI> loc =
-            () -> state.rootURI().resolve(Strings.jsonPointerToURI(path.toString()));
-
-        if (!JSON.isString(e)) {
-          throw new MalformedSchemaException("not a string", loc.get());
-        }
-
-        URI ref;
-        try {
-          ref = URI.parse(e.getAsString());
-        } catch (URISyntaxException ex) {
-          throw new MalformedSchemaException("not a valid URI", loc.get());
-        }
-
-        // Only guess URLs for raw URIs having no scheme and no authority
-        if (ref.scheme() != null || ref.rawAuthority() != null) {
-          return;
-        }
-
-        // Don't guess URLs for URIs that are just fragments
-        if (!URIs.isNotFragmentOnly(ref)) {
-          return;
-        }
-
-        ref = URIs.stripFragment(ref).normalize();
-        URI uri = state.baseURI().resolve(ref);
-
-        try {
-          knownURLs.putIfAbsent(uri, new URL(baseURL, ref.toString()));
-        } catch (MalformedURLException ex) {
-          logger.warning("AUTO_RESOLVE: Not a valid URL: " + ref);
-        }
-      });
+    // Validate the schema if unknown and collect the vocabularies
+    if (isDefaultSpec && schema.isJsonObject()) {
+      ValidatorContext context =
+          new ValidatorContext(baseURI, schema,
+                               new HashMap<>(), Collections.emptyMap(), KNOWN_SCHEMAS,
+                               new Options()
+                                   .set(Option.COLLECT_ANNOTATIONS, false)
+                                   .set(Option.COLLECT_ERRORS, false)
+                                   .set(Option.FORMAT, false),
+                               Collections.emptyMap(), Collections.emptyMap());
+      if (!new CoreSchema()
+          .apply(new JsonPrimitive(spec.id().toString()), null, schema.getAsJsonObject(),
+                 context)) {
+        throw new MalformedSchemaException("schema does not validate against " + spec.id(),
+                                           baseURI);
+      }
+      if (vocabularies != null) {
+        vocabularies.putAll(context.vocabularies());
+      }
     }
 
     return ids;
@@ -333,13 +364,14 @@ public final class Validator {
     if (options.is(Option.AUTO_RESOLVE)) {
       autoResolved = new HashMap<>();
     }
-    var ids = prepareSchema(baseURI, schema, options, autoResolved);
+    Map<URI, Boolean> vocabularies = new HashMap<>();
+    var ids = prepareSchema(baseURI, schema, options, autoResolved, vocabularies);
 
     // Prepare all the known schemas
     if (knownIDs != null) {
       for (var e : knownIDs.entrySet()) {
         URI uri = e.getKey().normalize();
-        var ids2 = prepareSchema(uri, e.getValue(), options, autoResolved);
+        var ids2 = prepareSchema(uri, e.getValue(), options, autoResolved, null);
         ids2.forEach(ids::putIfAbsent);
       }
     }
@@ -377,7 +409,7 @@ public final class Validator {
 
         try (InputStream in = url.openStream()) {
           try {
-            var ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved);
+            var ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved, null);
             ids2.forEach((uri1, id) -> {
               if (ids.putIfAbsent(uri1, id) != null) {
                 logger.warning("Duplicate URI: " + uri1 + ": from " + id.rootURI);
@@ -428,21 +460,10 @@ public final class Validator {
                              options,
                              annotations, errors);
 
-//    // If the spec is known, the $schema keyword will process it
-//    // Next, validate the schema if it's unknown
-//    if (isDefaultSpec && schema.isJsonObject()) {
-//      try {
-//        if (!new CoreSchema()
-//            .apply(new JsonPrimitive(spec.id().toString()), instance, schema.getAsJsonObject(),
-//                   context)) {
-//          throw new MalformedSchemaException("schema does not validate against " + spec.id(),
-//                                             baseURI);
-//        }
-//      } catch (MalformedSchemaException ex) {
-//        // Ignore a bad or unknown meta-schema
-//        // The whole point here, after all, is to get the vocabularies
-//      }
-//    }
+    // Collect the vocabularies from the default schema if the schema is unknown
+    if (!vocabularies.isEmpty()) {
+      vocabularies.forEach(context::setVocabulary);
+    }
 
     boolean retval = context.apply(schema, null, null, instance, null);
     if (retval) {
