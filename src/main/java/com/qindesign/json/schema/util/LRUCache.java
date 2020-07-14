@@ -58,7 +58,7 @@ public final class LRUCache<K, V> {
   private Entry head;
   private Entry tail;
 
-  private final int maxSize;
+  private int maxSize;
   private final Function<K, V> producer;
 
   /**
@@ -73,16 +73,34 @@ public final class LRUCache<K, V> {
    *
    * @param maxSize the maximum size
    * @param producer a function that creates values from keys
+   * @throws IllegalArgumentException if {@code maxSize} &lt;= 0.
+   * @throws NullPointerException if {@code producer} is {@code null}.
    * @see <a href="https://www.baeldung.com/java-sneaky-throws">"Sneaky throws" in Java</a>
    */
   public LRUCache(int maxSize, Function<K, V> producer) {
+    Objects.requireNonNull(producer, "producer");
+
+    setMaxSize(maxSize);
+    this.producer = producer;
+  }
+
+  /**
+   * Sets a new maximum size. This also removes elements from the cache if the
+   * current size is greater than the new maximum size.
+   *
+   * @param maxSize the new maximum size.
+   * @throws IllegalArgumentException if the new size is &lt;= 0.
+   */
+  public void setMaxSize(int maxSize) {
     if (maxSize <= 0) {
       throw new IllegalArgumentException("maxSize <= 0: " + maxSize);
     }
-    Objects.requireNonNull(producer, "producer");
-
     this.maxSize = maxSize;
-    this.producer = producer;
+
+    while (map.size() > maxSize) {
+      map.remove(tail.key);
+      remove(tail);
+    }
   }
 
   /**
@@ -141,7 +159,7 @@ public final class LRUCache<K, V> {
       insertAtHead(e);
     } else {
       e = new Entry(key, value);
-      if (map.size() >= maxSize) {
+      while (map.size() >= maxSize) {
         map.remove(tail.key);
         remove(tail);
       }
@@ -174,7 +192,7 @@ public final class LRUCache<K, V> {
     } else {
       value = producer.apply(key);
       e = new Entry(key, value);
-      if (map.size() >= maxSize) {
+      while (map.size() >= maxSize) {
         map.remove(tail.key);
         remove(tail);
       }

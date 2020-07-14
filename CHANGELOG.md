@@ -41,6 +41,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * `Options.set` now returns itself, for easy chaining.
 * The "ipv4" and "ipv6" formats are now parsed using the internal URI parser.
   That uses a more current specification.
+* Changed `LRUCache` maximum size to be changeable.
 
 ### Fixed
 * AUTO_RESOLVE now behaves properly for relative IDs.
