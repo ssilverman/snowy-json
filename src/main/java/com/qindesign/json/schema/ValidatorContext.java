@@ -301,7 +301,7 @@ public final class ValidatorContext {
    *
    * @param baseURI the initial base URI
    * @param schema the schema having the base URI
-   * @param knownIDs known JSON contents
+   * @param knownIDs known JSON contents, must be modifiable
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
    * @param options any options
