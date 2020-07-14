@@ -82,11 +82,12 @@ public final class Options {
    *
    * @param option the option to set
    * @param value the value to use for the option, must be of the correct type
+   * @return this object, for easy chaining.
    * @throws IllegalArgumentException if the value is not of the correct type.
    * @see Option#type()
    * @see #clear(Option)
    */
-  public void set(Option option, Object value) {
+  public Options set(Option option, Object value) {
     Objects.requireNonNull(option, "option");
     Objects.requireNonNull(value, "value");
 
@@ -95,6 +96,7 @@ public final class Options {
           "Bad value type: got=" + value.getClass() + " want=" + option.type());
     }
     options.put(option, value);
+    return this;
   }
 
   /**
