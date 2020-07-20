@@ -26,7 +26,6 @@ import com.google.gson.JsonObject;
 import com.qindesign.json.schema.Annotation;
 import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
-import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.JSONPath;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.Strings;
@@ -54,7 +53,7 @@ public class UnevaluatedProperties extends Keyword {
     if (context.specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
       return true;
     }
-    if (!context.isOption(Option.COLLECT_ANNOTATIONS)) {
+    if (!context.isCollectAnnotations()) {
       context.schemaError("annotations are not being collected");
       return false;
     }

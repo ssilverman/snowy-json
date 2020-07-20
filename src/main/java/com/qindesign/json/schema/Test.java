@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -232,12 +233,11 @@ public class Test {
         Options opts = new Options();
         opts.set(Option.FORMAT, false);
         opts.set(Option.CONTENT, false);
-        opts.set(Option.COLLECT_ANNOTATIONS, false);
-        opts.set(Option.COLLECT_ERRORS, false);
         opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
-          if (!Validator.validate(testSchema, instance, new URI(testSchemaFile.toURI()),
-                                  knownIDs, knownURLs, opts, null, null)) {
+          Validator validator =
+              new Validator(testSchema, new URI(testSchemaFile.toURI()), knownIDs, knownURLs, opts);
+          if (!validator.validate(instance, new HashMap<>(), null)) {
             logger.warning("Not a valid test suite: " + file);
             return FileVisitResult.CONTINUE;
           }
@@ -313,8 +313,8 @@ public class Test {
         opts.set(Option.CONTENT, true);
         opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
-          boolean result =
-              Validator.validate(schema, data, uri, knownIDs, knownURLs, opts, null, null);
+          Validator validator = new Validator(schema, uri, knownIDs, knownURLs, opts);
+          boolean result = validator.validate(data, new HashMap<>(), null);
           if (result != valid) {
             logger.info(new URI(root.toUri()).relativize(uri) + ": Bad result: " +
                         groupDescription + ": " + description +

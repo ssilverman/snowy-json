@@ -46,21 +46,12 @@ public enum Option {
    */
   SPECIFICATION(Specification.class),
 
-  /** Whether to collect annotations, a {@link Boolean}. */
-  COLLECT_ANNOTATIONS(Boolean.class),
-
   /**
    * Indicates that annotations, when collected, should also be retained for
-   * failed schemas. This option only has an effect when the
-   * {@link #COLLECT_ANNOTATIONS} option is set to {@code true}.
+   * failed schemas. This option only has an effect when annotations are
+   * being collected.
    */
   COLLECT_ANNOTATIONS_FOR_FAILED(Boolean.class),
-
-  /**
-   * Whether to collect errors, including both valid and invalid results,
-   * a {@link Boolean}.
-   */
-  COLLECT_ERRORS(Boolean.class),
 
   /** Whether to validate content, a {@link Boolean}. */
   CONTENT(Boolean.class),

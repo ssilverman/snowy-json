@@ -36,7 +36,6 @@ import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,14 +109,12 @@ public class Coverage {
     logger.info("Guessed spec=" + Validator.guessSpecification(schema));
 
     Options opts = new Options();
-    opts.set(Option.COLLECT_ANNOTATIONS, false);
 
     Map<JSONPath, Map<JSONPath, Annotation>> errors = new HashMap<>();
 
     long time = System.currentTimeMillis();
-    boolean result = Validator.validate(schema, instance, schemaID,
-                                        Collections.emptyMap(), Collections.emptyMap(),
-                                        opts, null, errors);
+    Validator validator = new Validator(schema, schemaID, null, null, opts);
+    boolean result = validator.validate(instance, null, errors);
     time = System.currentTimeMillis() - time;
     logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 

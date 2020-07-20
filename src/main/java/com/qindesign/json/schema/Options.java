@@ -54,9 +54,7 @@ public final class Options {
     defaults.put(Option.FORMAT, false);
     defaults.put(Option.DEFAULT_SPECIFICATION, Specification.DRAFT_2019_09);
     // NOTE: Don't set SPECIFICATION automatically
-    defaults.put(Option.COLLECT_ANNOTATIONS, true);
     defaults.put(Option.COLLECT_ANNOTATIONS_FOR_FAILED, false);
-    defaults.put(Option.COLLECT_ERRORS, true);
     defaults.put(Option.CONTENT, false);
   }
 

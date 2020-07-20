@@ -4,6 +4,20 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.13.0]
+
+### Added
+* Added a `Validator` constructor for storing information across schema
+  validation for the same schema.
+
+### Changed
+* Annotation and error collection is now specified by passing `null` or
+  non-`null` maps instead of the options.
+
+### Removed
+* The `COLLECT_ANNOTATIONS` and `COLLECT_ERRORS` options. Collection of these is
+  now specified depending on whether a map is passed to the API to hold them.
+
 ## [0.12.0]
 
 ### Added

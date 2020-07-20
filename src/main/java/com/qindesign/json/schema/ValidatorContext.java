@@ -229,20 +229,21 @@ public final class ValidatorContext {
   /**
    * Annotations collection, maps element location to its annotations:<br>
    * instance location -> name -> schema location -> value
+   * <p>
+   * {@code null} to not collect annotations.
    */
-  private final Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations;
+  private Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations;
 
   /**
    * Error "annotation" collection, maps element location to its errors:<br>
    * instance location -> schema location -> value
+   * <p>
+   * {@code null} to not collect errors.
    */
-  private final Map<JSONPath, Map<JSONPath, Annotation>> errors;
+  private Map<JSONPath, Map<JSONPath, Annotation>> errors;
 
-  /**
-   * The initial base URI passed in with the constructor. This may or may not
-   * match the document ID.
-   */
-  private final URI baseURI;
+  /** The main schema used for validation. */
+  private final JsonElement schema;
 
   /** The current processing state. */
   private State state;
@@ -288,10 +289,7 @@ public final class ValidatorContext {
 
   // Options
   private final Options options;
-  private final boolean isFailFast;
-  private final boolean isCollectAnnotations;
   private final boolean isCollectFailedAnnotations;
-  private final boolean isCollectErrors;
 
   // Pattern cache
   private static final int MAX_PATTERN_CACHE_SIZE = Integer.MAX_VALUE;
@@ -319,25 +317,19 @@ public final class ValidatorContext {
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
    * @param options any options
-   * @param annotations annotations get stored here
-   * @param errors errors get stored here
    * @throws IllegalArgumentException if the base URI is not absolute or if it
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
   public ValidatorContext(URI baseURI, JsonElement schema,
                           Map<URI, Id> knownIDs, Map<URI, URL> knownURLs,
-                          Set<URI> validatedSchemas, Options options,
-                          Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
-                          Map<JSONPath, Map<JSONPath, Annotation>> errors) {
+                          Set<URI> validatedSchemas, Options options) {
     Objects.requireNonNull(baseURI, "baseURI");
     Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(knownIDs, "knownIDs");
     Objects.requireNonNull(knownURLs, "knownURLs");
     Objects.requireNonNull(validatedSchemas, "validatedSchemas");
     Objects.requireNonNull(options, "options");
-    Objects.requireNonNull(annotations, "annotations");
-    Objects.requireNonNull(errors, "errors");
 
     if (!baseURI.isAbsolute()) {
       throw new IllegalArgumentException("baseURI must be absolute");
@@ -347,7 +339,7 @@ public final class ValidatorContext {
     }
 
     baseURI = baseURI.normalize();
-    this.baseURI = baseURI;
+    this.schema = schema;
     this.knownIDs = knownIDs;
 
     // Gather the known IDs by element
@@ -411,21 +403,7 @@ public final class ValidatorContext {
 
     // Options
     this.options = new Options(options);
-    isCollectAnnotations = isOption(Option.COLLECT_ANNOTATIONS);
     isCollectFailedAnnotations = isOption(Option.COLLECT_ANNOTATIONS_FOR_FAILED);
-    isCollectErrors = isOption(Option.COLLECT_ERRORS);
-    isFailFast = !isCollectAnnotations && !isCollectErrors;
-
-    if (isCollectAnnotations) {
-      this.annotations = annotations;
-    } else {
-      this.annotations = null;
-    }
-    if (isCollectErrors) {
-      this.errors = errors;
-    } else {
-      this.errors = null;
-    }
   }
 
   /**
@@ -468,12 +446,21 @@ public final class ValidatorContext {
   }
 
   /**
+   * Returns whether annotations are being collected.
+   *
+   * @return whether annotations are being collected.
+   */
+  public boolean isCollectAnnotations() {
+    return annotations != null;
+  }
+
+  /**
    * Returns whether we can fail fast when processing a keyword.
    *
    * @return whether we can fail fast during keyword processing.
    */
   public boolean isFailFast() {
-    return isFailFast;
+    return (annotations == null) && (errors == null);
   }
 
   /**
@@ -754,7 +741,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addAnnotation(String name, Object value) throws MalformedSchemaException {
-    if (!isCollectAnnotations) {
+    if (annotations == null) {
       return;
     }
     if (!state.isCollectSubAnnotations && !isCollectFailedAnnotations) {
@@ -812,7 +799,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException if the addition is not unique.
    */
   public void addError(boolean result, String message) throws MalformedSchemaException {
-    if (!isCollectErrors) {
+    if (errors == null) {
       return;
     }
 
@@ -840,7 +827,7 @@ public final class ValidatorContext {
    * @return whether there's an existing annotation.
    */
   public boolean hasAnnotation(String name) {
-    if (!isCollectAnnotations || !state.isCollectSubAnnotations) {
+    if (annotations == null || !state.isCollectSubAnnotations) {
       return false;
     }
 
@@ -856,7 +843,7 @@ public final class ValidatorContext {
    * @return whether there's an error at the current instance location.
    */
   public boolean hasError() {
-    if (!isCollectErrors) {
+    if (errors == null) {
       return false;
     }
 
@@ -867,13 +854,14 @@ public final class ValidatorContext {
 
   /**
    * Gets the all the annotations attached to the current instance location for
-   * the given name.
+   * the given name. If annotations are not being collected, then this returns
+   * an empty map.
    *
    * @param name the annotation name
    * @return a map keyed by schema location.
    */
   public Map<JSONPath, Annotation> annotations(String name) {
-    if (!isCollectAnnotations) {
+    if (annotations == null) {
       return Collections.emptyMap();
     }
 
@@ -1087,6 +1075,26 @@ public final class ValidatorContext {
   }
 
   /**
+   * Applies the schema to the given instance. To collect annotations or errors,
+   * pass a non-{@code null} value for the respective parameter. If errors are
+   * collected, then both valid and invalid results are collected.
+   *
+   * @param instance the instance to be validated
+   * @param annotations annotations get stored here, may be {@code null} for
+   *                    no collection
+   * @param errors errors get stored here, may be {@code null} for no collection
+   * @return the schema application result.
+   */
+  public boolean apply(JsonElement instance,
+                Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
+                Map<JSONPath, Map<JSONPath, Annotation>> errors) throws MalformedSchemaException {
+    this.annotations = annotations;
+    this.errors = errors;
+
+    return apply(schema, null, null, instance, null);
+  }
+
+  /**
    * Applies a schema to the given instance. The keyword and instance name
    * parameters are the relative element name, either a name or a number. An
    * empty string means the current location.
@@ -1221,7 +1229,7 @@ public final class ValidatorContext {
       // Note that this is still necessary even with the
       // setCollectSubAnnotations optimization because it either may not be
       // used or not used early enough
-      if (isCollectAnnotations) {
+      if (annotations != null) {
         // Note that we're also checking for equality in case the current
         // failing keyword has set some annotations
         Predicate<Map.Entry<JSONPath, Annotation>> pred =

@@ -1,6 +1,6 @@
 # Snow, a JSON Schema Validator
 
-Version: 0.12.0
+Version: 0.13.0
 
 The main goal of this project is to be a reference JSON Schema validator. While
 it provides a few working applications, it's meant primarily as an API for
@@ -18,12 +18,10 @@ See: [JSON Schema](https://json-schema.org)
 5. [Which specification is used for processing?](#which-specification-is-used-for-processing)
 6. [Options for controlling behaviour](#options-for-controlling-behaviour)
    1. [AUTO_RESOLVE](#option-auto_resolve)
-   2. [COLLECT_ANNOTATIONS](#option-collect_annotations)
-   3. [COLLECT_ANNOTATIONS_FOR_FAILED](#option-collect_annotations_for_failed)
-   4. [COLLECT_ERRORS](#option-collect_errors)
-   5. [DEFAULT_SPECIFICATION](#option-default_specification)
-   6. [FORMAT](#option-format)
-   7. [SPECIFICATION](#option-specification)
+   2. [COLLECT_ANNOTATIONS_FOR_FAILED](#option-collect_annotations_for_failed)
+   3. [DEFAULT_SPECIFICATION](#option-default_specification)
+   4. [FORMAT](#option-format)
+   5. [SPECIFICATION](#option-specification)
 7. [Project structure](#project-structure)
    1. [Complete programs](#complete-programs)
    2. [API](#api)
@@ -175,31 +173,13 @@ This controls whether the validator should attempt auto-resolution when
 searching for schemas or when otherwise resolving IDs. This entails adding the
 original base URI and any root $id as known URLs during validation.
 
-### Option: COLLECT_ANNOTATIONS
-
-Type: `java.lang.Boolean`
-
-This controls whether annotations are collected during validation. If neither
-this nor `COLLECT_ERRORS` is set to `true` then no loop detection is available.
-
 ### Option: COLLECT_ANNOTATIONS_FOR_FAILED
 
 Type: `java.lang.Boolean`
 
 This controls, if annotations are collected, whether they should also be
-retained for failed schemas. This option only has an effect when the
-`COLLECT_ANNOTATIONS` option is set to `true`.
-
-### Option: COLLECT_ERRORS
-
-Type: `java.lang.Boolean`
-
-This controls whether errors are collected during validation. An "error" is
-effectively an annotation whose name is "error" for a false validation result,
-and "annotation" for a validation result of true. If neither this nor
-`COLLECT_ANNOTATIONS` is set to `true` then no loop detection is available.
-
-This option may need to be set to `false` if a schema uses $recursiveRef.
+retained for failed schemas. This option only has an effect when annotations are
+being collected.
 
 ### Option: DEFAULT_SPECIFICATION
 
@@ -479,8 +459,6 @@ There are plans to explore supporting more features, including:
    across calls to `Validator.validate`.
 4. Compilation into an internal representation that provides both speed and
    optimizations for non-dynamic validation paths.
-5. Improved performance across calls to `Validator.validate` for the same schema
-   and other arguments.
 
 ### Possible future plans
 

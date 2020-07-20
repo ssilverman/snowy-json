@@ -35,7 +35,7 @@ import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -121,15 +121,11 @@ public class CoreSchema extends Keyword {
     Options opts2 = new Options();
     opts2.set(Option.FORMAT, false);
     opts2.set(Option.CONTENT, false);
-    opts2.set(Option.COLLECT_ANNOTATIONS, false);
-    opts2.set(Option.COLLECT_ERRORS, false);
     opts2.set(Option.DEFAULT_SPECIFICATION, spec);
     ValidatorContext context2 = new ValidatorContext(id, schema,
                                                      ids, context.knownURLs(), validated,
-                                                     opts2,
-                                                     Collections.emptyMap(),
-                                                     Collections.emptyMap());
-    if (!context2.apply(schema, null, null, parent, null)) {
+                                                     opts2);
+    if (!context2.apply(parent, new HashMap<>(), null)) {
       context.schemaError("does not validate");
       return false;
     }

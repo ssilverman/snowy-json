@@ -39,7 +39,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -120,9 +119,8 @@ public class Main {
     Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations = new HashMap<>();
 
     long time = System.currentTimeMillis();
-    boolean result = Validator.validate(schema, instance, schemaID,
-                                        Collections.emptyMap(), Collections.emptyMap(),
-                                        opts, annotations, errors);
+    Validator validator = new Validator(schema, schemaID, null, null, opts);
+    boolean result = validator.validate(instance, annotations, errors);
     time = System.currentTimeMillis() - time;
     logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 
