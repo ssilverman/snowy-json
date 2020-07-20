@@ -554,7 +554,7 @@ public final class ValidatorContext {
    * Sets a vocabulary as required or optional. Set {@code true} for required
    * and {@code false} for optional.
    * <p>
-   * This returns whether the ID is unique. If not unique then the new value is
+   * This returns whether the ID is unique. If not unique, then the new value is
    * not set.
    *
    * @param id the vocabulary ID
@@ -625,9 +625,9 @@ public final class ValidatorContext {
 
   /**
    * Finds the element associated with the given ID and sets a new base URI. If
-   * there is no such element having the ID then this returns {@code null} and
+   * there is no such element having the ID, then this returns {@code null} and
    * the base URI is not set. If the returned element was from a new resource
-   * and is a schema then the current state will be set as the root.
+   * and is a schema, then the current state will be set as the root.
    * <p>
    * The search order is as follows:
    * <ol>
@@ -636,7 +636,7 @@ public final class ValidatorContext {
    * <li>Predefined known resources such as known schemas</li>
    * </ol>
    * <p>
-   * If the ID has a fragment then it will be removed prior to searching the
+   * If the ID has a fragment, then it will be removed prior to searching the
    * other known resources.
    *
    * @param id the id
@@ -884,7 +884,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the path with the base URI. If the given path is {@code null} then
+   * Merges the path with the base URI. If the given path is {@code null}, then
    * this returns the base URI. It is assumed that the base contains an absolute
    * part and a JSON Pointer part in its fragment.
    *
@@ -915,7 +915,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the given name with the base URI. If the name is {@code null} then
+   * Merges the given name with the base URI. If the name is {@code null}, then
    * this returns the base URI. It is assumed that the base contains an absolute
    * part and a JSON Pointer part in its fragment.
    *
@@ -931,7 +931,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Merges the given name with the base pointer. If the name is {@code null}
+   * Merges the given name with the base pointer. If the name is {@code null},
    * then this returns the base pointer.
    *
    * @param base the base pointer
@@ -983,7 +983,7 @@ public final class ValidatorContext {
   }
 
   /**
-   * Checks whether the given JSON element is a valid JSON Schema. If it is not
+   * Checks whether the given JSON element is a valid JSON Schema. If it is not,
    * then a schema error will be flagged using the context. A valid schema can
    * either be an object or a Boolean.
    * <p>
@@ -1104,7 +1104,7 @@ public final class ValidatorContext {
    * <p>
    * The {@code absSchemaLoc} parameter is used as the new absolute keyword
    * location, unless there's a declared $id, in which case that value is used.
-   * If there's no $id and the parameter is {@code null} then the location will
+   * If there's no $id and the parameter is {@code null}, then the location will
    * be assigned the keyword name resolved against the current location,
    * as usual.
    *

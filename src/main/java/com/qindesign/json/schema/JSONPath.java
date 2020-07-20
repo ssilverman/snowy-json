@@ -394,7 +394,7 @@ public final class JSONPath extends AbstractList<String>
   }
 
   /**
-   * Returns the path separated by "/" characters. If the path is empty then
+   * Returns the path separated by "/" characters. If the path is empty, then
    * this will return an empty string, for both relative and absolute paths.
    * <p>
    * Each element will be converted to a valid JSON Pointer token.

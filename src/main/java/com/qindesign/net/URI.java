@@ -47,7 +47,7 @@ import java.util.Optional;
  * <li>Fragment</li>
  * </ol>
  * <p>
- * If there is an <em>authority</em> component then the following may also be
+ * If there is an <em>authority</em> component, then the following may also be
  * set. These are subcomponents of <em>authority</em>.
  * <ol>
  * <li>User info</li>
@@ -61,14 +61,14 @@ import java.util.Optional;
  * <ul>
  * <li>The <em>path</em> component will never be {@code null}, but it may
  *     be empty.</li>
- * <li>If the <em>authority</em> component is not {@code null} then the
+ * <li>If the <em>authority</em> component is not {@code null}, then the
  *     <em>host</em> subcomponent will not be {@code null}. The converse is also
- *     true: if the <em>host</em> subcomponent is not {@code null} then the
+ *     true: if the <em>host</em> subcomponent is not {@code null}, then the
  *     <em>authority</em> component will not be {@code null}.</li>
- * <li>If the <em>user info</em> subcomponent is not {@code null} then the
+ * <li>If the <em>user info</em> subcomponent is not {@code null}, then the
  *     <em>authority</em> component will not be {@code null}. The converse is
  *     not true.</li>
- * <li>If the <em>port</em> subcomponent is non-negative then the
+ * <li>If the <em>port</em> subcomponent is non-negative, then the
  *     <em>authority</em> component will not be {@code null}. The converse is
  *     not true.</li>
  * <li>All the other components, <em>scheme</em>, <em>query</em>, and

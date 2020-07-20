@@ -56,7 +56,7 @@ public final class Strings {
 
   /**
    * Converts the given string to JSON form and returns it. If there was any
-   * internal error then this returns the string itself.
+   * internal error, then this returns the string itself.
    *
    * @param s the string to convert
    * @return the converted string.

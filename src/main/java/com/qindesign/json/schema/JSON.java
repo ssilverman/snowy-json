@@ -277,7 +277,7 @@ public final class JSON {
 
     /**
      * Returns whether the element is definitely not a schema. If this returns
-     * {@code false} then the element is only possibly a schema. The contents
+     * {@code false}, then the element is only possibly a schema. The contents
      * of proper "properties" and definitions are not schemas.
      * <p>
      * This will only return {@code true} for anything that definitely is not a
@@ -294,7 +294,7 @@ public final class JSON {
 
     /**
      * Returns whether the element is definitely not the contents of a keyword.
-     * If this returns {@code false} then the element only possibly belongs to
+     * If this returns {@code false}, then the element only possibly belongs to
      * a keyword. Elements having a proper "properties" or definitions parent
      * can't be keywords.
      * <p>
@@ -377,7 +377,7 @@ public final class JSON {
 
     /**
      * Returns the path relative to the current base URI. If there is no base
-     * URI then this returns the path relative to the root.
+     * URI, then this returns the path relative to the root.
      *
      * @return the path relative to the current base URI, or relative to the
      *         root if there is no current base URI.
@@ -488,7 +488,7 @@ public final class JSON {
     state.baseParent = oldState.baseParent;
     state.pathFromBase = oldState.pathFromBase;
 
-    // If we're inside a "properties" or a definitions then the contents of any
+    // If we're inside a "properties" or a definitions, then the contents of any
     // member can be a schema and the member can't be a keyword
     state.inProperties = false;
     state.inDefs = false;

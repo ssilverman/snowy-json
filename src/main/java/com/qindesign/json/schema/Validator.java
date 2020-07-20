@@ -198,7 +198,7 @@ public final class Validator {
     // Prepare the main schema
     baseURI = baseURI.normalize();
 
-    // If auto-resolving then collect new URLs
+    // If auto-resolving, then collect new URLs
     Map<URI, URL> autoResolved = null;
     if (options.is(Option.AUTO_RESOLVE)) {
       autoResolved = new HashMap<>();

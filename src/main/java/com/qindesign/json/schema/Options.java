@@ -36,7 +36,7 @@ import java.util.Objects;
  * <p>
  * The specification-specific options may also have a non-specification-specific
  * default. If {@link #getForSpecification(Option, Specification)} returns
- * {@code null} then {@link #get(Option)} can be used to find that default.
+ * {@code null}, then {@link #get(Option)} can be used to find that default.
  */
 public final class Options {
   private static final Map<Specification, Map<Option, Object>> specDefaults = new HashMap<>();
@@ -145,7 +145,7 @@ public final class Options {
 
   /**
    * Returns the value of the specified option or, if it's not set, the default
-   * for the given specification. If that's not set then this searches the
+   * for the given specification. If that's not set, then this searches the
    * non-specification-specific defaults. This may return {@code null} if the
    * option was not found.
    *

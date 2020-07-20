@@ -36,7 +36,7 @@ import java.util.Objects;
 public final class Id {
   /**
    * The actual ID, after it was resolved against the base URI. If this
-   * contains a fragment then the ID was constructed from an anchor, a
+   * contains a fragment, then the ID was constructed from an anchor, a
    * plain name.
    * <p>
    * This field is used for all comparisons and hashing. The other fields are

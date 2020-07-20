@@ -128,9 +128,9 @@ public final class URIParser {
 
   /**
    * Scans the string until it encounters a character in {@code stopChars}. If
-   * it encounters a character in {@code stopChars} then this returns the index
-   * of that character. If no special character is encountered then this returns
-   * the end.
+   * it encounters a character in {@code stopChars}, then this returns the index
+   * of that character. If no special character is encountered, then this
+   * returns the end.
    *
    * @param s the string to scan
    * @param start the starting index
