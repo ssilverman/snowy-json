@@ -1115,6 +1115,9 @@ public final class ValidatorContext {
    * If there's no $id and the parameter is {@code null}, then the location will
    * be assigned the keyword name resolved against the current location,
    * as usual.
+   * <p>
+   * This does not set the annotations or errors collection vessels, and is only
+   * designed to be used from keywords.
    *
    * @param schema the schema, an object or a Boolean
    * @param name the keyword name, {@code null} for the current element
