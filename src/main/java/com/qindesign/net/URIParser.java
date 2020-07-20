@@ -435,9 +435,10 @@ public final class URIParser {
    * @param start the start index, inclusive
    * @param end the end index, exclusive
    * @param failMsg the failure message, for any failures
-   * @throws IllegalArgumentException if there was a parsing error.
+   * @throws URISyntaxException if there was a parsing error.
    */
-  public static void parseIPv4(String s, int start, int end, String failMsg) throws URISyntaxException {
+  public static void parseIPv4(String s, int start, int end, String failMsg)
+      throws URISyntaxException {
     for (int i = 0; i < 4; i++) {
       int next = scan(s, start, end, ".");
       if (next <= start) {

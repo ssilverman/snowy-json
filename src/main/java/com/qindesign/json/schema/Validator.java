@@ -184,6 +184,8 @@ public final class Validator {
    * @param knownIDs any known JSON schemas, searched first
    * @param knownURLs any known resources, searched second
    * @param options any options
+   * @throws MalformedSchemaException if the main schema or any of the other
+   *         known schemas is somehow malformed.
    */
   public Validator(JsonElement schema, URI baseURI,
                    Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
@@ -447,7 +449,7 @@ public final class Validator {
    * @return the validation result.
    * @throws NullPointerException if {@code instance} is {@code null}.
    * @throws MalformedSchemaException if the main schema or any of the other
-   *        known schemas is somehow malformed.
+   *         known schemas is somehow malformed.
    */
   public boolean validate(JsonElement instance,
                           Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,

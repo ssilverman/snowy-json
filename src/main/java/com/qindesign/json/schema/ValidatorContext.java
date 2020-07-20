@@ -1078,16 +1078,24 @@ public final class ValidatorContext {
    * Applies the schema to the given instance. To collect annotations or errors,
    * pass a non-{@code null} value for the respective parameter. If errors are
    * collected, then both valid and invalid results are collected.
+   * <p>
+   * This calls {@link #apply(JsonElement, String, URI, JsonElement, String)}
+   * after setting the annotations and errors collection vessels.
+   * </p>
    *
    * @param instance the instance to be validated
    * @param annotations annotations get stored here, may be {@code null} for
    *                    no collection
    * @param errors errors get stored here, may be {@code null} for no collection
    * @return the schema application result.
+   * @throws MalformedSchemaException if the schema is not valid. This could be
+   *         because it doesn't validate against any declared meta-schema or
+   *         because internal validation is failing.
    */
   public boolean apply(JsonElement instance,
-                Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
-                Map<JSONPath, Map<JSONPath, Annotation>> errors) throws MalformedSchemaException {
+                       Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
+                       Map<JSONPath, Map<JSONPath, Annotation>> errors)
+      throws MalformedSchemaException {
     this.annotations = annotations;
     this.errors = errors;
 

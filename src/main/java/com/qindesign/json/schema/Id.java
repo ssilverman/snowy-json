@@ -77,7 +77,17 @@ public final class Id {
   /**
    * Creates a new ID with all-null fields.
    *
-   * @param id the ID, a {@link URI}
+   * @param id the ID, a {@link URI} that's already resolved against the current
+   *           base URI
+   * @param value the value of the $id or $anchor element, may be {@code null}
+   * @param unresolvedID the ID, before resolving against the current base URI
+   * @param base the base URI against which the ID was resolved, may
+   *             be {@code null}
+   * @param path the path to the element having the given ID
+   * @param element the JSON element having the ID
+   * @param rootID the declared root ID of the document, may be {@code null}
+   * @param rootURI the root URI of the document, may be different than any
+   *                declared root ID
    * @throws NullPointerException if {@code id}, {@code unresolvedID},
    *         {@code path}, {@code element}, or {@code rootURI} is {@code null}.
    * @throws NullPointerException if the ID is {@code null}.

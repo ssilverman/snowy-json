@@ -65,6 +65,7 @@ public final class JSONPath extends AbstractList<String>
   /**
    * Creates a new relative path and sets the first element to the given string.
    *
+   * @param element the first element of the path
    * @return a new relative path having the specified first element.
    */
   public static JSONPath fromElement(String element) {
@@ -282,6 +283,7 @@ public final class JSONPath extends AbstractList<String>
    * Performs path normalization, similar to how URIs in RFC 3986 do it. This
    * returns a new path object.
    *
+   * @return the normalized path.
    * @see <a href="https://www.rfc-editor.org/rfc/rfc3986.html#section-5.2.4">5.2.4. Remove Dot Segments</a>
    */
   public JSONPath normalize() {
