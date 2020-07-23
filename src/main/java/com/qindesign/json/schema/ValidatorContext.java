@@ -129,6 +129,13 @@ public final class ValidatorContext {
     JSONPath instanceLocation;
 
     /** Flag that indicates whether to collect annotations, an optimization. */
+    boolean isCollectAnnotations;
+
+    /**
+     * Flag that indicates whether to collect annotations of any subschemas.
+     * Child states will set their {@link #isCollectAnnotations} according to
+     * this value. This is an optimization.
+     */
     boolean isCollectSubAnnotations;
 
     /**
@@ -159,6 +166,7 @@ public final class ValidatorContext {
       this.keywordLocation = state.keywordLocation;
       this.absKeywordLocation = state.absKeywordLocation;
       this.instanceLocation = state.instanceLocation;
+      this.isCollectAnnotations = state.isCollectAnnotations;
       this.isCollectSubAnnotations = state.isCollectSubAnnotations;
     }
   }
@@ -399,6 +407,7 @@ public final class ValidatorContext {
     state.keywordLocation = JSONPath.absolute();
     state.absKeywordLocation = baseURI;
     state.instanceLocation = JSONPath.absolute();
+    state.isCollectAnnotations = true;
     state.isCollectSubAnnotations = true;
 
     // Options
@@ -744,7 +753,7 @@ public final class ValidatorContext {
     if (annotations == null) {
       return;
     }
-    if (!state.isCollectSubAnnotations && !isCollectFailedAnnotations) {
+    if (!state.isCollectAnnotations && !isCollectFailedAnnotations) {
       return;
     }
 
@@ -753,7 +762,7 @@ public final class ValidatorContext {
                                   state.keywordLocation,
                                   state.absKeywordLocation,
                                   value);
-    a.setValid(state.isCollectSubAnnotations);
+    a.setValid(state.isCollectAnnotations);
 
     Annotation oldA = annotations
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
@@ -827,7 +836,7 @@ public final class ValidatorContext {
    * @return whether there's an existing annotation.
    */
   public boolean hasAnnotation(String name) {
-    if (annotations == null || !state.isCollectSubAnnotations) {
+    if (annotations == null || !state.isCollectAnnotations) {
       return false;
     }
 
@@ -1179,6 +1188,8 @@ public final class ValidatorContext {
     state.absKeywordParentLocation = absKeywordLocation;
     state.instanceLocation = instanceLocation;
     state.absKeywordLocation = absKeywordLocation;
+    state.isCollectAnnotations = parentState.isCollectSubAnnotations;
+    state.isCollectSubAnnotations = state.isCollectAnnotations;
 
     // Sort the names in the schema by their required evaluation order
     // Also, more fun with streams
