@@ -54,9 +54,12 @@ public class ContentEncoding extends Keyword {
       return false;
     }
 
+    // TODO: Collect annotation anyway?
     if (!JSON.isString(instance)) {
       return true;
     }
+
+    context.addAnnotation(NAME, value.getAsString());
 
     if (context.isOption(Option.CONTENT)) {
       if (value.getAsString().equalsIgnoreCase("base64")) {
@@ -66,7 +69,6 @@ public class ContentEncoding extends Keyword {
       }
     }
 
-    context.addAnnotation(NAME, value.getAsString());
     return true;
   }
 }

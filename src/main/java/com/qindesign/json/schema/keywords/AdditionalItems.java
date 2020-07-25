@@ -80,19 +80,18 @@ public class AdditionalItems extends Keyword {
           sb.append("invalid additional items: ");
         }
         sb.append(i);
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
-    }
-
-    if (sb.length() > 0) {
-      context.addError(false, sb.toString());
-      return false;
     }
 
     // Don't produce annotations if this keyword is not applied
     // TODO: Verify this restriction
     if (processedCount < array.size()) {
       context.addAnnotation(NAME, true);
+    }
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
     return true;
   }

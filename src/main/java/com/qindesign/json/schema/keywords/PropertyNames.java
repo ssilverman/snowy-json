@@ -64,7 +64,7 @@ public class PropertyNames extends Keyword {
           sb.append("invalid property names: \"");
         }
         sb.append(Strings.jsonString(name)).append('\"');
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
     }
 

@@ -96,19 +96,18 @@ public class PatternProperties extends Keyword {
           }
           sb.append(Strings.jsonString(e.getKey())).append("\" matches \"")
               .append(Strings.jsonString(p.pattern())).append('\"');
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
         validated.add(e.getKey());
       }
     }
 
+    context.addAnnotation(NAME, validated);
+    context.addLocalAnnotation(NAME, validated);
     if (sb.length() > 0) {
       context.addError(false, sb.toString());
       return false;
     }
-
-    context.addAnnotation(NAME, validated);
-    context.addLocalAnnotation(NAME, validated);
     return true;
   }
 }

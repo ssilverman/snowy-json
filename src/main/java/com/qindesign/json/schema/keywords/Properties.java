@@ -78,18 +78,19 @@ public class Properties extends Keyword {
           sb.append("invalid properties: \"");
         }
         sb.append(Strings.jsonString(e.getKey())).append('\"');
-        context.setCollectSubAnnotations(false);
+        // For successful validation of keywords that rely on annotations, for
+        // example, unevaluatedProperties, in siblings, don't mark the context
+        // as not collecting sub-annotations
       }
       validated.add(e.getKey());
     }
 
+    context.addAnnotation(NAME, validated);
+    context.addLocalAnnotation(NAME, validated);
     if (sb.length() > 0) {
       context.addError(false, sb.toString());
       return false;
     }
-
-    context.addAnnotation(NAME, validated);
-    context.addLocalAnnotation(NAME, validated);
     return true;
   }
 }

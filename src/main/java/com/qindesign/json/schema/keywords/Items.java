@@ -76,16 +76,14 @@ public class Items extends Keyword {
             sb.append("invalid items in array: ");
           }
           sb.append(i);
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
       }
-      if (sb.length() == 0) {
-        // TODO: Produce an annotation if items is empty?
-        if (0 < limit && limit < array.size()) {
-          context.addAnnotation(NAME, limit - 1);
-        } else {
-          context.addAnnotation(NAME, true);
-        }
+      // TODO: Produce an annotation if items is empty?
+      if (0 < limit && limit < array.size()) {
+        context.addAnnotation(NAME, limit - 1);
+      } else {
+        context.addAnnotation(NAME, true);
       }
     } else {
       int index = 0;
@@ -100,13 +98,11 @@ public class Items extends Keyword {
             sb.append("invalid items: ");
           }
           sb.append(index);
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
         index++;
       }
-      if (sb.length() == 0) {
-        context.addAnnotation(NAME, true);
-      }
+      context.addAnnotation(NAME, true);
     }
 
     if (sb.length() > 0) {

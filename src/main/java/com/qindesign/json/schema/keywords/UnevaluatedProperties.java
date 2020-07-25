@@ -107,18 +107,17 @@ public class UnevaluatedProperties extends Keyword {
             sb.append("invalid unevaluated properties: \"");
           }
           sb.append(Strings.jsonString(e.getKey())).append('\"');
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
         thisValidated.add(e.getKey());
       }
     }
 
+    context.addAnnotation(NAME, thisValidated);
     if (sb.length() > 0) {
       context.addError(false, sb.toString());
       return false;
     }
-
-    context.addAnnotation(NAME, thisValidated);
     return true;
   }
 }

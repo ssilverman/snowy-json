@@ -865,6 +865,9 @@ public final class ValidatorContext {
    * Gets the all the annotations attached to the current instance location for
    * the given name. If annotations are not being collected, then this returns
    * an empty map.
+   * <p>
+   * Annotations can optionally be checked for
+   * {@link Annotation#isValid() validity}.
    *
    * @param name the annotation name
    * @return a map keyed by schema location.
@@ -1108,7 +1111,15 @@ public final class ValidatorContext {
     this.annotations = annotations;
     this.errors = errors;
 
-    return apply(schema, null, null, instance, null);
+    boolean retval = apply(schema, null, null, instance, null);
+
+    // Clean up any empty annotations
+    annotations.forEach((key, value) -> {
+      value.entrySet().removeIf(e -> e.getValue().isEmpty());
+    });
+    annotations.entrySet().removeIf(e -> e.getValue().isEmpty());
+
+    return retval;
   }
 
   /**
@@ -1219,6 +1230,39 @@ public final class ValidatorContext {
       }
     }
 
+    // Remove all schema annotations if the schema failed
+    if (!result && annotations != null) {
+      // Note that we're also checking for equality in case the current
+      // failing keyword has set some annotations
+      Predicate<Map.Entry<JSONPath, Annotation>> pred =
+          e -> e.getKey().startsWith(keywordLocation);
+
+      if (!isCollectFailedAnnotations) {
+        annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+            .values()
+            .forEach(v -> v.entrySet().removeIf(pred));
+      } else {
+        annotations.getOrDefault(instanceLocation, Collections.emptyMap())
+            .values()
+            .forEach(m -> {
+              m.entrySet().stream()
+                  .filter(pred)
+                  .forEach(e -> e.getValue().setValid(false));
+            });
+      }
+    }
+
+    // Remove all failing results for this instance location and below
+    if (result && errors != null) {
+      errors.entrySet().stream()
+          .filter(e -> e.getKey().startsWith(instanceLocation))
+          .forEach(e -> {
+            e.getValue().values().stream()
+                .filter(a -> !((ValidationResult) a.value).result)
+                .forEach(a -> a.setValid(false));
+          });
+    }
+
     state = parentState;
     return result;
   }
@@ -1243,33 +1287,11 @@ public final class ValidatorContext {
     // Copy the keyword state in case it changes underfoot
     JSONPath keywordLoc = state.keywordLocation;
     URI absKeywordLoc = state.absKeywordLocation;
+    boolean isCollectSubAnnotations = state.isCollectSubAnnotations;
 
     if (k.apply(schema, instance, state.schemaObject, this)) {
       result = true;
     } else {
-      // Remove all subschema annotations that aren't errors
-      // Note that this is still necessary even with the
-      // setCollectSubAnnotations optimization because it either may not be
-      // used or not used early enough
-      if (annotations != null) {
-        // Note that we're also checking for equality in case the current
-        // failing keyword has set some annotations
-        Predicate<Map.Entry<JSONPath, Annotation>> pred =
-            e -> e.getKey().startsWith(state.keywordLocation);
-        if (!isCollectFailedAnnotations) {
-          annotations.getOrDefault(state.instanceLocation, Collections.emptyMap())
-              .values()
-              .forEach(v -> v.entrySet().removeIf(pred));
-        } else {
-          annotations.getOrDefault(state.instanceLocation, Collections.emptyMap())
-              .values()
-              .forEach(v -> v.entrySet().forEach(e -> {
-                if (pred.test(e)) {
-                  e.getValue().setValid(false);
-                }
-              }));
-        }
-      }
       msg += " didn't validate";
       result = false;
     }
@@ -1277,6 +1299,7 @@ public final class ValidatorContext {
     // Restore the keyword state that may have changed underfoot
     state.keywordLocation = keywordLoc;
     state.absKeywordLocation = absKeywordLoc;
+    state.isCollectSubAnnotations = isCollectSubAnnotations;
 
     if (!hasError()) {
       addError(result, msg);

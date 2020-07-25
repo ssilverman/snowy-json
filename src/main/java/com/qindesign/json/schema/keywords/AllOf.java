@@ -65,7 +65,7 @@ public class AllOf extends Keyword {
           sb.append("invalid subschemas: ");
         }
         sb.append(index);
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
       index++;
     }

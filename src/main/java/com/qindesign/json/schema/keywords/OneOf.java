@@ -66,7 +66,7 @@ public class OneOf extends Keyword {
           sb.append(", ");
         }
         sb.append(index);
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
       index++;
     }

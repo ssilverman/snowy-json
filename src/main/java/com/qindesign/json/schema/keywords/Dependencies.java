@@ -83,7 +83,7 @@ public class Dependencies extends Keyword {
             sbInvalid.append("invalid dependent properties: \"");
           }
           sbInvalid.append(Strings.jsonString(e.getKey())).append('\"');
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
       } else if (e.getValue().isJsonArray()) {
         if (!object.has(e.getKey())) {
@@ -113,7 +113,7 @@ public class Dependencies extends Keyword {
               sbNotFound.append("missing dependent properties: \"");
             }
             sbNotFound.append(Strings.jsonString(name.getAsString())).append('\"');
-            context.setCollectSubAnnotations(false);
+            // Don't mark the context as not collecting sub-annotations
           }
           index++;
         }

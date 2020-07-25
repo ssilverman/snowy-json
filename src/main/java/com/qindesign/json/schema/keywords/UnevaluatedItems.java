@@ -80,7 +80,7 @@ public class UnevaluatedItems extends Keyword {
     if (f.apply(context.annotations(AdditionalItems.NAME))) {
       return true;
     }
-    if (f.apply(context.annotations(UnevaluatedItems.NAME))) {
+    if (f.apply(context.annotations(NAME))) {
       return true;
     }
 
@@ -118,16 +118,15 @@ public class UnevaluatedItems extends Keyword {
           sb.append("invalid unevaluated items: ");
         }
         sb.append(i);
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
     }
 
+    context.addAnnotation(NAME, true);
     if (sb.length() > 0) {
       context.addError(false, sb.toString());
       return false;
     }
-
-    context.addAnnotation(NAME, true);
     return true;
   }
 }

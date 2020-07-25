@@ -100,7 +100,7 @@ public class DependentRequired extends Keyword {
             sb.append("missing dependent properties: \"");
           }
           sb.append(Strings.jsonString(name.getAsString())).append('\"');
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
         index++;
       }

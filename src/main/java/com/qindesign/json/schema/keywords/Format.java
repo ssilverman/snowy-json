@@ -252,13 +252,13 @@ public class Format extends Keyword {
       }
     }
 
+    context.addAnnotation(NAME, value.getAsString());
+
     if (Boolean.FALSE.equals(vocab) && !context.isOption(Option.FORMAT)) {
-      context.addAnnotation(NAME, value.getAsString());
       return true;
     }
 
     if (!JSON.isString(instance)) {
-      context.addAnnotation(NAME, value.getAsString());
       return true;
     }
 
@@ -398,7 +398,6 @@ public class Format extends Keyword {
         break;
     }
 
-    context.addAnnotation(NAME, value.getAsString());
     return true;
   }
 }

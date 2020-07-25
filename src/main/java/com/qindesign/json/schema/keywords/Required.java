@@ -75,7 +75,7 @@ public class Required extends Keyword {
           sb.append("required properties not found: \"");
         }
         sb.append(Strings.jsonString(e.getAsString())).append('\"');
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
       index++;
     }

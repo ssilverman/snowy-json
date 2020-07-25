@@ -74,7 +74,7 @@ public class UniqueItems extends Keyword {
           sb.append("non-unique items: ");
         }
         sb.append(index);
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
       index++;
     }

@@ -13,10 +13,17 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Changed
 * Annotation and error collection is now specified by passing `null` or
   non-`null` maps instead of the options.
+* Empty annotation elements are now removed before returning from
+  `ValidatorContext.apply`.
 
 ### Removed
 * The `COLLECT_ANNOTATIONS` and `COLLECT_ERRORS` options. Collection of these is
   now specified depending on whether a map is passed to the API to hold them.
+
+### Fixed
+* Annotations are now always collected in keywords that collect them instead of
+  being skipped if the keyword does not validate.
+* Errors and annotations are now properly pruned, but at the schema level.
 
 ## [0.12.0]
 

@@ -87,15 +87,10 @@ public class AdditionalProperties extends Keyword {
             sb.append("invalid additional properties: \"");
           }
           sb.append(Strings.jsonString(e.getKey())).append('\"');
-          context.setCollectSubAnnotations(false);
+          // Don't mark the context as not collecting sub-annotations
         }
         thisValidated.add(e.getKey());
       }
-    }
-
-    if (sb.length() > 0) {
-      context.addError(false, sb.toString());
-      return false;
     }
 
     // There's a good chance that no annotation should be collected if the
@@ -103,6 +98,10 @@ public class AdditionalProperties extends Keyword {
     // TODO: Verify this
     if (thisValidated.size() > 0) {
       context.addAnnotation(NAME, thisValidated);
+    }
+    if (sb.length() > 0) {
+      context.addError(false, sb.toString());
+      return false;
     }
     return true;
   }

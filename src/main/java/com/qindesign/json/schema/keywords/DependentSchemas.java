@@ -74,7 +74,7 @@ public class DependentSchemas extends Keyword {
           sb.append("invalid dependent properties: \"");
         }
         sb.append(Strings.jsonString(e.getKey())).append('\"');
-        context.setCollectSubAnnotations(false);
+        // Don't mark the context as not collecting sub-annotations
       }
     }
 
