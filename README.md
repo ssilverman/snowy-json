@@ -261,11 +261,15 @@ In all cases, `Annotation.isValid()` indicates whether the annotation is
 considered valid or auxiliary. When
 [failed annotations](#option-collect_annotations_for_failed) are collected,
 invalid annotations indicate an annotation that would otherwise exist if the
-associated schema had not failed. For errors, an invalid annotation means that
-the instance location is valid, but the associated schema application failed.
-For example, "oneOf" will pass validation if one subschema passes and all the
-other subschemas fail. All failing subschemas will indicate an error, but the
-annotation will be marked as not valid.
+associated schema had not failed.
+
+For errors, an invalid annotation means that the instance location is valid, but
+the associated schema application failed. For example, "oneOf" will pass
+validation if one subschema passes and all the other subschemas fail. All
+failing subschemas will indicate an error, but the annotation will be marked as
+not valid.
+
+This is useful to track coverage vs. a minimal set of useful errors.
 
 The locations are given as
 <a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
