@@ -271,8 +271,7 @@ not valid.
 
 This is useful to track coverage vs. a minimal set of useful errors.
 
-The locations are given as
-<a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
+The locations are given as [JSON Pointers](https://tools.ietf.org/html/rfc6901).
 
 The annotation types for specific keywords are as follows:
 * "additionalItems": `java.lang.Boolean`, always `true` if present, indicating
