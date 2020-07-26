@@ -185,6 +185,7 @@ public class Coverage {
     w.setIndent("    ");
     Streams.write(schemaRoot, w);
     w.flush();
+    System.out.println();
   }
 
   /**
