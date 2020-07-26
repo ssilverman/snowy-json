@@ -12,6 +12,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Added `URI.encodeFragment` for easy conversion from JSON Pointers to
   URI fragments.
 * Added `JSONPath.toURIFragmentID` to return the URI fragment identifier form.
+* First Maven Central Repository release.
 
 ### Changed
 * Annotation and error collection is now specified by passing `null` or
