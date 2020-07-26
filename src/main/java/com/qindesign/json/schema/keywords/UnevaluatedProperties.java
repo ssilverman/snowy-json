@@ -73,6 +73,9 @@ public class UnevaluatedProperties extends Keyword {
         return;
       }
       for (var e : a.entrySet()) {
+        if (!e.getValue().isValid()) {
+          continue;
+        }
         if (e.getKey().size() <= parentPath.size() || !e.getKey().startsWith(parentPath)) {
           continue;
         }
