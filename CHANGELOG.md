@@ -9,6 +9,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Fixed
 
 * Fixed error pruning for passing schemas to restrict by schema location.
+* Add a missing CONTENT option section to the README.
 
 ## [0.13.0]
 
