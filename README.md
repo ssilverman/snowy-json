@@ -76,7 +76,7 @@ started right away:
 
 1. Run the validator on an instance against a schema:
    ```bash
-   mvn exec:java@main -Dexec.args="schema.json instance.json"
+   mvn compile exec:java@main -Dexec.args="schema.json instance.json"
    ```
    The two files in this example are named `schema.json` for the schema and
    `instance.json` for the instance. The example assumes the files are in the
@@ -90,13 +90,13 @@ started right away:
    [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite).
 3. Run the linter on a schema:
    ```bash
-   mvn exec:java@linter -Dexec.args="schema.json"
+   mvn compile exec:java@linter -Dexec.args="schema.json"
    ```
    The schema file in this example is named `schema.json`. The example assumes
    the file is in the current working directory.
 4. Run the schema coverage checker after a validation:
    ```bash
-   mvn exec:java@coverage -Dexec.args="schema.json instance.json"
+   mvn compile exec:java@coverage -Dexec.args="schema.json instance.json"
    ```
    The two files in this example are named `schema.json` for the schema and
    `instance.json` for the instance. The example assumes the files are in the
