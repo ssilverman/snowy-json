@@ -405,7 +405,7 @@ public final class ValidatorContext {
     state.keywordParentLocation = null;
     state.absKeywordParentLocation = null;
     state.keywordLocation = JSONPath.absolute();
-    state.absKeywordLocation = baseURI;
+    state.absKeywordLocation = Optional.ofNullable(rootID.rootID).orElse(rootID.id);
     state.instanceLocation = JSONPath.absolute();
     state.isCollectAnnotations = true;
     state.isCollectSubAnnotations = true;

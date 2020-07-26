@@ -27,6 +27,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Annotations are now always collected in keywords that collect them instead of
   being skipped if the keyword does not validate.
 * Errors and annotations are now properly pruned, but at the schema level.
+* Fixed the starting "absoluteKeywordLocation" to be the root ID if it exists,
+  otherwise it remains the base URI.
 
 ## [0.12.0]
 
