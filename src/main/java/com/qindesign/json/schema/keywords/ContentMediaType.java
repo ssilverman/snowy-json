@@ -44,6 +44,7 @@ import java.util.regex.Matcher;
 public class ContentMediaType extends Keyword {
   public static final String NAME = "contentMediaType";
 
+  // https://www.rfc-editor.org/rfc/rfc2045.html
   private static final String TOKEN = "[!#$%&'*+-.0-9A-Z^_`a-z{|}~]+";
   private static final java.util.regex.Pattern CONTENT_TYPE =
       java.util.regex.Pattern.compile(
