@@ -1292,19 +1292,17 @@ public final class ValidatorContext {
     state.keywordLocation = resolvePointer(state.keywordParentLocation, k.name());
     state.absKeywordLocation = resolveAbsolute(state.absKeywordParentLocation, k.name());
 
-    boolean result;
-    String msg = k.name();
-
     // Copy the keyword state in case it changes underfoot
     JSONPath keywordLoc = state.keywordLocation;
     URI absKeywordLoc = state.absKeywordLocation;
     boolean isCollectSubAnnotations = state.isCollectSubAnnotations;
 
-    if (k.apply(schema, instance, state.schemaObject, this)) {
-      result = true;
-    } else {
-      msg += " didn't validate";
+    boolean result = true;
+    String msg = null;
+
+    if (!k.apply(schema, instance, state.schemaObject, this)) {
       result = false;
+      msg = "\"" + k.name() + "\" didn't validate";
     }
 
     // Restore the keyword state that may have changed underfoot
