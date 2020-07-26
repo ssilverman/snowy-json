@@ -67,6 +67,7 @@ This project has the following features:
 These additional features exist:
 
 1. A rudimentary linter that catches simple but common errors.
+2. A coverage tool.
 
 ## Quick start
 
@@ -105,8 +106,7 @@ started right away:
 
 This project uses Google's [Gson](https://github.com/google/gson) and
 [Guava](https://github.com/google/guava) libraries under the hood. Gson is used
-for the JSON parsing, and Guava is used to support things such as validation and
-class finding.
+for the JSON parsing, and Guava is used to support class finding.
 
 This means these things:
 1. The external API for this project uses Gson's JSON object model.
@@ -256,6 +256,16 @@ Annotations and errors are collected by optionally providing maps to
   &rarr; `Annotation`. The `Annotation` value is a `ValidationResult` object,
   and its name will be "error" when the result is `false` and "annotation" when
   the result is `true`.
+
+In all cases, `Annotation.isValid()` indicates whether the annotation is
+considered valid or auxiliary. When
+[failed annotations](#option-collect_annotations_for_failed) are collected,
+invalid annotations indicate an annotation that would otherwise exist if the
+associated schema had not failed. For errors, an invalid annotation means that
+the instance location is valid, but the associated schema application failed.
+For example, "oneOf" will pass validation if one subschema passes and all the
+other subschemas fail. All failing subschemas will indicate an error, but the
+annotation will be marked as not valid.
 
 The locations are given as
 <a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
@@ -459,6 +469,7 @@ There are plans to explore supporting more features, including:
    across calls to `Validator.validate`.
 4. Compilation into an internal representation that provides both speed and
    optimizations for non-dynamic validation paths.
+5. A better representation than maps for annotations and errors.
 
 ### Possible future plans
 
