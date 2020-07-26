@@ -1118,10 +1118,12 @@ public final class ValidatorContext {
     boolean retval = apply(schema, null, null, instance, null);
 
     // Clean up any empty annotations
-    annotations.forEach((key, value) -> {
-      value.entrySet().removeIf(e -> e.getValue().isEmpty());
-    });
-    annotations.entrySet().removeIf(e -> e.getValue().isEmpty());
+    if (annotations != null) {
+      annotations.forEach((key, value) -> {
+        value.entrySet().removeIf(e -> e.getValue().isEmpty());
+      });
+      annotations.entrySet().removeIf(e -> e.getValue().isEmpty());
+    }
 
     return retval;
   }
