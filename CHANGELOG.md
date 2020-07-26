@@ -11,6 +11,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   validation for the same schema.
 * Added `URI.encodeFragment` for easy conversion from JSON Pointers to
   URI fragments.
+* Added `JSONPath.toURIFragmentID` to return the URI fragment identifier form.
 
 ### Changed
 * Annotation and error collection is now specified by passing `null` or

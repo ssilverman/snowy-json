@@ -21,6 +21,7 @@
  */
 package com.qindesign.json.schema;
 
+import com.qindesign.net.URI;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -333,6 +334,17 @@ public final class JSONPath extends AbstractList<String>
     }
     np.list.addAll(p.list);
     return np.normalize();
+  }
+
+  /**
+   * Returns this path as a URI fragment identifier. Note that if the path is
+   * not absolute, then it is not a valid JSON pointer representation. This
+   * calls {@link URI#encodeFragment(String)} and then prepends a "#".
+   *
+   * @return this path as a URI fragment identifier.
+   */
+  public String toURIFragmentID() {
+    return "#" + URI.encodeFragment(toString());
   }
 
   /**
