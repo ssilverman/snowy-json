@@ -1116,6 +1116,11 @@ public final class ValidatorContext {
     this.errors = errors;
 
     boolean retval = apply(schema, null, null, instance, null);
+    if (retval) {
+      addError(true, null);
+    } else {
+      addError(false, "schema didn't validate");
+    }
 
     // Clean up any empty annotations
     if (annotations != null) {

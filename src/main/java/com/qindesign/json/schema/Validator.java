@@ -459,13 +459,7 @@ public final class Validator {
   {
     Objects.requireNonNull(instance, "instance");
 
-    boolean retval = context.apply(instance, annotations, errors);
-    if (retval) {
-      context.addError(true, null);
-    } else {
-      context.addError(false, "schema didn't validate");
-    }
-    return retval;
+    return context.apply(instance, annotations, errors);
   }
 
   /**
