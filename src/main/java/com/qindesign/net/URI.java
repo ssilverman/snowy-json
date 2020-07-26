@@ -140,6 +140,18 @@ public class URI implements Comparable<URI> {
   }
 
   /**
+   * Percent-encodes a fragment. This makes it easy to convert things like JSON
+   * Pointers to URI fragments. Note that the returned string will not start
+   * with a "#".
+   *
+   * @param fragment the fragment to encode
+   * @return the percent-encoded fragment.
+   */
+  public static String encodeFragment(String fragment) {
+    return pctEncode(fragment, 0, fragment.length(), URIParser.QUERY_OR_FRAGMENT);
+  }
+
+  /**
    * Converts a hex character to its value.
    *
    * @param c the hex character

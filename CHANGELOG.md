@@ -9,6 +9,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Added
 * Added a `Validator` constructor for storing information across schema
   validation for the same schema.
+* Added `URI.encodeFragment` for easy conversion from JSON Pointers to
+  URI fragments.
 
 ### Changed
 * Annotation and error collection is now specified by passing `null` or
