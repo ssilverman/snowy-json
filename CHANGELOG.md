@@ -4,6 +4,12 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.14.0]
+
+### Fixed
+
+* Fixed error pruning for passing schemas to restrict by schema location.
+
 ## [0.13.0]
 
 ### Added

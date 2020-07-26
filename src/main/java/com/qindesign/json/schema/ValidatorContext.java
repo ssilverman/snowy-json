@@ -1269,7 +1269,8 @@ public final class ValidatorContext {
           .filter(e -> e.getKey().startsWith(instanceLocation))
           .forEach(e -> {
             e.getValue().values().stream()
-                .filter(a -> !((ValidationResult) a.value).result)
+                .filter(a -> !((ValidationResult) a.value).result &&
+                             a.keywordLocation.startsWith(keywordLocation))
                 .forEach(a -> a.setValid(false));
           });
     }
