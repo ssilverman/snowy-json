@@ -271,7 +271,8 @@ not valid.
 
 This is useful to track coverage vs. a minimal set of useful errors.
 
-The locations are given as [JSON Pointers](https://tools.ietf.org/html/rfc6901).
+The locations are given as
+[JSON Pointers](https://www.rfc-editor.org/rfc/rfc6901.html).
 
 The annotation types for specific keywords are as follows:
 * "additionalItems": `java.lang.Boolean`, always `true` if present, indicating
@@ -488,9 +489,9 @@ These are plans that may or may not be explored:
 4. [ECMA 262](https://www.ecma-international.org/publications/standards/Ecma-262.htm)
 5. [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite)
 6. [JSON Schema Draft Sources](https://github.com/json-schema-org/json-schema-spec)
-7. [JSON Pointer](https://tools.ietf.org/html/rfc6901)
-8. [URI Syntax](https://tools.ietf.org/html/rfc3986)
-9. [IDN Hostnames](https://tools.ietf.org/html/rfc5890)
+7. [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901.html)
+8. [URI Syntax](https://www.rfc-editor.org/rfc/rfc3986.html)
+9. [IDN Hostnames](https://www.rfc-editor.org/rfc/rfc5890.html)
 
 ## An ending thought
 

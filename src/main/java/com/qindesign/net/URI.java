@@ -87,7 +87,7 @@ import java.util.Optional;
  * </ul>
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc3986.html">RFC 3986: Uniform Resource Identifier (URI): Generic Syntax</a>
- * @see <a href="https://www.rfc-editor.org/rfc/rfc3629">RFC 3629: UTF-8, a transformation format of ISO 10646</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc3629.html">RFC 3629: UTF-8, a transformation format of ISO 10646</a>
  */
 public class URI implements Comparable<URI> {
   public static void main(String[] args) throws URISyntaxException {
@@ -563,7 +563,7 @@ public class URI implements Comparable<URI> {
    * doesn't start with a "/".
    *
    * @return whether the URI is "opaque", per RFC 2396.
-   * @see <a href="https://www.rfc-editor.org/rfc/rfc2396#section-3">3. URI Syntactic Components</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc2396.html#section-3">3. URI Syntactic Components</a>
    * @deprecated
    */
   @Deprecated

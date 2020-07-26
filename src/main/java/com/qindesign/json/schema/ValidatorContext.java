@@ -704,9 +704,9 @@ public final class ValidatorContext {
         } else {
           // This case will happen when a Java URI object has a non-absolute
           // path. This may result when resolving by the algorithm in
-          // [RFC 2396: 5.2. Resolving Relative References to Absolute Form](https://tools.ietf.org/html/rfc2396#section-5.2).
+          // [RFC 2396: 5.2. Resolving Relative References to Absolute Form](https://www.rfc-editor.org/rfc/rfc2396.html#section-5.2).
           // The algorithm in
-          // [RFC 3986: 5.2 Relative Resolution](https://tools.ietf.org/html/rfc3986#section-5.2)
+          // [RFC 3986: 5.2 Relative Resolution](https://www.rfc-editor.org/rfc/rfc3986.html#section-5.2)
           // correctly ensures there's a leading slash. The solution is to
           // define our own resolution function that accounts for this.
           // This has been done with our own URI implementation.

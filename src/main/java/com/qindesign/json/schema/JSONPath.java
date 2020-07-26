@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
  * <p>
  * This object is immutable.
  *
- * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc6901.html">JSON Pointer</a>
  */
 public final class JSONPath extends AbstractList<String>
     implements Iterable<String>, Comparable<JSONPath> {
@@ -102,7 +102,7 @@ public final class JSONPath extends AbstractList<String>
    * All the path elements will be converted from a JSON Pointer token.
    *
    * @param s the string to parse
-   * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc6901.html">JSON Pointer</a>
    * @return the new path.
    */
   public static JSONPath fromJSONPointer(String s) {
@@ -414,7 +414,7 @@ public final class JSONPath extends AbstractList<String>
    * Each element will be converted to a valid JSON Pointer token.
    *
    * @return a string representation of this path.
-   * @see <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc6901.html">JSON Pointer</a>
    */
   @Override
   public String toString() {

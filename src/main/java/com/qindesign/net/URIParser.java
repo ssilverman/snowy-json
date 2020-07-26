@@ -338,8 +338,8 @@ public final class URIParser {
    * @param end the end index, exclusive
    * @param failMsg the failure message, for any failures
    * @throws URISyntaxException if there was a parsing error.
-   * @see <a href="https://www.rfc-editor.org/rfc/rfc5952">RFC 5952: A Recommendation for IPv6 Address Text Representation</a>
-   * @see <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.2.2">RFC 3986: Section 3.2.2.: Host</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5952.html">RFC 5952: A Recommendation for IPv6 Address Text Representation</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3986.html#section-3.2.2">RFC 3986: Section 3.2.2.: Host</a>
    */
   public static void parseIPv6(String s, int start, int end, String failMsg) throws URISyntaxException {
     int partIndex = 0;

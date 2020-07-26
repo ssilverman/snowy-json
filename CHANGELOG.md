@@ -18,6 +18,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
   non-`null` maps instead of the options.
 * Empty annotation elements are now removed before returning from
   `ValidatorContext.apply`.
+* Changed all "https://tools.ietf.org/html/rfcXXXX" URLs to
+  "https://www.rfc-editor.org/rfc/rfcXXXX.html" because that site is more
+  responsive. Also ensured the ".html" suffix is there consistently.
 
 ### Removed
 * The `COLLECT_ANNOTATIONS` and `COLLECT_ERRORS` options. Collection of these is

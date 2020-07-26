@@ -43,8 +43,8 @@ import java.util.regex.PatternSyntaxException;
 public class Format extends Keyword {
   public static final String NAME = "format";
 
-  // Data/time: https://tools.ietf.org/html/rfc3339#section-5.6
-  // Duration: https://tools.ietf.org/html/rfc3339#appendix-A
+  // Data/time: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
+  // Duration: https://www.rfc-editor.org/rfc/rfc3339.html#appendix-A
 
   // https://mattallan.me/posts/rfc3339-date-time-validation/
   // https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html
@@ -98,7 +98,7 @@ public class Format extends Keyword {
       '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
   };
 
-  // See: https://www.rfc-editor.org/rfc/rfc4122
+  // See: https://www.rfc-editor.org/rfc/rfc4122.html
   private static final java.util.regex.Pattern UUID =
       java.util.regex.Pattern
           .compile("^\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}$");
@@ -159,13 +159,13 @@ public class Format extends Keyword {
    *
    * @param iri the IRI
    * @return the converted value.
-   * @see <a href="https://tools.ietf.org/html/rfc3987#section-3.1">RFC 3987: 3.1. Mapping of IRIs to URIs</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3987.html#section-3.1">RFC 3987: 3.1. Mapping of IRIs to URIs</a>
    */
   private static String iriToURI(String iri) {
     StringBuilder sb = new StringBuilder();
     iri.codePoints().forEach(c -> {
       // Only encode ucschar and iprivate characters
-      // See: https://tools.ietf.org/html/rfc3629
+      // See: https://www.rfc-editor.org/rfc/rfc3629.html
       if (c < 0x80) {
         sb.append((char) c);
       } else if (c < 0x800) {
@@ -202,7 +202,7 @@ public class Format extends Keyword {
    *
    * @param s the string to check
    * @return whether the string contains a valid URI-Template.
-   * @see <a href="https://tools.ietf.org/html/rfc6570#section-2">RFC 6570: 2. Syntax</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc6570.html#section-2">RFC 6570: 2. Syntax</a>
    */
   private static boolean checkURITemplate(String s) {
     int exprIndex = -1;

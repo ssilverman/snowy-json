@@ -29,14 +29,14 @@ import java.util.BitSet;
 /**
  * Parses both regular and IDN hostnames.
  *
- * @see <a href="https://tools.ietf.org/html/rfc1123#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
- * @see <a href="https://tools.ietf.org/html/rfc1035#section-2.3.1">RFC 1035: 2.3.1. Preferred name syntax</a>
- * @see <a href="https://tools.ietf.org/html/rfc1912#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
- * @see <a href="https://tools.ietf.org/html/rfc3696#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
- * @see <a href="https://tools.ietf.org/html/rfc5890">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
- * @see <a href="https://tools.ietf.org/html/rfc5891">RFC 5891: Internationalized Domain Names in Applications (IDNA): Protocol</a>
- * @see <a href="https://tools.ietf.org/html/rfc5892">RFC 5892: The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)</a>
- * @see <a href="https://tools.ietf.org/html/rfc5893">RFC 5893: Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc1123.html#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-2.3.1">RFC 1035: 2.3.1. Preferred name syntax</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc1912.html#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc3696.html#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc5890.html">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc5891.html">RFC 5891: Internationalized Domain Names in Applications (IDNA): Protocol</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc5892.html">RFC 5892: The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc5893.html">RFC 5893: Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)</a>
  */
 public final class Hostname {
   /**
@@ -65,10 +65,10 @@ public final class Hostname {
    * @param s the string to parse
    * @return whether the hostname is valid.
    * @see #parseLabel(String, int, int)
-   * @see <a href="https://tools.ietf.org/html/rfc1123#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
-   * @see <a href="https://tools.ietf.org/html/rfc1035#section-2.3.1">RFC 1035: 2.3.1. Preferred name syntax</a>
-   * @see <a href="https://tools.ietf.org/html/rfc1912#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
-   * @see <a href="https://tools.ietf.org/html/rfc3696#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1123.html#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-2.3.1">RFC 1035: 2.3.1. Preferred name syntax</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1912.html#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3696.html#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
    */
   public static boolean parseHostname(String s) {
     return parseHostname(s, false);
@@ -81,7 +81,7 @@ public final class Hostname {
    * @param s the string to parse
    * @return whether the IDN hostname is valid.
    * @see #parseIDNLabel(String, int, int)
-   * @see <a href="https://tools.ietf.org/html/rfc5890">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5890.html">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
    */
   public static boolean parseIDNHostname(String s) {
     return parseHostname(s, true);
@@ -92,11 +92,11 @@ public final class Hostname {
    *
    * @param s the string to parse
    * @return whether the hostname is valid.
-   * @see <a href="https://tools.ietf.org/html/rfc1123#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
-   * @see <a href="https://tools.ietf.org/html/rfc1035#section-2.3.1>RFC 1035: 2.3.1. Preferred name syntax</a>
-   * @see <a href="https://tools.ietf.org/html/rfc1912#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
-   * @see <a href="https://tools.ietf.org/html/rfc3696#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
-   * @see <a href="https://tools.ietf.org/html/rfc5890">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1123.html#section-2">RFC 1123: 2.1 Host Names and Numbers</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1035.html#section-2.3.1>RFC 1035: 2.3.1. Preferred name syntax</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1912.html#section-2.1">RFC 1912: 2.1 Inconsistent, Missing, or Bad Data</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3696.html#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5890.html">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
    */
   private static boolean parseHostname(String s, boolean idn) {
     int start = 0;
@@ -176,8 +176,8 @@ public final class Hostname {
    * @param start the start index, inclusive
    * @param end the end index, exclusive
    * @return whether the string is a valid label.
-   * @see <a href="https://tools.ietf.org/html/rfc1123#section-2">RFC: 1123: 2.1 Host Names and Numbers</a>
-   * @see <a href="https://tools.ietf.org/html/rfc3696#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc1123.html#section-2">RFC: 1123: 2.1 Host Names and Numbers</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3696.html#section-2">RFC 3696: 2. Restrictions on domain (DNS) names</a>
    */
   public static boolean parseLabel(String s, int start, int end) {
     // ^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$
@@ -198,12 +198,12 @@ public final class Hostname {
    * @param start the start index, inclusive
    * @param end the end index, exclusive
    * @return whether the string is a valid IDN label.
-   * @see <a href="https://tools.ietf.org/html/rfc5890">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
-   * @see <a href="https://tools.ietf.org/html/rfc5891">RFC 5891: Internationalized Domain Names in Applications (IDNA): Protocol</a>
-   * @see <a href="https://tools.ietf.org/html/rfc5892">RFC 5892: The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5890.html">RFC 5890: Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5891.html">RFC 5891: Internationalized Domain Names in Applications (IDNA): Protocol</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5892.html">RFC 5892: The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)</a>
    */
   public static boolean parseIDNLabel(String s, int start, int end) {
-    // [4.2.3. Label Validation](https://tools.ietf.org/html/rfc5891#section-4.2.3)
+    // [4.2.3. Label Validation](https://www.rfc-editor.org/rfc/rfc5891.html#section-4.2.3)
 
     // A-labels
     // 4.2.3.1. Hyphen Restrictions
@@ -515,7 +515,7 @@ public final class Hostname {
    * @param start the start index, inclusive
    * @param end the end index, exclusive
    * @return whether the string meets the criteria.
-   * @see <a href="https://tools.ietf.org/html/rfc5893">RFC 5893: Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)</a>
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc5893.html">RFC 5893: Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)</a>
    */
   private static boolean checkBidi(String s, int start, int end) {
     // First check that the string contains any characters from an RTL script

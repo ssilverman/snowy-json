@@ -429,7 +429,8 @@ public final class Validator {
    * <p>
    * The annotations and errors are maps from instance locations to an
    * associated {@link Annotation}, with some intervening values. Locations are
-   * given as <a href="https://tools.ietf.org/html/rfc6901">JSON Pointers</a>.
+   * given as
+   * <a href="https://www.rfc-editor.org/rfc/rfc6901.html">JSON Pointers</a>.
    * <ul>
    * <li>The annotations follow this structure: instance location &rarr; name
    *     &rarr; schema location &rarr; {@link Annotation}. The
