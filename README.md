@@ -29,6 +29,7 @@ See: [JSON Schema](https://json-schema.org)
       1. [Annotations and errors](#annotations-and-errors)
 8. [Building and running](#building-and-running)
    1. [Program execution with Maven](#program-execution-with-maven)
+   2. [Using Snow in your own projects](#using-snow-in-your-own-projects)
 9. [The linter](#the-linter)
    1. [Doing your own linting](#doing-your-own-linting)
       1. [Linting by traversing the tree](#linting-by-traversing-the-tree)
@@ -373,6 +374,19 @@ main class is `my.Main` and it takes some "program arguments":
 
 ```bash
 mvn exec:java -Dexec.mainClass="my.Main" -Dexec.args="program arguments"
+```
+
+### Using Snow in your own projects
+
+Snow is available from the Maven Central Repository. To include it in your own
+programs, add the following dependency:
+
+```xml
+<dependency>
+  <groupId>com.qindesign</groupId>
+  <artifactId>snowy-json</artifactId>
+  <version>0.14.0</version>
+</dependency>
 ```
 
 ## The linter
