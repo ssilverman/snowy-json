@@ -299,16 +299,10 @@ public final class ValidatorContext {
   private final Options options;
   private final boolean isCollectFailedAnnotations;
 
-  // Pattern cache
-  private static final int MAX_PATTERN_CACHE_SIZE = Integer.MAX_VALUE;
-
   /**
    * The pattern cache.
-   *
-   * Throws {@link PatternSyntaxException} on access for a bad pattern.
    */
-  private final LRUCache<String, java.util.regex.Pattern> patternCache =
-      new LRUCache<>(MAX_PATTERN_CACHE_SIZE, java.util.regex.Pattern::compile);
+  private final Map<String, java.util.regex.Pattern> patternCache = new HashMap<>();
 
   /**
    * Creates a new schema context. Given is an absolute URI from where the
@@ -477,13 +471,14 @@ public final class ValidatorContext {
   }
 
   /**
-   * Returns the pattern cache. The cache may throw a
-   * {@link PatternSyntaxException} on access for a bad pattern.
+   * Returns the cached pattern for the given regex. This will create one via
+   * {@link java.util.regex.Pattern::compile} if it does not exist in the cache.
    *
-   * @return the pattern cache.
+   * @return the cached pattern.
+   * @throws PatternSyntaxException for a bad pattern.
    */
-  public LRUCache<String, java.util.regex.Pattern> patternCache() {
-    return patternCache;
+  public java.util.regex.Pattern pattern(String s) {
+    return patternCache.computeIfAbsent(s, java.util.regex.Pattern::compile);
   }
 
   /**
