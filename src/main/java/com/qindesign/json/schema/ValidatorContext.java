@@ -459,7 +459,7 @@ public final class ValidatorContext {
    * Returns the cached pattern for the given regex. This will create one via
    * {@link java.util.regex.Pattern#compile(String)} if it does not exist in the cache.
    *
-   * @return the cached pattern.
+   * @return the associated cached pattern.
    * @throws PatternSyntaxException for a bad pattern.
    */
   public java.util.regex.Pattern pattern(String s) {
