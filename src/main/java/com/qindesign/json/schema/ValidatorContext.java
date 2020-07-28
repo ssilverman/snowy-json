@@ -37,7 +37,6 @@ import com.qindesign.json.schema.keywords.MaxContains;
 import com.qindesign.json.schema.keywords.MinContains;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
-import com.qindesign.json.schema.util.LRUCache;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.IOException;
@@ -268,24 +267,10 @@ public final class ValidatorContext {
 //    throw (E) e;
 //  }
 
-  // URL cache
-  private static final int MAX_URL_CACHE_SIZE = 10;
-
   /**
    * The URL cache.
-   *
-   * On access, throws {@link UncheckedIOException} if the URL could not be
-   * read, or {@link JsonParseException} if there was a JSON parsing error.
    */
-  private final LRUCache<URL, JsonElement> urlCache = new LRUCache<>(
-      MAX_URL_CACHE_SIZE,
-      url -> {
-        try (InputStream in = url.openStream()) {
-          return JSON.parse(in);
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
-      });
+  private final Map<URL, JsonElement> urlCache = new HashMap<>();
 
   /**
    * Tracks schemas that have either been validated or in the process of being
@@ -670,7 +655,15 @@ public final class ValidatorContext {
       URL url = knownURLs.get(uri);
       if (url != null) {
         try {
-          JsonElement data = urlCache.access(new URL(url, sb.toString()));
+          JsonElement data = urlCache.computeIfAbsent(
+              new URL(url, sb.toString()),
+              url2 -> {
+                try (InputStream in = url2.openStream()) {
+                  return JSON.parse(in);
+                } catch (IOException ex) {
+                  throw new UncheckedIOException(ex);
+                }
+              });
           if (data != null) {
             state.schemaObject = null;
             state.baseURI = uri;
