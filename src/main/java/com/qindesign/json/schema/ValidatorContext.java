@@ -272,7 +272,7 @@ public final class ValidatorContext {
   private static final int MAX_URL_CACHE_SIZE = 10;
 
   /**
-   * The pattern cache.
+   * The URL cache.
    *
    * On access, throws {@link UncheckedIOException} if the URL could not be
    * read, or {@link JsonParseException} if there was a JSON parsing error.
