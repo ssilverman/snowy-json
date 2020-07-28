@@ -6,6 +6,12 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ## [0.14.0]
 
+### Changed
+
+* Changed the URL and Pattern caches to allow for a non-restricted size. They
+  both remain associated with a specific `ValidatorContext` instance and are not
+  shared across instances.
+
 ### Fixed
 
 * Fixed error pruning for passing schemas to restrict by schema location.
