@@ -7,13 +7,11 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ## [0.14.0]
 
 ### Changed
-
 * Changed the URL and Pattern caches to allow for a non-restricted size. They
   both remain associated with a specific `ValidatorContext` instance and are not
   shared across instances.
 
 ### Fixed
-
 * Fixed error pruning for passing schemas to restrict by schema location.
 * Add a missing CONTENT option section to the README.
 
@@ -162,7 +160,6 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * New "The linter" section in the README.
 
 ### Fixed
-
 * There's now correct use of "an" vs. "a" in the error message in `Type`.
 * Annotation prefix checking now considers the final "/" and doesn't just match
   the prefix.
