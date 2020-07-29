@@ -13,6 +13,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Changed the URL and Pattern caches to allow for a non-restricted size. They
   both remain associated with a specific `ValidatorContext` instance and are not
   shared across instances.
+* Improved Gson's misleading syntax error messages. They refer to setting
+  lenient mode to true, even if that's not what is wanted and if setting it to
+  true wouldn't help anyway.
 
 ### Fixed
 * Fixed error pruning for passing schemas to restrict by schema location.

@@ -132,19 +132,40 @@ public final class JSON {
    * @see JsonParser#parseReader(JsonReader)
    */
   public static JsonElement parse(Reader r) {
+    JsonReader jsonReader = new JsonReader(r);
+
+    // Wrap the following code block so we can capture a
+    // JsonSyntaxException(MalformedJsonException) and its misleading message
     try {
-      JsonReader jsonReader = new JsonReader(r);
-      JsonElement e = Streams.parse(jsonReader);
-      if (jsonReader.peek() != JsonToken.END_DOCUMENT) {
-        throw new JsonSyntaxException("Expected only one value");
+      JsonElement elem = Streams.parse(jsonReader);
+      try {
+        if (jsonReader.peek() != JsonToken.END_DOCUMENT) {
+          throw new JsonSyntaxException("Expected only one value");
+        }
+        return elem;
+      } catch (MalformedJsonException ex) {
+        throw new JsonSyntaxException(ex);
+      } catch (IOException ex) {
+        throw new JsonIOException(ex);
+      } catch (NumberFormatException ex) {
+        throw new JsonSyntaxException(ex);
       }
-      return e;
-    } catch (MalformedJsonException e) {
-      throw new JsonSyntaxException(e);
-    } catch (IOException e) {
-      throw new JsonIOException(e);
-    } catch (NumberFormatException e) {
-      throw new JsonSyntaxException(e);
+    } catch (JsonSyntaxException ex) {
+      // I apologize to everyone reading this code. Gson has a misleading error
+      // message otherwise. There doesn't seem to be a clean way out of this
+      // "lenient" mire. First, they force lenient mode so I have to call
+      // Streams.parse myself, and then this nonsense. The worst that happens
+      // here is the exception gets rethrown. Ideally, we shouldn't include the
+      // cause because that contains the misleading message, but let's include
+      // it anyway because it contains useful stack information.
+      if (ex.getCause() instanceof MalformedJsonException) {
+        String msg = ex.getCause().getMessage();
+        final String prefix = "Use JsonReader.setLenient(true) to accept malformed JSON ";
+        if (msg != null && msg.startsWith(prefix)) {
+          ex = new JsonSyntaxException(msg.substring(prefix.length()), ex.getCause());
+        }
+      }
+      throw ex;
     }
   }
 
