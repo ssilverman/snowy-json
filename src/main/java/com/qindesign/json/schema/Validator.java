@@ -206,13 +206,13 @@ public final class Validator {
       autoResolved = new HashMap<>();
     }
     Map<URI, Boolean> vocabularies = new HashMap<>();
-    var ids = prepareSchema(baseURI, schema, options, autoResolved, vocabularies);
+    Map<URI, Id> ids = prepareSchema(baseURI, schema, options, autoResolved, vocabularies);
 
     // Prepare all the known schemas
     if (knownIDs != null) {
       for (var e : knownIDs.entrySet()) {
         URI uri = e.getKey().normalize();
-        var ids2 = prepareSchema(uri, e.getValue(), options, autoResolved, null);
+        Map<URI, Id> ids2 = prepareSchema(uri, e.getValue(), options, autoResolved, null);
         ids2.forEach(ids::putIfAbsent);
       }
     }
@@ -250,7 +250,7 @@ public final class Validator {
 
         try (InputStream in = url.openStream()) {
           try {
-            var ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved, null);
+            Map<URI, Id> ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved, null);
             ids2.forEach((uri1, id) -> {
               if (ids.putIfAbsent(uri1, id) != null) {
                 logger.warning("Duplicate URI: " + uri1 + ": from " + id.rootURI);

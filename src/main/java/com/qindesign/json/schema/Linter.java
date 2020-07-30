@@ -122,7 +122,7 @@ public final class Linter {
       schema = JSON.parse(new File(args[0]));
     }
     Linter linter = new Linter();
-    var issues = linter.check(schema);
+    Map<JSONPath, List<String>> issues = linter.check(schema);
     issues.forEach((path, list) -> list.forEach(msg -> System.out.println(path + ": " + msg)));
   }
 

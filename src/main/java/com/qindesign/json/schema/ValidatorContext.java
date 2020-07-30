@@ -184,7 +184,7 @@ public final class ValidatorContext {
 
     // Fun with streams
     // Map each keyword to its "class number", so we can sort easily
-    var classes = IntStream.range(0, KEYWORD_SETS.size())
+    Map<String, Integer> classes = IntStream.range(0, KEYWORD_SETS.size())
         .boxed()
         .flatMap(i -> KEYWORD_SETS.get(i).stream().map(name -> Map.entry(name, i)))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -1058,7 +1058,7 @@ public final class ValidatorContext {
         return null;
       }
 
-      var id = idsByElem.computeIfAbsent(e, elem -> Collections.emptySet()).stream()
+      Optional<Id> id = idsByElem.computeIfAbsent(e, elem -> Collections.emptySet()).stream()
           .filter(x -> x.id.rawFragment() == null)
           .findFirst();
       if (id.isPresent()) {
@@ -1162,7 +1162,7 @@ public final class ValidatorContext {
     // See if the absolute keyword location and base URI needs to change
     // Note: The base URI will change when CoreId is executed
     if (schema.isJsonObject()) {
-      var id = idsByElem.computeIfAbsent(schema, elem -> Collections.emptySet()).stream()
+      Optional<Id> id = idsByElem.computeIfAbsent(schema, elem -> Collections.emptySet()).stream()
           .filter(x -> x.id.rawFragment() == null)
           .findFirst();
       if (id.isPresent()) {
@@ -1203,7 +1203,7 @@ public final class ValidatorContext {
 
     // Sort the names in the schema by their required evaluation order
     // Also, more fun with streams
-    var ordered = schemaObject.entrySet().stream()
+    List<Map.Entry<String, JsonElement>> ordered = schemaObject.entrySet().stream()
         .filter(e -> keywords.containsKey(e.getKey()))
         .sorted(Comparator.comparing(e -> keywordClasses.get(e.getKey())))
         .collect(Collectors.toList());

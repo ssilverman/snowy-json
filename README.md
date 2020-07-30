@@ -451,7 +451,7 @@ linter.addRule(context -> {
     context.addIssue("anyOf detected");
   }
 });
-var issues = linter.check();
+Map<JSONPath, List<String>> issues = linter.check();
 // ...print the issues...
 ```
 
