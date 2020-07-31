@@ -106,6 +106,10 @@ public class CoreRef extends Keyword {
       return false;
     }
 
-    return context.apply(e, null, schemaURI, instance, null);
+    if (!context.apply(e, null, schemaURI, instance, null)) {
+      context.addError(false, schemaURI.toString());
+      return false;
+    }
+    return true;
   }
 }

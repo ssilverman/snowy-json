@@ -16,6 +16,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Improved Gson's misleading syntax error messages. They refer to setting
   lenient mode to true, even if that's not what is wanted and if setting it to
   true wouldn't help anyway.
+* Changed the $ref and $recursiveRef error message for target schema failures to
+  the resolved URI of the target schema.
 
 ### Fixed
 * Fixed error pruning for passing schemas to restrict by schema location.

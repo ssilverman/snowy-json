@@ -111,6 +111,10 @@ public class CoreRecursiveRef extends Keyword {
       }
     }
 
-    return context.apply(e, null, uri, instance, null);
+    if (!context.apply(e, null, uri, instance, null)) {
+      context.addError(false, resolved.toString());
+      return false;
+    }
+    return true;
   }
 }
