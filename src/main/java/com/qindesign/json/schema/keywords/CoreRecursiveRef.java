@@ -76,6 +76,7 @@ public class CoreRecursiveRef extends Keyword {
 
     // First, look for a $recursiveAnchor
     // TODO: Possibly fix up the logic to be more consistent with CoreRef
+    // We can strip the fragment because we know it's empty
     URI resolved = URIs.stripFragment(context.baseURI().resolve(uri));
     JsonElement e = context.findAndSetRoot(resolved);
     if (e == null) {
@@ -111,7 +112,7 @@ public class CoreRecursiveRef extends Keyword {
       }
     }
 
-    if (!context.apply(e, null, uri, instance, null)) {
+    if (!context.apply(e, null, resolved, instance, null)) {
       context.addError(false, resolved.toString());
       return false;
     }

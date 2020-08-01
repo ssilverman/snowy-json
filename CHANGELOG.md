@@ -22,6 +22,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Fixed
 * Fixed error pruning for passing schemas to restrict by schema location.
 * Add a missing CONTENT option section to the README.
+* Fixed `CoreRecursiveRef` to use the correct absolute location when applying
+  the schema.
 
 ## [0.13.0]
 
