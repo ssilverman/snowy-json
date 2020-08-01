@@ -8,6 +8,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Added
 * First Maven Central Repository release.
+* Added a `JSON.getStringMember` convenience method that can get the value of a
+  string-valued object member. It can easily access the title, for example.
 
 ### Changed
 * Changed the URL and Pattern caches to allow for a non-restricted size. They

@@ -200,6 +200,25 @@ public final class JSON {
   }
 
   /**
+   * Convenience method to get a string-valued member of a JSON object. This
+   * will return {@code null} if the element is not an object or if there is no
+   * string-valued member having the given name.
+   *
+   * @param e the element from which to retrieve the member
+   * @param name the member name
+   * @return the member value, or {@code null} if there is no such member.
+   */
+  public static String getStringMember(JsonElement e, String name) {
+    if (e.isJsonObject()) {
+      JsonElement titleElem = e.getAsJsonObject().get(name);
+      if (titleElem != null && isString(titleElem)) {
+        return titleElem.getAsString();
+      }
+    }
+    return null;
+  }
+
+  /**
    * Visitor for schema tree traversal.
    */
   public interface SchemaVisitor {
