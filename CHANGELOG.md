@@ -20,6 +20,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   true wouldn't help anyway.
 * Changed the $ref and $recursiveRef error message for target schema failures to
   the resolved URI of the target schema.
+* Added sorting to both basic and annotation output in `Main`. The output is
+  sorted by instance location and then by schema location.
 
 ### Fixed
 * Fixed error pruning for passing schemas to restrict by schema location.

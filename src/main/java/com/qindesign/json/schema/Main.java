@@ -39,6 +39,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -175,25 +176,27 @@ public class Main {
     root.add("valid", new JsonPrimitive(result));
     JsonArray errorArr = new JsonArray();
     root.add("errors", errorArr);
-    errors.forEach((instancePath, map) -> {
-      map.forEach((schemaPath, a) -> {
-        JsonObject error = new JsonObject();
-        error.addProperty("keywordLocation", a.keywordLocation.toString());
-        error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
-        error.addProperty("instanceLocation", a.instanceLocation.toString());
+    errors.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(e -> {
+          e.getValue().values().stream()
+              .filter(a -> a.isValid() && !((ValidationResult) a.value).result)
+              .sorted(Comparator.comparing(a -> a.keywordLocation))
+              .forEach(a -> {
+                JsonObject error = new JsonObject();
+                error.addProperty("keywordLocation", a.keywordLocation.toString());
+                error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                error.addProperty("instanceLocation", a.instanceLocation.toString());
 
-        ValidationResult vr = (ValidationResult) a.value;
-        if (vr.result) {
-          return;
-        }
-        if (vr.message == null) {
-          error.add(a.name, JsonNull.INSTANCE);
-        } else {
-          error.add(a.name, new JsonPrimitive(vr.message));
-        }
-        errorArr.add(error);
-      });
-    });
+                ValidationResult vr = (ValidationResult) a.value;
+                if (vr.message == null) {
+                  error.add(a.name, JsonNull.INSTANCE);
+                } else {
+                  error.add(a.name, new JsonPrimitive(vr.message));
+                }
+                errorArr.add(error);
+              });
+        });
     return root;
   }
 
@@ -208,43 +211,47 @@ public class Main {
     JsonObject root = new JsonObject();
     JsonArray annotationArr = new JsonArray();
     root.add("annotations", annotationArr);
-    annotations.forEach((instanceLoc, byName) -> {
-      byName.forEach((name, bySchemaLoc) -> {
-        bySchemaLoc.forEach((schemaLoc, a) -> {
-          JsonObject o = new JsonObject();
-          o.addProperty("instanceLocation", a.instanceLocation.toString());
-          o.addProperty("keywordLocation", a.keywordLocation.toString());
-          o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
-          JsonObject ao = new JsonObject();
-          o.add("annotation", ao);
-          ao.add("name", new JsonPrimitive(a.name));
-          if (!a.isValid()) {
-            ao.add("valid", new JsonPrimitive(false));
-          }
+    annotations.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(e -> {
+          e.getValue().forEach((name, bySchemaLoc) -> {
+            bySchemaLoc.values().stream()
+                .sorted(Comparator.comparing(a -> a.keywordLocation))
+                .forEach(a -> {
+                  JsonObject o = new JsonObject();
+                  o.addProperty("instanceLocation", a.instanceLocation.toString());
+                  o.addProperty("keywordLocation", a.keywordLocation.toString());
+                  o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                  JsonObject ao = new JsonObject();
+                  o.add("annotation", ao);
+                  ao.add("name", new JsonPrimitive(a.name));
+                  if (!a.isValid()) {
+                    ao.add("valid", new JsonPrimitive(false));
+                  }
 
-          JsonElement ae;
-          if (a.value == null) {
-            ae = JsonNull.INSTANCE;
-          } else if (a.value instanceof Boolean) {
-            ae = new JsonPrimitive((Boolean) a.value);
-          } else if (a.value instanceof String) {
-            ae = new JsonPrimitive((String) a.value);
-          } else if (a.value instanceof Number) {
-            ae = new JsonPrimitive((Number) a.value);
-          } else if (a.value instanceof Collection) {
-            JsonArray arr = new JsonArray();
-            for (Object e : (Collection<?>) a.value) {
-              arr.add(String.valueOf(e));
-            }
-            ae = arr;
-          } else {
-            ae = new JsonPrimitive(a.value.toString());
-          }
-          ao.add("value", ae);
-          annotationArr.add(o);
+                  JsonElement ae;
+                  if (a.value == null) {
+                    ae = JsonNull.INSTANCE;
+                  } else if (a.value instanceof Boolean) {
+                    ae = new JsonPrimitive((Boolean) a.value);
+                  } else if (a.value instanceof String) {
+                    ae = new JsonPrimitive((String) a.value);
+                  } else if (a.value instanceof Number) {
+                    ae = new JsonPrimitive((Number) a.value);
+                  } else if (a.value instanceof Collection) {
+                    JsonArray arr = new JsonArray();
+                    for (Object elem : (Collection<?>) a.value) {
+                      arr.add(String.valueOf(elem));
+                    }
+                    ae = arr;
+                  } else {
+                    ae = new JsonPrimitive(a.value.toString());
+                  }
+                  ao.add("value", ae);
+                  annotationArr.add(o);
+                });
+          });
         });
-      });
-    });
     return root;
   }
 }
