@@ -115,6 +115,8 @@ public class Main {
     opts.set(Option.DEFAULT_SPECIFICATION, spec);
     // Uncomment to do auto-resolution
 //    opts.set(Option.AUTO_RESOLVE, true);
+    // Uncomment to collect annotations for failed schemas
+//    opts.set(Option.COLLECT_ANNOTATIONS_FOR_FAILED, true);
 
     Map<JSONPath, Map<JSONPath, Annotation>> errors = new HashMap<>();
     Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations = new HashMap<>();
