@@ -110,7 +110,7 @@ public class Coverage {
 
     Options opts = new Options();
 
-    Map<JSONPath, Map<JSONPath, Annotation>> errors = new HashMap<>();
+    Map<JSONPath, Map<JSONPath, Error<?>>> errors = new HashMap<>();
 
     long time = System.currentTimeMillis();
     Validator validator = new Validator(schema, schemaID, null, null, opts);

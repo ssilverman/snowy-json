@@ -68,7 +68,7 @@ public class UnevaluatedProperties extends Keyword {
     JSONPath parentPath = context.schemaParentLocation();
     Set<String> validated = new HashSet<>();
 
-    Consumer<Map<JSONPath, Annotation>> f = (Map<JSONPath, Annotation> a) -> {
+    Consumer<Map<JSONPath, Annotation<?>>> f = (Map<JSONPath, Annotation<?>> a) -> {
       if (validated.size() >= object.size()) {
         return;
       }

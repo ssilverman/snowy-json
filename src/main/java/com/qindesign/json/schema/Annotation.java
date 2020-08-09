@@ -25,24 +25,34 @@ import com.qindesign.net.URI;
 import java.util.Objects;
 
 /**
- * Holds all the information needed to describe an annotation. An annotation can
- * also be marked as "valid" or "invalid". The default is "invalid".
+ * Holds all the information needed to describe an annotation, including a name,
+ * a set of locations, and an associated value.
+ * <p>
+ * An annotation can also be marked as "valid" or "invalid", signifying whether
+ * it contributes to the annotations in a successful schema validation, or
+ * whether it can be ignored. This is useful for tracing how annotations are
+ * applied for unsuccessful or failed schema validations. Another way of
+ * thinking about this is that "invalid" means "pruned" and "valid" means
+ * "not pruned".
+ * <p>
+ * The default for a new annotation is "invalid". Note that the concept of
+ * "annotation validity" is not related to the concept of a "validation result".
+ * See {@link Error}, a special subclass of {@link Annotation} that represents a
+ * validation result.
+ *
+ * @param <T> the type of the annotation's value
  */
-public final class Annotation {
+public class Annotation<T> {
   public final String name;
   public final JSONPath instanceLocation;
   public final JSONPath keywordLocation;
   public final URI absKeywordLocation;
-  public final Object value;
+  public final T value;
 
   /** Invalid annotations are attached to failed schemas. */
   private boolean valid;
 
-  Annotation(String name,
-             JSONPath instanceLoc,
-             JSONPath keywordLoc,
-             URI absKeywordLoc,
-             Object value) {
+  Annotation(String name, JSONPath instanceLoc, JSONPath keywordLoc, URI absKeywordLoc, T value) {
     this.name = name;
     this.instanceLocation = instanceLoc;
     this.keywordLocation = keywordLoc;
@@ -55,7 +65,7 @@ public final class Annotation {
    *
    * @param flag the new "valid" value
    */
-  public void setValid(boolean flag) {
+  public final void setValid(boolean flag) {
     this.valid = flag;
   }
 
@@ -65,21 +75,21 @@ public final class Annotation {
    *
    * @return if this annotation is valid.
    */
-  public boolean isValid() {
+  public final boolean isValid() {
     return valid;
   }
 
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return Objects.hash(name, instanceLocation, keywordLocation, absKeywordLocation, value, valid);
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public final boolean equals(Object obj) {
     if (!(obj instanceof Annotation)) {
       return false;
     }
-    Annotation a = (Annotation) obj;
+    var a = (Annotation<?>) obj;
     return Objects.equals(name, a.name) &&
            Objects.equals(instanceLocation, a.instanceLocation) &&
            Objects.equals(keywordLocation, a.keywordLocation) &&
@@ -89,7 +99,7 @@ public final class Annotation {
   }
 
   @Override
-  public String toString() {
+  public final String toString() {
     return name;
   }
 }

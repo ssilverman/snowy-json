@@ -118,8 +118,8 @@ public class Main {
     // Uncomment to collect annotations for failed schemas
 //    opts.set(Option.COLLECT_ANNOTATIONS_FOR_FAILED, true);
 
-    Map<JSONPath, Map<JSONPath, Annotation>> errors = new HashMap<>();
-    Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations = new HashMap<>();
+    Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations = new HashMap<>();
+    Map<JSONPath, Map<JSONPath, Error<?>>> errors = new HashMap<>();
 
     long time = System.currentTimeMillis();
     Validator validator = new Validator(schema, schemaID, null, null, opts);
@@ -173,7 +173,7 @@ public class Main {
    * @return a JSON tree containing the formatted Basic output.
    */
   private static JsonObject basicOutput(boolean result,
-                                        Map<JSONPath, Map<JSONPath, Annotation>> errors) {
+                                        Map<JSONPath, Map<JSONPath, Error<?>>> errors) {
     JsonObject root = new JsonObject();
     root.add("valid", new JsonPrimitive(result));
     JsonArray errorArr = new JsonArray();
@@ -182,7 +182,7 @@ public class Main {
         .sorted(Map.Entry.comparingByKey())
         .forEach(e -> {
           e.getValue().values().stream()
-              .filter(a -> a.isValid() && !((ValidationResult) a.value).result)
+              .filter(a -> a.isValid() && !a.value.result)
               .sorted(Comparator.comparing(a -> a.keywordLocation))
               .forEach(a -> {
                 JsonObject error = new JsonObject();
@@ -190,11 +190,10 @@ public class Main {
                 error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
                 error.addProperty("instanceLocation", a.instanceLocation.toString());
 
-                ValidationResult vr = (ValidationResult) a.value;
-                if (vr.message == null) {
+                if (a.value.value == null) {
                   error.add(a.name, JsonNull.INSTANCE);
                 } else {
-                  error.add(a.name, new JsonPrimitive(vr.message));
+                  error.add(a.name, new JsonPrimitive(a.value.value.toString()));
                 }
                 errorArr.add(error);
               });
@@ -209,7 +208,7 @@ public class Main {
    * @return a JSON tree containing the output.
    */
   private static JsonObject annotationOutput(
-      Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations) {
+      Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations) {
     JsonObject root = new JsonObject();
     JsonArray annotationArr = new JsonArray();
     root.add("annotations", annotationArr);

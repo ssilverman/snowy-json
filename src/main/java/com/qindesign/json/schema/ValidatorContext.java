@@ -239,7 +239,7 @@ public final class ValidatorContext {
    * <p>
    * {@code null} to not collect annotations.
    */
-  private Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations;
+  private Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations;
 
   /**
    * Error "annotation" collection, maps element location to its errors:<br>
@@ -247,7 +247,7 @@ public final class ValidatorContext {
    * <p>
    * {@code null} to not collect errors.
    */
-  private Map<JSONPath, Map<JSONPath, Annotation>> errors;
+  private Map<JSONPath, Map<JSONPath, Error<?>>> errors;
 
   /** The main schema used for validation. */
   private final JsonElement schema;
@@ -737,11 +737,12 @@ public final class ValidatorContext {
    * This does not add the annotations if the context is not configured to
    * do so.
    *
+   * @param <T> the type of the value
    * @param name the annotation name
    * @param value the annotation value
    * @throws MalformedSchemaException if the addition is not unique.
    */
-  public void addAnnotation(String name, Object value) throws MalformedSchemaException {
+  public <T> void addAnnotation(String name, T value) throws MalformedSchemaException {
     if (annotations == null) {
       return;
     }
@@ -749,14 +750,14 @@ public final class ValidatorContext {
       return;
     }
 
-    Annotation a = new Annotation(name,
-                                  state.instanceLocation,
-                                  state.keywordLocation,
-                                  state.absKeywordLocation,
-                                  value);
+    var a = new Annotation<>(name,
+                             state.instanceLocation,
+                             state.keywordLocation,
+                             state.absKeywordLocation,
+                             value);
     a.setValid(state.isCollectAnnotations);
 
-    Annotation oldA = annotations
+    var oldA = annotations
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
         .computeIfAbsent(name, k -> new HashMap<>())
         .putIfAbsent(state.keywordLocation, a);
@@ -795,26 +796,26 @@ public final class ValidatorContext {
    * The annotation will be named "error" for failed validations and
    * "annotation" for successful validations.
    *
+   * @param <T> the type of the associated value
    * @param result the validation result
-   * @param message the error message, may be {@code null}
+   * @param value the associated value, may be {@code null}
    * @throws MalformedSchemaException if the addition is not unique.
    */
-  public void addError(boolean result, String message) throws MalformedSchemaException {
+  public <T> void addError(boolean result, T value) throws MalformedSchemaException {
     if (errors == null) {
       return;
     }
 
-    Annotation a = new Annotation(result ? "annotation" : "error",
-                                  state.instanceLocation,
-                                  state.keywordLocation,
-                                  state.absKeywordLocation,
-                                  new ValidationResult(result, message));
-    a.setValid(true);
+    var err = new Error<>(state.instanceLocation,
+                          state.keywordLocation,
+                          state.absKeywordLocation,
+                          result, value);
+    err.setValid(true);
 
-    Annotation oldA = errors
+    var oldErr = errors
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
-        .putIfAbsent(state.keywordLocation, a);
-    if (oldA != null) {
+        .putIfAbsent(state.keywordLocation, err);
+    if (oldErr != null) {
       throw new MalformedSchemaException("error not unique: possible infinite loop",
                                          state.absKeywordLocation);
     }
@@ -864,7 +865,7 @@ public final class ValidatorContext {
    * @param name the annotation name
    * @return a map keyed by schema location.
    */
-  public Map<JSONPath, Annotation> annotations(String name) {
+  public Map<JSONPath, Annotation<?>> annotations(String name) {
     if (annotations == null) {
       return Collections.emptyMap();
     }
@@ -1097,8 +1098,8 @@ public final class ValidatorContext {
    *         because internal validation is failing.
    */
   public boolean apply(JsonElement instance,
-                       Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
-                       Map<JSONPath, Map<JSONPath, Annotation>> errors)
+                       Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations,
+                       Map<JSONPath, Map<JSONPath, Error<?>>> errors)
       throws MalformedSchemaException {
     this.annotations = annotations;
     this.errors = errors;
@@ -1233,7 +1234,7 @@ public final class ValidatorContext {
     if (!result && annotations != null) {
       // Note that we're also checking for equality in case the current
       // failing keyword has set some annotations
-      Predicate<Map.Entry<JSONPath, Annotation>> pred =
+      Predicate<Map.Entry<JSONPath, Annotation<?>>> pred =
           e -> e.getKey().startsWith(keywordLocation);
 
       if (!isCollectFailedAnnotations) {
@@ -1257,7 +1258,7 @@ public final class ValidatorContext {
           .filter(e -> e.getKey().startsWith(instanceLocation))
           .forEach(e -> {
             e.getValue().values().stream()
-                .filter(a -> !((ValidationResult) a.value).result &&
+                .filter(a -> !a.value.result &&
                              a.keywordLocation.startsWith(keywordLocation))
                 .forEach(a -> a.setValid(false));
           });

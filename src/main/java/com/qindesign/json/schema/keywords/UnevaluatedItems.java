@@ -65,7 +65,7 @@ public class UnevaluatedItems extends Keyword {
     int max = 0;
 
     // Returns true if we need to return true and false to not return
-    Function<Map<JSONPath, Annotation>, Boolean> f = (Map<JSONPath, Annotation> a) -> {
+    Function<Map<JSONPath, Annotation<?>>, Boolean> f = (Map<JSONPath, Annotation<?>> a) -> {
       for (var e : a.entrySet()) {
         if (!e.getValue().isValid()) {
           continue;
@@ -88,7 +88,7 @@ public class UnevaluatedItems extends Keyword {
     }
 
     // "items"
-    Map<JSONPath, Annotation> annotations = context.annotations(Items.NAME);
+    Map<JSONPath, Annotation<?>> annotations = context.annotations(Items.NAME);
     for (var e : annotations.entrySet()) {
       if (!e.getValue().isValid()) {
         continue;

@@ -436,10 +436,9 @@ public final class Validator {
    *     &rarr; schema location &rarr; {@link Annotation}. The
    *     {@link Annotation} value is dependent on the source.</li>
    * <li>The errors have this structure: instance location &rarr; schema
-   *     location &rarr; {@link Annotation}. The {@link Annotation} value is an
-   *     instance of {@link ValidationResult}, and its name will be "error" when
-   *     the result is {@code false} and "annotation" when the result is
-   *     {@code true}.
+   *     location &rarr; {@link Error}. The {@link Error} value is an instance
+   *     of {@link Error.Value}, and its name will be "error" when the result is
+   *     {@code false} and "annotation" when the result is {@code true}.
    * </ul>
    * <p>
    * If errors are collected, then both valid and invalid results are collected.
@@ -453,8 +452,8 @@ public final class Validator {
    *         known schemas is somehow malformed.
    */
   public boolean validate(JsonElement instance,
-                          Map<JSONPath, Map<String, Map<JSONPath, Annotation>>> annotations,
-                          Map<JSONPath, Map<JSONPath, Annotation>> errors)
+                          Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations,
+                          Map<JSONPath, Map<JSONPath, Error<?>>> errors)
       throws MalformedSchemaException
   {
     Objects.requireNonNull(instance, "instance");

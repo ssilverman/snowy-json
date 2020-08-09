@@ -12,6 +12,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 
 ### Changed
 * Updated to the latest Draft 2019-09 schemas.
+* Parameterized `Annotation` and created a new `Error` subclass that replaces
+  the `ValidationResult` Annotation value.
 
 ## [0.14.0]
 
