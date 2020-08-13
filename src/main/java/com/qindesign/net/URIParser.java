@@ -436,6 +436,7 @@ public final class URIParser {
    * @param end the end index, exclusive
    * @param failMsg the failure message, for any failures
    * @throws URISyntaxException if there was a parsing error.
+   * @see <a href="https://www.rfc-editor.org/rfc/rfc3986.html#section-3.2.2">RFC 3986: Section 3.2.2.: Host</a>
    */
   public static void parseIPv4(String s, int start, int end, String failMsg)
       throws URISyntaxException {
