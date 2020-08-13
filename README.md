@@ -240,10 +240,10 @@ instances. It's similar to `Main`, but prints different output.
 
 ### API
 
-The main entry point to the API is the `Validator.validate` method. In addition
-to the non-optional schema, instance, and base URI, you can pass options, known
-IDs and URLs, and a place to put collected annotations and errors. Only the
-first three arguments, `schema`, `instance`, and `baseURI` must not be `null`.
+The main entry point to the API is the `Validator` constructor and `validate`
+method. In addition to the non-optional schema, instance, and base URI, you can
+pass options, known IDs and URLs, and a place to put collected annotations and
+errors.
 
 In this version, the caller must organize the errors into the desired output
 format. An example of how to convert them into the Basic output format is in
