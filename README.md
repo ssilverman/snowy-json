@@ -27,6 +27,7 @@ See: [JSON Schema](https://json-schema.org)
    1. [Complete programs](#complete-programs)
    2. [API](#api)
       1. [Annotations and errors](#annotations-and-errors)
+      2. [Internal APIs](#internal-apis)
 8. [Building and running](#building-and-running)
    1. [Program execution with Maven](#program-execution-with-maven)
    2. [Using Snow in your own projects](#using-snow-in-your-own-projects)
@@ -310,6 +311,26 @@ The annotation types for specific keywords are as follows:
 * "unevaluatedProperties": `java.util.Set<String>`, the set of property names
   whose contents were validated by this subschema.
 * "writeOnly": `java.lang.Boolean`
+
+#### Internal APIs
+
+There are a few internal APIs that may be useful for your own projects, outside
+of schema validation. Note that these are subject to change.
+
+1. `com.qindesign.json.schema.util.Base64InputStream`: Converts a Base64-encoded
+   string into a byte stream.
+2. `com.qindesign.json.schema.util.LRUCache`: An
+   [LRU cache](https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU))
+   implementation.
+3. `com.qindesign.net.Hostname`: Parses regular and IDN hostnames.
+4. `com.qindesign.net.URI`: An
+   [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html)-compliant URI parser.
+   As of this writing, Java's URI API is only RFC 2396-compliant and is not
+   sufficient for processing JSON Schemas. 
+5. `com.qindesign.net.URIParser.parseIPv6`: Parses IPv6 addresses, per RFC 3986.
+6. `com.qindesign.net.URIParser.parseIPv4`: Parses IPv4 addresses, per RFC 3986.
+
+Please consult the Javadocs for those classes and methods for more information.
 
 ## Building and running
 

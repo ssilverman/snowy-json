@@ -4,6 +4,12 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.15.0]
+
+### Added
+* Added an "Internal APIs" section to the README. This mentions useful classes
+  and methods for use in one's own projects.
+
 ## [0.14.0]
 
 ### Added
