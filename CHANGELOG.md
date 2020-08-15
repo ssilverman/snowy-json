@@ -10,6 +10,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Added an "Internal APIs" section to the README. This mentions useful classes
   and methods for use in one's own projects.
 
+### Changed
+* Updated to the latest Draft 2019-09 schemas.
+
 ## [0.14.0]
 
 ### Added
