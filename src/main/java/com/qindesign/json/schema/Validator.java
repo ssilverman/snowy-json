@@ -79,15 +79,15 @@ public final class Validator {
 
   // https://www.baeldung.com/java-initialize-hashmap
   private static final Map<URI, URL> KNOWN_RESOURCES = Stream.of(new Object[][] {
-      { "https://json-schema.org/draft/2019-09/schema", "/draft-2019-09/schema.json" },
-      { "https://json-schema.org/draft/2019-09/meta/core", "/draft-2019-09/meta/core.json" },
-      { "https://json-schema.org/draft/2019-09/meta/applicator", "/draft-2019-09/meta/applicator.json" },
-      { "https://json-schema.org/draft/2019-09/meta/validation", "/draft-2019-09/meta/validation.json" },
-      { "https://json-schema.org/draft/2019-09/meta/meta-data", "/draft-2019-09/meta/meta-data.json" },
-      { "https://json-schema.org/draft/2019-09/meta/format", "/draft-2019-09/meta/format.json" },
-      { "https://json-schema.org/draft/2019-09/meta/content", "/draft-2019-09/meta/content.json" },
-      { "http://json-schema.org/draft-07/schema", "/draft-07/schema.json" },
-      { "http://json-schema.org/draft-06/schema", "/draft-06/schema.json" },
+      { "https://json-schema.org/draft/2019-09/schema", "/schemas/draft-2019-09/schema.json" },
+      { "https://json-schema.org/draft/2019-09/meta/core", "/schemas/draft-2019-09/meta/core.json" },
+      { "https://json-schema.org/draft/2019-09/meta/applicator", "/schemas/draft-2019-09/meta/applicator.json" },
+      { "https://json-schema.org/draft/2019-09/meta/validation", "/schemas/draft-2019-09/meta/validation.json" },
+      { "https://json-schema.org/draft/2019-09/meta/meta-data", "/schemas/draft-2019-09/meta/meta-data.json" },
+      { "https://json-schema.org/draft/2019-09/meta/format", "/schemas/draft-2019-09/meta/format.json" },
+      { "https://json-schema.org/draft/2019-09/meta/content", "/schemas/draft-2019-09/meta/content.json" },
+      { "http://json-schema.org/draft-07/schema", "/schemas/draft-07/schema.json" },
+      { "http://json-schema.org/draft-06/schema", "/schemas/draft-06/schema.json" },
       }).collect(Collectors.toUnmodifiableMap(
           data -> URI.parseUnchecked((String) data[0]),
           data -> {
