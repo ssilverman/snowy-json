@@ -23,20 +23,30 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -96,8 +106,8 @@ public class Test {
    * @throws IOException if there was some I/O error.
    */
   public static void main(String[] args) throws IOException {
-    if (args.length != 1) {
-      System.out.println("Usage: " + CLASS.getName() + " <suite location>");
+    if (args.length < 1 || 2 < args.length) {
+      System.out.println("Usage: " + CLASS.getName() + " <suite location> [output file]");
       System.exit(1);
       return;
     }
@@ -106,6 +116,7 @@ public class Test {
     if (!root.toFile().isDirectory()) {
       logger.severe("Not a directory: " + args[0]);
       System.exit(1);
+      return;
     }
 
     File testSchemaFile = root.resolve(TEST_SCHEMA).toFile();
@@ -127,6 +138,12 @@ public class Test {
     Map<URI, URL> knownURLs = Map.of(URI.parseUnchecked("http://localhost:1234"),
                                      root.resolve("remotes").toUri().toURL());
 
+    // Potentially gather all the output
+    JsonArray specOutputArr = null;
+    if (args.length >= 2) {
+      specOutputArr = new JsonArray();
+    }
+
     time = System.currentTimeMillis();
     for (Specification spec : Specification.values()) {
       if (!testDirs.containsKey(spec)) {
@@ -143,13 +160,36 @@ public class Test {
 
       logger.info("Running tests: " + spec);
       Map<String, Result> results = new TreeMap<>();
+      JsonArray testOutputArr = null;
+      if (specOutputArr != null) {
+        JsonObject specObj = new JsonObject();
+        specOutputArr.add(specObj);
+        specObj.addProperty("spec", spec.toString());
+        testOutputArr = new JsonArray();
+        specObj.add("tests", testOutputArr);
+      }
       Result specResult = runSpec(root, testDir, testSchema, testSchemaFile, results, spec,
-                                  knownIDs, knownURLs);
+                                  knownIDs, knownURLs, testOutputArr);
       printSpecResults(spec, specResult, results);
     }
     time = System.currentTimeMillis() - time;
     System.out.println();
     logger.info("Total test time: " + time/1000.0f + "s");
+
+    // Print the output
+    if (specOutputArr != null) {
+      try (FileOutputStream fileOut = new FileOutputStream(args[1])) {
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOut));
+        JsonWriter jsonW = new JsonWriter(bw);
+        jsonW.setIndent("    ");
+        Streams.write(specOutputArr, jsonW);
+        jsonW.flush();
+        bw.newLine();
+        bw.flush();
+      } catch (IOException ex) {
+        logger.log(Level.SEVERE, "Error writing output", ex);
+      }
+    }
   }
 
   /**
@@ -207,11 +247,14 @@ public class Test {
    * @param spec the specification
    * @param knownIDs any known JSON contents
    * @param knownURLs any known resources
+   * @param testOutputArr the test results, all the annotations and errors, may
+   *                      be {@code null}
    * @return the test results.
    */
   private static Result runSpec(Path root, Path dir, JsonElement testSchema, File testSchemaFile,
                                 Map<String, Result> results, Specification spec,
-                                Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs)
+                                Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
+                                JsonArray testOutputArr)
       throws IOException {
     Result result = new Result();
     long start = System.currentTimeMillis();
@@ -247,7 +290,8 @@ public class Test {
         }
 
         // Run the suite
-        Result r = runSuite(root, file, instance.getAsJsonArray(), spec, knownIDs, knownURLs);
+        Result r = runSuite(root, file, instance.getAsJsonArray(), spec, knownIDs, knownURLs,
+                            testOutputArr);
         result.total += r.total;
         result.passed += r.passed;
         result.totalOptional += r.totalOptional;
@@ -272,10 +316,13 @@ public class Test {
    * @param spec the specification
    * @param knownIDs any known JSON contents
    * @param knownURLs any known resources
+   * @param testOutputArr the test results, all the annotations and errors, may
+   *                      be {@code null}
    * @return the suite results.
    */
   private static Result runSuite(Path root, Path file, JsonArray suite, Specification spec,
-                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs) {
+                                 Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
+                                 JsonArray testOutputArr) {
     Result suiteResult = new Result();
     long start = System.currentTimeMillis();
 
@@ -314,7 +361,12 @@ public class Test {
         opts.set(Option.DEFAULT_SPECIFICATION, spec);
         try {
           Validator validator = new Validator(schema, uri, knownIDs, knownURLs, opts);
-          boolean result = validator.validate(data, new HashMap<>(), null);
+          Map<JSONPath, Map<String, Map<JSONPath, Annotation<?>>>> annotations = new HashMap<>();
+          Map<JSONPath, Map<JSONPath, Error<?>>> errors = null;
+          if (testOutputArr != null) {
+            errors = new HashMap<>();
+          }
+          boolean result = validator.validate(data, annotations, errors);
           if (result != valid) {
             logger.info(new URI(root.toUri()).relativize(uri) + ": Bad result: " +
                         groupDescription + ": " + description +
@@ -324,6 +376,83 @@ public class Test {
             if (isOptional) {
               suiteResult.passedOptional++;
             }
+          }
+
+          // Add output for this test
+          if (testOutputArr != null) {
+            JsonObject testObj = new JsonObject();
+            testOutputArr.add(testObj);
+            testObj.addProperty("test", uri.toString());
+            testObj.addProperty("passed", result == valid);
+            testObj.addProperty("valid", result);
+            JsonArray errorArr = new JsonArray();
+            testObj.add("errors", errorArr);
+            JsonArray annotationArr = new JsonArray();
+            testObj.add("annotations", annotationArr);
+
+            errors.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> {
+                  e.getValue().values().stream()
+                      .sorted(Comparator.comparing(a -> a.keywordLocation))
+                      .forEach(a -> {
+                        JsonObject error = new JsonObject();
+                        error.addProperty("keywordLocation", a.keywordLocation.toString());
+                        error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                        error.addProperty("instanceLocation", a.instanceLocation.toString());
+                        if (!a.isValid()) {
+                          error.addProperty("pruned", true);
+                        }
+
+                        error.addProperty("result", a.value.result);
+                        if (a.value.value != null) {
+                          error.addProperty(a.name, a.value.value.toString());
+                        }
+                        errorArr.add(error);
+                      });
+                });
+
+            annotations.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> {
+                  e.getValue().forEach((name, bySchemaLoc) -> {
+                    bySchemaLoc.values().stream()
+                        .sorted(Comparator.comparing(a -> a.keywordLocation))
+                        .forEach(a -> {
+                          JsonObject o = new JsonObject();
+                          o.addProperty("instanceLocation", a.instanceLocation.toString());
+                          o.addProperty("keywordLocation", a.keywordLocation.toString());
+                          o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                          JsonObject ao = new JsonObject();
+                          o.add("annotation", ao);
+                          ao.addProperty("name", a.name);
+                          if (!a.isValid()) {
+                            ao.addProperty("pruned", true);
+                          }
+
+                          JsonElement ae;
+                          if (a.value == null) {
+                            ae = JsonNull.INSTANCE;
+                          } else if (a.value instanceof Boolean) {
+                            ae = new JsonPrimitive((Boolean) a.value);
+                          } else if (a.value instanceof String) {
+                            ae = new JsonPrimitive((String) a.value);
+                          } else if (a.value instanceof Number) {
+                            ae = new JsonPrimitive((Number) a.value);
+                          } else if (a.value instanceof Collection) {
+                            JsonArray arr = new JsonArray();
+                            for (Object elem : (Collection<?>) a.value) {
+                              arr.add(String.valueOf(elem));
+                            }
+                            ae = arr;
+                          } else {
+                            ae = new JsonPrimitive(a.value.toString());
+                          }
+                          ao.add("value", ae);
+                          annotationArr.add(o);
+                        });
+                  });
+                });
           }
         } catch (MalformedSchemaException ex) {
           if (valid) {
