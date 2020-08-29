@@ -175,7 +175,7 @@ public class Main {
   private static JsonObject basicOutput(boolean result,
                                         Map<JSONPath, Map<JSONPath, Error<?>>> errors) {
     JsonObject root = new JsonObject();
-    root.add("valid", new JsonPrimitive(result));
+    root.addProperty("valid", result);
     JsonArray errorArr = new JsonArray();
     root.add("errors", errorArr);
     errors.entrySet().stream()
@@ -193,7 +193,7 @@ public class Main {
                 if (a.value.value == null) {
                   error.add(a.name, JsonNull.INSTANCE);
                 } else {
-                  error.add(a.name, new JsonPrimitive(a.value.value.toString()));
+                  error.addProperty(a.name, a.value.value.toString());
                 }
                 errorArr.add(error);
               });
@@ -225,9 +225,9 @@ public class Main {
                   o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
                   JsonObject ao = new JsonObject();
                   o.add("annotation", ao);
-                  ao.add("name", new JsonPrimitive(a.name));
+                  ao.addProperty("name", a.name);
                   if (!a.isValid()) {
-                    ao.add("valid", new JsonPrimitive(false));
+                    ao.addProperty("valid", false);
                   }
 
                   JsonElement ae;
