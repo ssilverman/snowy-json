@@ -751,9 +751,9 @@ public final class ValidatorContext {
     }
 
     var a = new Annotation<>(name,
-                             state.instanceLocation,
-                             state.keywordLocation,
-                             state.absKeywordLocation,
+                             new Locator(state.instanceLocation,
+                                         state.keywordLocation,
+                                         state.absKeywordLocation),
                              value);
     a.setValid(state.isCollectAnnotations);
 
@@ -806,11 +806,11 @@ public final class ValidatorContext {
       return;
     }
 
-    var err = new Error<>(state.instanceLocation,
-                          state.keywordLocation,
-                          state.absKeywordLocation,
-                          result, value);
-    err.setValid(true);
+    var err = new Error<>(result,
+                          new Locator(state.instanceLocation,
+                                      state.keywordLocation,
+                                      state.absKeywordLocation),
+                          value);
 
     var oldErr = errors
         .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
@@ -1258,9 +1258,9 @@ public final class ValidatorContext {
           .filter(e -> e.getKey().startsWith(instanceLocation))
           .forEach(e -> {
             e.getValue().values().stream()
-                .filter(a -> !a.value.result &&
-                             a.keywordLocation.startsWith(keywordLocation))
-                .forEach(a -> a.setValid(false));
+                .filter(err -> !err.result &&
+                               err.loc.keyword.startsWith(keywordLocation))
+                .forEach(a -> a.setPruned(true));
           });
     }
 

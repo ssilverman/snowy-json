@@ -21,7 +21,6 @@
  */
 package com.qindesign.json.schema;
 
-import com.qindesign.net.URI;
 import java.util.Objects;
 
 /**
@@ -35,28 +34,37 @@ import java.util.Objects;
  * thinking about this is that "invalid" means "pruned" and "valid" means
  * "not pruned".
  * <p>
- * The default for a new annotation is "invalid". Note that the concept of
- * "annotation validity" is not related to the concept of a "validation result".
- * See {@link Error}, a special subclass of {@link Annotation} that represents a
- * validation result.
+ * Note that the concept of "annotation validity" is not related to the concept
+ * of a "validation result". See {@link Error} instead.
  *
  * @param <T> the type of the annotation's value
  */
-public class Annotation<T> {
+public final class Annotation<T> {
+  /** The annotation name. */
   public final String name;
-  public final JSONPath instanceLocation;
-  public final JSONPath keywordLocation;
-  public final URI absKeywordLocation;
+
+  /** The annotation location. */
+  public final Locator loc;
+
+  /** The associated value, may be {@code null}. */
   public final T value;
 
   /** Invalid annotations are attached to failed schemas. */
   private boolean valid;
 
-  Annotation(String name, JSONPath instanceLoc, JSONPath keywordLoc, URI absKeywordLoc, T value) {
+  /**
+   * Creates a new annotation.
+   *
+   * @param name the annotation name
+   * @param loc the locator
+   * @param value the associated value
+   * @throws NullPointerException if the locator is {@code null}.
+   */
+  Annotation(String name, Locator loc, T value) {
+    Objects.requireNonNull(loc, "loc");
+
     this.name = name;
-    this.instanceLocation = instanceLoc;
-    this.keywordLocation = keywordLoc;
-    this.absKeywordLocation = absKeywordLoc;
+    this.loc = loc;
     this.value = value;
   }
 
@@ -80,26 +88,25 @@ public class Annotation<T> {
   }
 
   @Override
-  public final int hashCode() {
-    return Objects.hash(name, instanceLocation, keywordLocation, absKeywordLocation, value, valid);
+  public int hashCode() {
+    return Objects.hash(name, loc, value, valid);
   }
 
   @Override
-  public final boolean equals(Object obj) {
+  public boolean equals(Object obj) {
     if (!(obj instanceof Annotation)) {
       return false;
     }
+
     var a = (Annotation<?>) obj;
     return Objects.equals(name, a.name) &&
-           Objects.equals(instanceLocation, a.instanceLocation) &&
-           Objects.equals(keywordLocation, a.keywordLocation) &&
-           Objects.equals(absKeywordLocation, a.absKeywordLocation) &&
+           Objects.equals(loc, a.loc) &&
            Objects.equals(value, a.value) &&
            valid == a.valid;
   }
 
   @Override
-  public final String toString() {
+  public String toString() {
     return name;
   }
 }

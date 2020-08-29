@@ -182,18 +182,16 @@ public class Main {
         .sorted(Map.Entry.comparingByKey())
         .forEach(e -> {
           e.getValue().values().stream()
-              .filter(a -> a.isValid() && !a.value.result)
-              .sorted(Comparator.comparing(a -> a.keywordLocation))
-              .forEach(a -> {
+              .filter(err -> !err.isPruned() && !err.result)
+              .sorted(Comparator.comparing(err -> err.loc.keyword))
+              .forEach(err -> {
                 JsonObject error = new JsonObject();
-                error.addProperty("keywordLocation", a.keywordLocation.toString());
-                error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
-                error.addProperty("instanceLocation", a.instanceLocation.toString());
+                error.addProperty("keywordLocation", err.loc.keyword.toString());
+                error.addProperty("absoluteKeywordLocation", err.loc.absKeyword.toString());
+                error.addProperty("instanceLocation", err.loc.instance.toString());
 
-                if (a.value.value == null) {
-                  error.add(a.name, JsonNull.INSTANCE);
-                } else {
-                  error.addProperty(a.name, a.value.value.toString());
+                if (err.value != null) {
+                  error.addProperty("error", err.value.toString());
                 }
                 errorArr.add(error);
               });
@@ -217,12 +215,12 @@ public class Main {
         .forEach(e -> {
           e.getValue().forEach((name, bySchemaLoc) -> {
             bySchemaLoc.values().stream()
-                .sorted(Comparator.comparing(a -> a.keywordLocation))
+                .sorted(Comparator.comparing(a -> a.loc.keyword))
                 .forEach(a -> {
                   JsonObject o = new JsonObject();
-                  o.addProperty("instanceLocation", a.instanceLocation.toString());
-                  o.addProperty("keywordLocation", a.keywordLocation.toString());
-                  o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                  o.addProperty("instanceLocation", a.loc.instance.toString());
+                  o.addProperty("keywordLocation", a.loc.keyword.toString());
+                  o.addProperty("absoluteKeywordLocation", a.loc.absKeyword.toString());
                   JsonObject ao = new JsonObject();
                   o.add("annotation", ao);
                   ao.addProperty("name", a.name);

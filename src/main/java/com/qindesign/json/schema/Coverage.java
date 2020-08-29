@@ -134,11 +134,11 @@ public class Coverage {
           JsonArray schemaLocs = new JsonArray();
           instanceLoc.add("schemaLocations", schemaLocs);
           entry.getValue().values().stream()
-              .sorted(Comparator.comparing(a -> a.keywordLocation))
-              .forEach(a -> {
+              .sorted(Comparator.comparing(err -> err.loc.keyword))
+              .forEach(err -> {
                 JsonObject schemaLoc = new JsonObject();
-                schemaLoc.addProperty("keywordLocation", a.keywordLocation.toString());
-                schemaLoc.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                schemaLoc.addProperty("keywordLocation", err.loc.keyword.toString());
+                schemaLoc.addProperty("absoluteKeywordLocation", err.loc.absKeyword.toString());
                 schemaLocs.add(schemaLoc);
               });
           seenInstanceLocs.add(instanceLoc);
@@ -161,10 +161,10 @@ public class Coverage {
     schemaRoot.add("seen", seenSchemaLocs);
     errors.forEach((instanceLoc, bySchema) -> {
       bySchema.values()
-          .forEach(a -> {
+          .forEach(err -> {
             JsonObject schemaLoc = new JsonObject();
-            schemaLoc.addProperty("keywordLocation", a.keywordLocation.toString());
-            schemaLoc.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+            schemaLoc.addProperty("keywordLocation", err.loc.keyword.toString());
+            schemaLoc.addProperty("absoluteKeywordLocation", err.loc.absKeyword.toString());
             seenSchemaLocs.add(schemaLoc);
           });
     });

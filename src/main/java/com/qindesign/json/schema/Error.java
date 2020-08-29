@@ -21,71 +21,83 @@
  */
 package com.qindesign.json.schema;
 
-import com.qindesign.net.URI;
 import java.util.Objects;
 
 /**
- * An error, a special type of annotation that represents a validation result.
- * If the result is {@code true} then the name will be "annotation", otherwise
- * the name will be "error".
- * <p>
- * The associated annotation value is an {@link Error.Value}, the validation
- * result itself. This result contains the Boolean-valued result and an
- * associated value describing that result.
+ * An "error", represents a validation result.
  *
  * @param <T> the type of the associated value
  */
-public final class Error<T> extends Annotation<Error.Value<T>> {
-  /**
-   * Represents a validation result. It contains a Boolean value and an optional
-   * associated value. These are associated with "error"s.
-   *
-   * @param <T> the type of the associated value
-   */
-  public static final class Value<T> {
-    public final boolean result;
-    public final T value;
+public final class Error<T> {
+  /** The validation result. */
+  public final boolean result;
 
-    Value(boolean result, T value) {
-      this.result = result;
-      this.value = value;
-    }
+  /** The error location. */
+  public final Locator loc;
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(result, value);
-    }
+  /** The associated value, may be {@code null}. */
+  public final T value;
 
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof Value)) {
-        return false;
-      }
-      Value<?> r = (Value<?>) obj;
-      return (result == r.result) && Objects.equals(value, r.value);
-    }
-
-    @Override
-    public String toString() {
-      if (value == null) {
-        return Boolean.toString(result);
-      }
-      return result + ": " + value;
-    }
-  }
+  private boolean pruned;
 
   /**
    * Creates a new error, a validation result.
    *
-   * @param instanceLoc the instance location
-   * @param keywordLoc the dynamic keyword location
-   * @param absKeywordLoc the absolute keyword location
    * @param result the validation result
+   * @param loc the locator
    * @param value a value associated with the validation result
+   * @throws NullPointerException if the locator is {@code null}
    */
-  Error(JSONPath instanceLoc, JSONPath keywordLoc, URI absKeywordLoc, boolean result, T value) {
-    super(result ? "annotation" : "error",
-        instanceLoc, keywordLoc, absKeywordLoc,
-        new Value<>(result, value));
+  Error(boolean result, Locator loc, T value) {
+    Objects.requireNonNull(loc, "loc");
+
+    this.result = result;
+    this.loc = loc;
+    this.value = value;
+  }
+
+  /**
+   * Sets the "pruned" flag. The default value is {@code false}.
+   *
+   * @param flag the new "pruned" value
+   */
+  public final void setPruned(boolean flag) {
+    this.pruned = flag;
+  }
+
+  /**
+   * Returns whether this error has been pruned. The default value
+   * is {@code false}.
+   *
+   * @return if this error has been pruned.
+   */
+  public final boolean isPruned() {
+    return pruned;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(result, loc, value);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Error)) {
+      return false;
+    }
+
+    var e = (Error<?>) obj;
+    return (result == e.result) &&
+           Objects.equals(loc, e.loc) &&
+           Objects.equals(value, e.value) &&
+           pruned == e.pruned;
+  }
+
+  @Override
+  public String toString() {
+    if (value == null) {
+      return Boolean.toString(result);
+    }
+    return result + ": " + value;
   }
 }

@@ -394,19 +394,19 @@ public class Test {
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> {
                   e.getValue().values().stream()
-                      .sorted(Comparator.comparing(a -> a.keywordLocation))
-                      .forEach(a -> {
+                      .sorted(Comparator.comparing(err -> err.loc.keyword))
+                      .forEach(err -> {
                         JsonObject error = new JsonObject();
-                        error.addProperty("keywordLocation", a.keywordLocation.toString());
-                        error.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
-                        error.addProperty("instanceLocation", a.instanceLocation.toString());
-                        if (!a.isValid()) {
+                        error.addProperty("keywordLocation", err.loc.keyword.toString());
+                        error.addProperty("absoluteKeywordLocation", err.loc.absKeyword.toString());
+                        error.addProperty("instanceLocation", err.loc.instance.toString());
+                        if (err.isPruned()) {
                           error.addProperty("pruned", true);
                         }
 
-                        error.addProperty("result", a.value.result);
-                        if (a.value.value != null) {
-                          error.addProperty(a.name, a.value.value.toString());
+                        error.addProperty("result", err.result);
+                        if (err.value != null) {
+                          error.addProperty("error", err.value.toString());
                         }
                         errorArr.add(error);
                       });
@@ -417,12 +417,12 @@ public class Test {
                 .forEach(e -> {
                   e.getValue().forEach((name, bySchemaLoc) -> {
                     bySchemaLoc.values().stream()
-                        .sorted(Comparator.comparing(a -> a.keywordLocation))
+                        .sorted(Comparator.comparing(a -> a.loc.keyword))
                         .forEach(a -> {
                           JsonObject o = new JsonObject();
-                          o.addProperty("instanceLocation", a.instanceLocation.toString());
-                          o.addProperty("keywordLocation", a.keywordLocation.toString());
-                          o.addProperty("absoluteKeywordLocation", a.absKeywordLocation.toString());
+                          o.addProperty("instanceLocation", a.loc.instance.toString());
+                          o.addProperty("keywordLocation", a.loc.keyword.toString());
+                          o.addProperty("absoluteKeywordLocation", a.loc.absKeyword.toString());
                           JsonObject ao = new JsonObject();
                           o.add("annotation", ao);
                           ao.addProperty("name", a.name);
