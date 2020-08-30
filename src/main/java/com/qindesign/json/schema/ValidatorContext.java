@@ -123,9 +123,7 @@ public final class ValidatorContext {
     JSONPath keywordParentLocation;
     URI absKeywordParentLocation;
 
-    JSONPath keywordLocation;
-    URI absKeywordLocation;
-    JSONPath instanceLocation;
+    Locator loc;
 
     /** Flag that indicates whether to collect annotations, an optimization. */
     boolean isCollectAnnotations;
@@ -162,9 +160,7 @@ public final class ValidatorContext {
       this.recursiveBaseURI = state.recursiveBaseURI;
       this.keywordParentLocation = state.keywordParentLocation;
       this.absKeywordParentLocation = state.absKeywordParentLocation;
-      this.keywordLocation = state.keywordLocation;
-      this.absKeywordLocation = state.absKeywordLocation;
-      this.instanceLocation = state.instanceLocation;
+      this.loc = state.loc;
       this.isCollectAnnotations = state.isCollectAnnotations;
       this.isCollectSubAnnotations = state.isCollectSubAnnotations;
     }
@@ -383,13 +379,19 @@ public final class ValidatorContext {
     state.isRoot = true;
     state.keywordParentLocation = null;
     state.absKeywordParentLocation = null;
-    state.keywordLocation = JSONPath.absolute();
+
+    URI absKeywordLocation;
     if (rootID == null) {
-      state.absKeywordLocation = baseURI;
+      absKeywordLocation = baseURI;
     } else {
-      state.absKeywordLocation = Optional.ofNullable(rootID.rootID).orElse(rootID.id);
+      if (rootID.rootID == null) {
+        absKeywordLocation = rootID.id;
+      } else {
+        absKeywordLocation = rootID.rootID;
+      }
     }
-    state.instanceLocation = JSONPath.absolute();
+    state.loc = new Locator(JSONPath.absolute(), JSONPath.absolute(), absKeywordLocation);
+
     state.isCollectAnnotations = true;
     state.isCollectSubAnnotations = true;
 
@@ -602,7 +604,7 @@ public final class ValidatorContext {
    * @return the location of the current keyword.
    */
   public JSONPath schemaLocation() {
-    return state.keywordLocation;
+    return state.loc.keyword;
   }
 
   /**
@@ -750,20 +752,16 @@ public final class ValidatorContext {
       return;
     }
 
-    var a = new Annotation<>(name,
-                             new Locator(state.instanceLocation,
-                                         state.keywordLocation,
-                                         state.absKeywordLocation),
-                             value);
+    var a = new Annotation<>(name, state.loc, value);
     a.setValid(state.isCollectAnnotations);
 
     var oldA = annotations
-        .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
+        .computeIfAbsent(state.loc.instance, k -> new HashMap<>())
         .computeIfAbsent(name, k -> new HashMap<>())
-        .putIfAbsent(state.keywordLocation, a);
+        .putIfAbsent(state.loc.keyword, a);
     if (oldA != null) {
       throw new MalformedSchemaException("annotation not unique: possible infinite loop",
-                                         state.absKeywordLocation);
+                                         state.loc.absKeyword);
     }
   }
 
@@ -781,7 +779,7 @@ public final class ValidatorContext {
   public void addLocalAnnotation(String name, Object value) throws MalformedSchemaException {
     if (state.localAnnotations.putIfAbsent(name, value) != null) {
       throw new MalformedSchemaException("local annotation not unique: possible infinite loop",
-                                         state.absKeywordLocation);
+                                         state.loc.absKeyword);
     }
   }
 
@@ -806,18 +804,14 @@ public final class ValidatorContext {
       return;
     }
 
-    var err = new Error<>(result,
-                          new Locator(state.instanceLocation,
-                                      state.keywordLocation,
-                                      state.absKeywordLocation),
-                          value);
+    var err = new Error<>(result, state.loc, value);
 
     var oldErr = errors
-        .computeIfAbsent(state.instanceLocation, k -> new HashMap<>())
-        .putIfAbsent(state.keywordLocation, err);
+        .computeIfAbsent(state.loc.instance, k -> new HashMap<>())
+        .putIfAbsent(state.loc.keyword, err);
     if (oldErr != null) {
       throw new MalformedSchemaException("error not unique: possible infinite loop",
-                                         state.absKeywordLocation);
+                                         state.loc.absKeyword);
     }
   }
 
@@ -834,9 +828,9 @@ public final class ValidatorContext {
     }
 
     return annotations
-        .getOrDefault(state.instanceLocation, Collections.emptyMap())
+        .getOrDefault(state.loc.instance, Collections.emptyMap())
         .getOrDefault(name, Collections.emptyMap())
-        .containsKey(state.keywordLocation);
+        .containsKey(state.loc.keyword);
   }
 
   /**
@@ -850,8 +844,8 @@ public final class ValidatorContext {
     }
 
     return errors
-        .getOrDefault(state.instanceLocation, Collections.emptyMap())
-        .containsKey(state.keywordLocation);
+        .getOrDefault(state.loc.instance, Collections.emptyMap())
+        .containsKey(state.loc.keyword);
   }
 
   /**
@@ -872,7 +866,7 @@ public final class ValidatorContext {
 
     return Collections.unmodifiableMap(
         annotations
-            .getOrDefault(state.instanceLocation, Collections.emptyMap())
+            .getOrDefault(state.loc.instance, Collections.emptyMap())
             .getOrDefault(name, Collections.emptyMap()));
   }
 
@@ -961,7 +955,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException always.
    */
   public void schemaError(String err, JSONPath path) throws MalformedSchemaException {
-    throw new MalformedSchemaException(err, resolveAbsolute(state.absKeywordLocation, path));
+    throw new MalformedSchemaException(err, resolveAbsolute(state.loc.absKeyword, path));
   }
 
   /**
@@ -1003,7 +997,7 @@ public final class ValidatorContext {
   public void checkValidSchema(JsonElement e, String name) throws MalformedSchemaException {
     if (!Validator.isSchema(e)) {
       throw new MalformedSchemaException("not a valid JSON Schema",
-                                         resolveAbsolute(state.absKeywordLocation, name));
+                                         resolveAbsolute(state.loc.absKeyword, name));
     }
   }
 
@@ -1174,7 +1168,7 @@ public final class ValidatorContext {
 
     if (absKeywordLocation == null) {
       if (absSchemaLoc == null) {
-        absKeywordLocation = resolveAbsolute(state.absKeywordLocation, name);
+        absKeywordLocation = resolveAbsolute(state.loc.absKeyword, name);
       } else {
         absKeywordLocation = absSchemaLoc;
       }
@@ -1188,8 +1182,8 @@ public final class ValidatorContext {
       return true;
     }
 
-    JSONPath keywordLocation = resolvePointer(state.keywordLocation, name);
-    JSONPath instanceLocation = resolvePointer(state.instanceLocation, instanceName);
+    JSONPath keywordLocation = resolvePointer(state.loc.keyword, name);
+    JSONPath instanceLocation = resolvePointer(state.loc.instance, instanceName);
 
     State parentState = state;
     state = new State(state);
@@ -1197,8 +1191,7 @@ public final class ValidatorContext {
     state.schemaObject = schemaObject;
     state.keywordParentLocation = keywordLocation;
     state.absKeywordParentLocation = absKeywordLocation;
-    state.instanceLocation = instanceLocation;
-    state.absKeywordLocation = absKeywordLocation;
+    state.loc = new Locator(instanceLocation, state.loc.keyword, absKeywordLocation);
     state.isCollectAnnotations = parentState.isCollectSubAnnotations;
     state.isCollectSubAnnotations = state.isCollectAnnotations;
 
@@ -1279,12 +1272,12 @@ public final class ValidatorContext {
    */
   public boolean applyKeyword(Keyword k, JsonElement schema, JsonElement instance)
       throws MalformedSchemaException {
-    state.keywordLocation = resolvePointer(state.keywordParentLocation, k.name());
-    state.absKeywordLocation = resolveAbsolute(state.absKeywordParentLocation, k.name());
+    state.loc = new Locator(state.loc.instance,
+                            resolvePointer(state.keywordParentLocation, k.name()),
+                            resolveAbsolute(state.absKeywordParentLocation, k.name()));
 
     // Copy the keyword state in case it changes underfoot
-    JSONPath keywordLoc = state.keywordLocation;
-    URI absKeywordLoc = state.absKeywordLocation;
+    Locator loc = state.loc;
     boolean isCollectSubAnnotations = state.isCollectSubAnnotations;
 
     boolean result = true;
@@ -1296,8 +1289,7 @@ public final class ValidatorContext {
     }
 
     // Restore the keyword state that may have changed underfoot
-    state.keywordLocation = keywordLoc;
-    state.absKeywordLocation = absKeywordLoc;
+    state.loc = loc;
     state.isCollectSubAnnotations = isCollectSubAnnotations;
 
     if (!hasError()) {
