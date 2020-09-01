@@ -539,12 +539,12 @@ public final class JSON {
         state.inProperties = true;
         state.isNotSchema = true;
       } else if (path.endsWith(CoreDefs.NAME)) {
-        if (state.spec == null || state.spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        if (state.spec == null || state.spec.compareTo(Specification.DRAFT_2019_09) >= 0) {
           state.inDefs = true;
           state.isNotSchema = true;
         }
       } else if (path.endsWith(Definitions.NAME)) {
-        if (state.spec == null || state.spec.ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        if (state.spec == null || state.spec.compareTo(Specification.DRAFT_2019_09) < 0) {
           state.inDefs = true;
           state.isNotSchema = true;
         }
@@ -587,8 +587,7 @@ public final class JSON {
 
           if (URIs.hasNonEmptyFragment(id)) {
             // Draft 2019-09 and later can't have anchors
-            if (state.spec != null &&
-                state.spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+            if (state.spec != null && state.spec.compareTo(Specification.DRAFT_2019_09) >= 0) {
               throw new MalformedSchemaException("has a non-empty fragment", loc.get());
             }
 
@@ -614,7 +613,7 @@ public final class JSON {
       }
 
       // Anchor element
-      if (state.spec != null && state.spec.ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+      if (state.spec != null && state.spec.compareTo(Specification.DRAFT_2019_09) >= 0) {
         JsonElement anchorElem = e.getAsJsonObject().get(CoreAnchor.NAME);
         if (anchorElem != null) {
           // Absolute location of the anchor element

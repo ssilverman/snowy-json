@@ -45,7 +45,7 @@ public class ContentEncoding extends Keyword {
   protected boolean apply(JsonElement value, JsonElement instance, JsonObject parent,
                           ValidatorContext context)
       throws MalformedSchemaException {
-    if (context.specification().ordinal() < Specification.DRAFT_07.ordinal()) {
+    if (context.specification().compareTo(Specification.DRAFT_07) < 0) {
       return true;
     }
 

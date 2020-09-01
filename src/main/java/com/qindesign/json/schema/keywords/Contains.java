@@ -63,7 +63,7 @@ public class Contains extends Keyword {
 
     // Special handling if there's a minContains == 0
     boolean allowZero = false;
-    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+    if (context.specification().compareTo(Specification.DRAFT_2019_09) >= 0) {
       JsonElement minContains = parent.get(MinContains.NAME);
       if (minContains != null && JSON.isNumber(minContains)) {
         BigDecimal n = Numbers.valueOf(minContains.getAsString());

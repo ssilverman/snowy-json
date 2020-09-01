@@ -244,7 +244,7 @@ public class Format extends Keyword {
     }
 
     Boolean vocab = false;
-    if (context.specification().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+    if (context.specification().compareTo(Specification.DRAFT_2019_09) >= 0) {
       vocab = context.vocabularies().get(Vocabulary.FORMAT.id());
       if (vocab == null) {
         vocab = false;

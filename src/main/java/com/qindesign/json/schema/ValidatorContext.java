@@ -1208,7 +1208,7 @@ public final class ValidatorContext {
       Keyword k = keywords.get(m.getKey());
 
       // $ref causes all other properties to be ignored
-      if (specification().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+      if (specification().compareTo(Specification.DRAFT_2019_09) < 0) {
         if (schemaObject.has(CoreRef.NAME) && !k.name().equals(CoreRef.NAME)) {
           continue;
         }

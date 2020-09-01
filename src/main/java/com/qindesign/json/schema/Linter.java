@@ -148,7 +148,7 @@ public final class Linter {
               context.addIssue(
                   "unnormalized ID: \"" + Strings.jsonString(context.string()) + "\"");
             }
-            if (context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+            if (context.spec().compareTo(Specification.DRAFT_2019_09) >= 0) {
               if (id.rawFragment() != null && id.rawFragment().isEmpty()) {
                 context.addIssue(
                     "empty fragment: \"" + Strings.jsonString(context.string()) + "\"");
@@ -269,7 +269,7 @@ public final class Linter {
       // Check specification-specific keyword presence
       context -> {
         if (context.spec() != null) {
-          if (context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+          if (context.spec().compareTo(Specification.DRAFT_2019_09) >= 0) {
             context.object().keySet().forEach(name -> {
               if (Validator.OLD_KEYWORDS_DRAFT_2019_09.contains(name)) {
                 context.addIssue("\"" + name + "\" was removed in Draft 2019-09");
@@ -283,7 +283,7 @@ public final class Linter {
             });
           }
 
-          if (context.spec().ordinal() < Specification.DRAFT_07.ordinal()) {
+          if (context.spec().compareTo(Specification.DRAFT_07) < 0) {
             context.object().keySet().forEach(name -> {
               if (Validator.NEW_KEYWORDS_DRAFT_07.contains(name)) {
                 context.addIssue("\"" + name + "\" was added in Draft-07");
@@ -295,7 +295,7 @@ public final class Linter {
 
       // Schema-specific keyword behaviour
       context -> {
-        if (context.spec() == null || context.spec().ordinal() >= Specification.DRAFT_2019_09.ordinal()) {
+        if (context.spec() == null || context.spec().compareTo(Specification.DRAFT_2019_09) >= 0) {
           if (context.object().has(MinContains.NAME)) {
             if (!context.object().has(Contains.NAME)) {
               context.addIssue("\"" + MinContains.NAME + "\" without \"" + Contains.NAME + "\"");
@@ -328,12 +328,12 @@ public final class Linter {
           context.addIssue(checkType(context.object(), UnevaluatedProperties.NAME, List.of("object")));
         }
 
-        if (context.spec() == null || context.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        if (context.spec() == null || context.spec().compareTo(Specification.DRAFT_2019_09) < 0) {
           // Type checks for this draft
           context.addIssue(checkType(context.object(), Dependencies.NAME, List.of("object")));
         }
 
-        if (context.spec() == null || context.spec().ordinal() >= Specification.DRAFT_07.ordinal()) {
+        if (context.spec() == null || context.spec().compareTo(Specification.DRAFT_07) >= 0) {
           if (context.object().has("then")) {
             if (!context.object().has(If.NAME)) {
               context.addIssue("\"then\" without \"" + If.NAME + "\"");
@@ -364,7 +364,7 @@ public final class Linter {
 
       // $ref-with-siblings for Draft-07 and earlier
       context -> {
-        if (context.spec() != null && context.spec().ordinal() < Specification.DRAFT_2019_09.ordinal()) {
+        if (context.spec() != null && context.spec().compareTo(Specification.DRAFT_2019_09) < 0) {
           if (context.object().has(CoreRef.NAME) && context.object().size() > 1) {
             context.addIssue("\"$ref\" with siblings");
           }
