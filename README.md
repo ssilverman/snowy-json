@@ -326,7 +326,7 @@ of schema validation. Note that these are subject to change.
 4. `com.qindesign.net.URI`: An
    [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html)-compliant URI parser.
    As of this writing, Java's URI API is only RFC 2396-compliant and is not
-   sufficient for processing JSON Schemas. 
+   sufficient for processing JSON Schemas.
 5. `com.qindesign.net.URIParser.parseIPv6`: Parses IPv6 addresses, per RFC 3986.
 6. `com.qindesign.net.URIParser.parseIPv4`: Parses IPv4 addresses, per RFC 3986.
 
