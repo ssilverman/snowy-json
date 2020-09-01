@@ -143,7 +143,7 @@ public final class Validator {
       "date",
       "time");
 
-  private ValidatorContext context;
+  private final ValidatorContext context;
 
   /**
    * Creates a new validator.

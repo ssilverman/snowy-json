@@ -528,12 +528,12 @@ public final class Linter {
   }
 
   // All the rules
-  List<Consumer<Context>> nullRules = new ArrayList<>();
-  List<Consumer<Context>> primitiveRules = new ArrayList<>();
-  List<Consumer<Context>> stringRules = new ArrayList<>();
-  List<Consumer<Context>> objectRules = new ArrayList<>();
-  List<Consumer<Context>> arrayRules = new ArrayList<>();
-  List<Consumer<Context>> otherRules = new ArrayList<>();
+  private final List<Consumer<Context>> nullRules = new ArrayList<>();
+  private final List<Consumer<Context>> primitiveRules = new ArrayList<>();
+  private final List<Consumer<Context>> stringRules = new ArrayList<>();
+  private final List<Consumer<Context>> objectRules = new ArrayList<>();
+  private final List<Consumer<Context>> arrayRules = new ArrayList<>();
+  private final List<Consumer<Context>> otherRules = new ArrayList<>();
 
   /**
    * Creates a new linter.
