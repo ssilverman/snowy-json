@@ -29,6 +29,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
 import com.qindesign.json.schema.keywords.CoreAnchor;
 import com.qindesign.json.schema.keywords.CoreDefs;
@@ -38,12 +39,16 @@ import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -167,6 +172,55 @@ public final class JSON {
       }
       throw ex;
     }
+  }
+
+  /**
+   * Prints a JSON element to the given output stream. A trailing newline will
+   * not be sent, but the output will be flushed.
+   * <p>
+   * This calls {@link #print(Writer, JsonElement, String)} after first wrapping
+   * the output stream in an {@link OutputStreamWriter}.
+   *
+   * @param out the output stream
+   * @param json the JSON to output
+   * @param indent the indent string, optionally {@code null} for no indent
+   * @throws IOException if there was an error during output.
+   * @throws NullPointerException if the output stream or JSON element
+   *         is {@code null}.
+   */
+  public static void print(OutputStream out, JsonElement json, String indent) throws IOException {
+    Objects.requireNonNull(out, "out");
+    Objects.requireNonNull(json, "json");
+
+    print(new OutputStreamWriter(out), json, indent);
+  }
+
+  /**
+   * Prints a JSON element to the given writer. A trailing newline will not
+   * be sent, but the output will be flushed.
+   *
+   * @param w the writer
+   * @param json the JSON to output
+   * @param indent the indent string, optionally {@code null} for no indent
+   * @throws IOException if there was an error during output.
+   * @throws NullPointerException if the writer or JSON element is {@code null}.
+   */
+  public static void print(Writer w, JsonElement json, String indent) throws IOException {
+    Objects.requireNonNull(w, "w");
+    Objects.requireNonNull(json, "json");
+
+    BufferedWriter bw;
+    if (w instanceof BufferedWriter) {
+      bw = (BufferedWriter) w;
+    } else {
+      bw = new BufferedWriter(w);
+    }
+    JsonWriter jsonW = new JsonWriter(bw);
+    if (indent != null) {
+      jsonW.setIndent(indent);
+    }
+    Streams.write(json, jsonW);
+    jsonW.flush();
   }
 
   /**
