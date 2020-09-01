@@ -25,16 +25,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.keywords.*;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -143,13 +139,8 @@ public final class Linter {
         });
 
     // Output the issues
-    BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out));
-    JsonWriter w = new JsonWriter(out);
-    w.setIndent("    ");
-    Streams.write(outputArr, w);
-    w.flush();
-    out.newLine();
-    out.flush();
+    JSON.print(System.out, outputArr, "    ");
+    System.out.println();
   }
 
   /**

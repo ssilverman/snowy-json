@@ -27,14 +27,10 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -128,21 +124,14 @@ public class Main {
     logger.info("Validation result: " + result + " (" + time/1000.0 + "s)");
 
     // Basic output
-    Writer out = new OutputStreamWriter(System.out);
-    JsonWriter w = new JsonWriter(out);
-    w.setIndent("    ");
     System.out.println("Basic output:");
-    Streams.write(basicOutput(result, errors), w);
-    w.flush();
+    JSON.print(System.out, basicOutput(result, errors), "    ");
     System.out.println();
 
     // Annotations
     System.out.println();
-    w = new JsonWriter(out);
-    w.setIndent("    ");
     System.out.println("Annotations:");
-    Streams.write(annotationOutput(annotations), w);
-    w.flush();
+    JSON.print(System.out, annotationOutput(annotations), "    ");
     System.out.println();
   }
 

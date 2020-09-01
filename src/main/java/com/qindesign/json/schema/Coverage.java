@@ -25,14 +25,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -170,21 +166,13 @@ public class Coverage {
     });
 
     // Output
-    Writer out = new OutputStreamWriter(System.out);
-
     System.out.println("By instance location:");
-    JsonWriter w = new JsonWriter(out);
-    w.setIndent("    ");
-    Streams.write(instanceRoot, w);
-    w.flush();
+    JSON.print(System.out, instanceRoot, "    ");
     System.out.println();
 
     System.out.println();
     System.out.println("By schema location (seen only):");
-    w = new JsonWriter(out);
-    w.setIndent("    ");
-    Streams.write(schemaRoot, w);
-    w.flush();
+    JSON.print(System.out, schemaRoot, "    ");
     System.out.println();
   }
 

@@ -27,17 +27,14 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.util.Logging;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -178,12 +175,8 @@ public class Test {
 
     // Print the output
     if (specOutputArr != null) {
-      try (FileOutputStream fileOut = new FileOutputStream(args[1])) {
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOut));
-        JsonWriter jsonW = new JsonWriter(bw);
-        jsonW.setIndent("    ");
-        Streams.write(specOutputArr, jsonW);
-        jsonW.flush();
+      try (BufferedWriter bw = new BufferedWriter(new FileWriter(args[1]))) {
+        JSON.print(bw, specOutputArr, "    ");
         bw.newLine();
         bw.flush();
       } catch (IOException ex) {
