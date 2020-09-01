@@ -9,11 +9,17 @@ See: [Keep a Changelog](https://keepachangelog.com)
 ### Added
 * Added an "Internal APIs" section to the README. This mentions useful classes
   and methods for use in one's own projects.
+* The test suite runner can now optionally dump all the errors and annotations.
+* Added a new `Locator` class that encapsulates instance and schema locations.
+  `Annotation` and `Error` use this.
 
 ### Changed
 * Updated to the latest Draft 2019-09 schemas.
-* Parameterized `Annotation` and created a new `Error` subclass that replaces
-  the `ValidationResult` Annotation value.
+* Changed the schema resource hierarchy so that it matches the JSON Schema
+  upstream hierarchy.
+* Restructured annotations and errors. `Annotation` was split into the
+  parameterized `Annotation` and `Error` classes. `Error` replaces the
+  `ValidationResult` `Annotation` value.
 * Changed the linter to print URI fragments instead of paths.
 
 ## [0.14.0]
