@@ -25,11 +25,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 import com.qindesign.json.schema.keywords.*;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -123,8 +128,28 @@ public final class Linter {
     }
     Linter linter = new Linter();
     Map<JSONPath, List<String>> issues = linter.check(schema);
-    issues.forEach((path, list) -> list.forEach(
-        msg -> System.out.println(path.toURIFragmentID() + ": " + msg)));
+
+    // Collect the issues and sort them by instance location
+    JsonArray outputArr = new JsonArray();
+    issues.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(e -> {
+          JsonObject instanceObj = new JsonObject();
+          outputArr.add(instanceObj);
+          instanceObj.addProperty("instanceLocation", e.getKey().toString());
+          JsonArray issueArr = new JsonArray();
+          instanceObj.add("issues", issueArr);
+          e.getValue().forEach(issueArr::add);
+        });
+
+    // Output the issues
+    BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out));
+    JsonWriter w = new JsonWriter(out);
+    w.setIndent("    ");
+    Streams.write(outputArr, w);
+    w.flush();
+    out.newLine();
+    out.flush();
   }
 
   /**
