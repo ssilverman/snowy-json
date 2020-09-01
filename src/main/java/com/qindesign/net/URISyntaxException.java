@@ -30,7 +30,6 @@ import java.util.Objects;
  */
 public class URISyntaxException extends Exception {
   private final String input;
-  private final String reason;
   private final int index;
 
   /**
@@ -51,7 +50,6 @@ public class URISyntaxException extends Exception {
       throw new IllegalArgumentException("index < -1");
     }
     this.input = input;
-    this.reason = reason;
     this.index = index;
   }
 
