@@ -436,9 +436,8 @@ public final class Validator {
    *     &rarr; schema location &rarr; {@link Annotation}. The
    *     {@link Annotation} value is dependent on the source.</li>
    * <li>The errors have this structure: instance location &rarr; schema
-   *     location &rarr; {@link Error}. The {@link Error} value is an instance
-   *     of {@link Error.Value}, and its name will be "error" when the result is
-   *     {@code false} and "annotation" when the result is {@code true}.
+   *     location &rarr; {@link Error}. The {@link Error} value is dependent on
+   *     the source, but is likely to be an informative error message.
    * </ul>
    * <p>
    * If errors are collected, then both valid and invalid results are collected.
