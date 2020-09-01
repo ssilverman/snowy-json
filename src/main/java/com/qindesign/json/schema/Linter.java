@@ -123,7 +123,8 @@ public final class Linter {
     }
     Linter linter = new Linter();
     Map<JSONPath, List<String>> issues = linter.check(schema);
-    issues.forEach((path, list) -> list.forEach(msg -> System.out.println(path + ": " + msg)));
+    issues.forEach((path, list) -> list.forEach(
+        msg -> System.out.println(path.toURIFragmentID() + ": " + msg)));
   }
 
   /**
