@@ -372,7 +372,15 @@ public final class Linter {
         if (!context.is(CoreVocabulary.NAME)) {
           context.object().keySet().forEach(name -> {
             if (!KNOWN_KEYWORDS.contains(name)) {
-              context.addIssue("unknown keyword: \"" + Strings.jsonString(name) + "\"");
+              var similars = KNOWN_KEYWORDS.stream()
+                  .filter(name::equalsIgnoreCase)
+                  .map(Strings::jsonString)
+                  .collect(Collectors.toSet());
+              if (!similars.isEmpty()) {
+                context.addIssue("unknown but similar: " + similars + ": \"" + Strings.jsonString(name) + "\"");
+              } else {
+                context.addIssue("unknown keyword: \"" + Strings.jsonString(name) + "\"");
+              }
             }
           });
         }
