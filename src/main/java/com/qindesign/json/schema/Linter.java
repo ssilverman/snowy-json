@@ -393,6 +393,12 @@ public final class Linter {
             context.addIssue("\"$ref\" with siblings");
           }
         }
+      },
+
+      // Implied type checks
+      context -> {
+        context.addIssue(checkImpliedType(context.object(), Default.NAME));
+        context.addIssue(checkImpliedType(context.object(), Const.NAME));
       }
   );
 
@@ -738,6 +744,43 @@ public final class Linter {
       }
     }
     return null;
+  }
+
+  /**
+   * Checks that the given element's inferred type is satisfied by an existing
+   * sibling "type".
+   *
+   * @param o the JSON object
+   * @param name the element name
+   * @return an issue message, or {@code null} for no issue.
+   */
+  private static String checkImpliedType(JsonObject o, String name) {
+    JsonElement e = o.get(name);
+    if (e == null) {
+      return null;
+    }
+    List<String> types;
+    if (JSON.isString(e)) {
+      types = List.of("string");
+    } else if (JSON.isBoolean(e)) {
+      types = List.of("boolean");
+    } else if (JSON.isNumber(e)) {
+      BigDecimal n = Numbers.valueOf(e.getAsString());
+      if (Numbers.isInteger(n)) {
+        types = List.of("number", "integer");
+      } else {
+        types = List.of("number");
+      }
+    } else if (e.isJsonArray()) {
+      types = List.of("array");
+    } else if (e.isJsonObject()) {
+      types = List.of("object");
+    } else if (e.isJsonNull()) {
+      types = List.of("null");
+    } else {
+      return null;
+    }
+    return checkType(o, name, types);
   }
 
   /**
