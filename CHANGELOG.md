@@ -12,6 +12,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * The test suite runner can now optionally dump all the errors and annotations.
 * Added a new `Locator` class that encapsulates instance and schema locations.
   `Annotation` and `Error` use this.
+* New linter rules:
+  1. Added a check for case-insensitive matching for unknown keywords.
+  2. Added implied type checks for "default" and "const".
 
 ### Changed
 * Updated to the latest Draft 2019-09 schemas.

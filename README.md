@@ -423,7 +423,8 @@ schema. It does currently check for the following things:
 2. Empty `items` arrays.
 3. `additionalItems` without a sibling array-form `items`.
 4. `$schema` elements inside a subschema that do not have a sibling `$id`.
-5. Unknown keywords.
+5. Unknown keywords. Similar keywords are noted by doing case-insensitive
+   matching to known keywords.
 6. Property names that start with "$".
 7. Unnormalized `$id` values.
 8. Locally-pointing `$ref` values that don't exist.
@@ -433,19 +434,21 @@ schema. It does currently check for the following things:
 11. Expected type checking for appropriate keywords. For example, `minimum`
     expects that the type is "number" or "integer" and `format` expects a
     "string" type.
-12. Draft 2019-09 or later schemas having keywords that were removed in
+12. Implied type checking for `default` and `const`; a type is expected to
+    exist and to match the implied type for these values.
+13. Draft 2019-09 or later schemas having keywords that were removed in
     Draft 2019-09.
-13. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
-14. Pre-Draft-07 schemas having keywords that were added in Draft-07.
-15. Draft 2019-09 or later, or unspecified, schemas:
+14. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
+15. Pre-Draft-07 schemas having keywords that were added in Draft-07.
+16. Draft 2019-09 or later, or unspecified, schemas:
     1. `minContains` without a sibling `contains`.
     2. `maxContains` without a sibling `contains`.
     3. `unevaluatedItems` without a sibling array-form `items`.
     4. `$id` values that have an empty fragment.
-16. Draft-07 or later, or unspecified, schemas:
+17. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.
-17. Draft-07 or earlier schemas:
+18. Draft-07 or earlier schemas:
     1. `$ref` members with siblings.
 
 ### Doing your own linting
