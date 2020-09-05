@@ -1,3 +1,5 @@
+<a href="https://www.buymeacoffee.com/ssilverman" title="Donate to this project using Buy Me A Coffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg" alt="Buy Me A Coffee donate button"></a>
+
 # Snow, a JSON Schema Validator
 
 Version: 0.15.0
@@ -39,7 +41,8 @@ See: [JSON Schema](https://json-schema.org)
     1. [Possible future plans](#possible-future-plans)
 12. [References](#references)
 13. [An ending thought](#an-ending-thought)
-14. [License](#license)
+14. [Acknowledgements](#acknowledgements)
+15. [License](#license)
 
 ## Features
 
@@ -543,6 +546,12 @@ These are plans that may or may not be explored:
 
 I'd love to say this: "The validator isn't wrong, the spec is ambiguous."™ \
 Realistic? No, but fun to say anyway.
+
+## Acknowledgements
+
+Thanks to
+<a href="https://www.jetbrains.com/?from=Snow">JetBrains</a> for providing an
+Open Source licence for IntelliJ, my favourite IDE since forever.
 
 ## License
 
