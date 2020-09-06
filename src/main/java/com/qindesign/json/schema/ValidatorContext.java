@@ -21,7 +21,6 @@
  */
 package com.qindesign.json.schema;
 
-import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -39,21 +38,14 @@ import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -195,14 +187,18 @@ public final class ValidatorContext {
    */
   @SuppressWarnings("UnstableApiUsage")
   private static Map<String, Keyword> findKeywords() throws IOException {
-    ClassPath classPath = ClassPath.from(CLASS.getClassLoader());
-    Set<ClassPath.ClassInfo> classes =
-        classPath.getTopLevelClasses(CLASS.getPackage().getName() + ".keywords");
+
+    Class[] keywordClasses = null;
+    try {
+      keywordClasses = getClasses(CLASS.getPackage().getName() + ".keywords");
+    } catch (ClassNotFoundException e) {
+      // Unreachable as we find from our own package
+    }
 
     Map<String, Keyword> keywords = new HashMap<>();
 
-    for (ClassPath.ClassInfo classInfo : classes) {
-      Class<?> c = classInfo.load();
+    for (Class c : keywordClasses) {
+
       if (!Keyword.class.isAssignableFrom(c)) {
         continue;
       }
@@ -224,6 +220,58 @@ public final class ValidatorContext {
     }
 
     return keywords;
+  }
+
+  /**
+   * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
+   *
+   * @param packageName The base package
+   * @return The classes
+   * @throws ClassNotFoundException
+   * @throws IOException
+   */
+  private static Class[] getClasses(String packageName)
+          throws ClassNotFoundException, IOException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    assert classLoader != null;
+    String path = packageName.replace('.', '/');
+    Enumeration<URL> resources = classLoader.getResources(path);
+    List<File> dirs = new ArrayList();
+    while (resources.hasMoreElements()) {
+      URL resource = resources.nextElement();
+      dirs.add(new File(resource.getFile()));
+    }
+    ArrayList<Class> classes = new ArrayList();
+    for (File directory : dirs) {
+      classes.addAll(findClasses(directory, packageName));
+    }
+    return classes.toArray(new Class[classes.size()]);
+  }
+  /**
+   * Recursive method used to find all classes in a given directory and subdirs.
+   *
+   * @param directory   The base directory
+   * @param packageName The package name for classes found inside the base directory
+   * @return The classes
+   * @throws ClassNotFoundException
+   */
+  private static List findClasses(File directory, String packageName) throws ClassNotFoundException {
+    List classes = new ArrayList();
+    if (!directory.exists()) {
+      return classes;
+    }
+    File[] files = directory.listFiles();
+    for (File file : files) {
+      if (file.isDirectory()) {
+        assert !file.getName().contains(".");
+        classes.addAll(findClasses(file, packageName + "." + file.getName()));
+      } else if (file.getName().endsWith(".class")) {
+
+        Class clazz = Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6));
+        classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+      }
+    }
+    return classes;
   }
 
   /** Vocabularies in use. */
