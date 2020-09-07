@@ -12,6 +12,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * The test suite runner can now optionally dump all the errors and annotations.
 * Added a new `Locator` class that encapsulates instance and schema locations.
   `Annotation` and `Error` use this.
+* New `JSON.print` methods for outputting a JSON element. There is one for
+  an `OutputStream` and one for a `Writer`. `Coverage`, `Linter`, `Main`, and
+  `Test` were changed to use this function for their output.
 * New linter rules:
   1. Added a check for case-insensitive matching for unknown keywords.
   2. Added implied type checks for "default" and "const".
@@ -25,7 +28,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Restructured annotations and errors. `Annotation` was split into the
   parameterized `Annotation` and `Error` classes. `Error` replaces the
   `ValidationResult` `Annotation` value.
-* Changed the linter to print URI fragments instead of paths.
+* Changed the linter to output JSON.
 * Changed the library used to find `Keyword` implementation classes. Now using
   [ClassGraph](https://github.com/classgraph/classgraph) instead of Guava. This
   somewhat reduces the dependency size.
