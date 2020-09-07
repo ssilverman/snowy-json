@@ -110,9 +110,10 @@ started right away:
 
 ## Under the covers
 
-This project uses Google's [Gson](https://github.com/google/gson) and
-[Guava](https://github.com/google/guava) libraries under the hood. Gson is used
-for the JSON parsing, and Guava is used to support class finding.
+This project uses Google's [Gson](https://github.com/google/gson) library under
+the hood for JSON parsing.
+[ClassGraph](https://github.com/classgraph/classgraph) is used to support
+class finding.
 
 This means these things:
 1. The external API for this project uses Gson's JSON object model.
@@ -536,7 +537,7 @@ These are plans that may or may not be explored:
 
 1. [JSON Schema Specification](https://json-schema.org/specification.html)
 2. [Gson](https://github.com/google/gson)
-3. [Guava](https://github.com/google/guava)
+3. [ClassGraph](https://github.com/classgraph/classgraph)
 4. [ECMA 262](https://www.ecma-international.org/publications/standards/Ecma-262.htm)
 5. [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite)
 6. [JSON Schema Draft Sources](https://github.com/json-schema-org/json-schema-spec)

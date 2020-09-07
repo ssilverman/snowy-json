@@ -26,6 +26,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
   parameterized `Annotation` and `Error` classes. `Error` replaces the
   `ValidationResult` `Annotation` value.
 * Changed the linter to print URI fragments instead of paths.
+* Changed the library used to find `Keyword` implementation classes. Now using
+  [ClassGraph](https://github.com/classgraph/classgraph) instead of Guava. This
+  somewhat reduces the dependency size.
 
 ## [0.14.0]
 

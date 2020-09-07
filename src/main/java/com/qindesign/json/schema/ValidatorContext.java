@@ -21,7 +21,6 @@
  */
 package com.qindesign.json.schema;
 
-import com.google.common.reflect.ClassPath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -39,6 +38,9 @@ import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -168,14 +170,7 @@ public final class ValidatorContext {
 
   static {
     // First, load all the known keywords
-    Map<String, Keyword> words;
-    try {
-      words = Collections.unmodifiableMap(findKeywords());
-    } catch (IOException ex) {
-      words = Collections.emptyMap();
-      logger.log(Level.SEVERE, "Error finding keywords", ex);
-    }
-    keywords = words;
+    keywords = Collections.unmodifiableMap(findKeywords());
     // The 'keywords' set now contains all the keywords
 
     // Fun with streams
@@ -193,19 +188,28 @@ public final class ValidatorContext {
    * Finds all the keyword implementations and returns a map mapping names to
    * keyword implementations.
    */
-  @SuppressWarnings("UnstableApiUsage")
-  private static Map<String, Keyword> findKeywords() throws IOException {
-    ClassPath classPath = ClassPath.from(CLASS.getClassLoader());
-    Set<ClassPath.ClassInfo> classes =
-        classPath.getTopLevelClasses(CLASS.getPackage().getName() + ".keywords");
+  private static Map<String, Keyword> findKeywords() {
+    Set<Class<?>> keywordClasses;
+    try (ScanResult scanResult = new ClassGraph()
+        .acceptPackagesNonRecursive(CLASS.getPackageName() + ".keywords")
+        .removeTemporaryFilesAfterScan()
+        .scan()) {
+      keywordClasses = scanResult.getAllClasses().stream()
+          .map(classInfo -> {
+            try {
+              return Class.forName(classInfo.getName());
+            } catch (ClassNotFoundException ex) {
+              // Shouldn't happen, in theory
+              throw new IllegalStateException(ex);
+            }
+          })
+          .filter(Keyword.class::isAssignableFrom)
+          .collect(Collectors.toSet());
+    }
 
     Map<String, Keyword> keywords = new HashMap<>();
 
-    for (ClassPath.ClassInfo classInfo : classes) {
-      Class<?> c = classInfo.load();
-      if (!Keyword.class.isAssignableFrom(c)) {
-        continue;
-      }
+    for (Class<?> c : keywordClasses) {
       try {
         Keyword keyword = (Keyword) c.getDeclaredConstructor().newInstance();
         Keyword oldKeyword = keywords.putIfAbsent(keyword.name(), keyword);
