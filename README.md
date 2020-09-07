@@ -270,19 +270,21 @@ Annotations and errors are collected by optionally providing maps to
   and its name will be "error" when the result is `false` and "annotation" when
   the result is `true`.
 
-In all cases, `Annotation.isValid()` indicates whether the annotation is
+For annotations, `Annotation.isValid()` indicates whether the annotation is
 considered valid or auxiliary. When
 [failed annotations](#option-collect_annotations_for_failed) are collected,
 invalid annotations indicate an annotation that would otherwise exist if the
 associated schema had not failed.
 
-For errors, an invalid annotation means that the instance location is valid, but
-the associated schema application failed. For example, "oneOf" will pass
-validation if one subschema passes and all the other subschemas fail. All
-failing subschemas will indicate an error, but the annotation will be marked as
-not valid.
+For errors, `Error.isPruned()` means that the result is not relevant to the
+schema result. For example, "oneOf" will pass validation if one subschema passes
+and all the other subschemas fail. All failing subschemas will indicate an
+error, but it will be marked as _pruned_.
 
 This is useful to track coverage vs. a minimal set of useful errors.
+
+The `Results` class provides some tools for sorting and collecting annotations
+and errors. It does the work of extracting a list of useful results.
 
 The locations are given as
 [JSON Pointers](https://www.rfc-editor.org/rfc/rfc6901.html).
