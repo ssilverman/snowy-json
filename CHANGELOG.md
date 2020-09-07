@@ -15,6 +15,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * New linter rules:
   1. Added a check for case-insensitive matching for unknown keywords.
   2. Added implied type checks for "default" and "const".
+* New `Results` utility class for post-processing annotations and errors into
+  useful results.
 
 ### Changed
 * Updated to the latest Draft 2019-09 schemas.
