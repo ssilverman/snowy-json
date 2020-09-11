@@ -442,19 +442,21 @@ schema. It does currently check for the following things:
     "string" type.
 12. Implied type checking for `default` and `const`; a type is expected to
     exist and to match the implied type for these values.
-13. Draft 2019-09 or later schemas having keywords that were removed in
+13. Non-unique `enum`s.
+14. Empty `enum`, `allOf`, `anyOf`, or `oneOf`.
+15. Draft 2019-09 or later schemas having keywords that were removed in
     Draft 2019-09.
-14. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
-15. Pre-Draft-07 schemas having keywords that were added in Draft-07.
-16. Draft 2019-09 or later, or unspecified, schemas:
+16. Pre-Draft 2019-09 schemas having keywords that were added in Draft 2019-09.
+17. Pre-Draft-07 schemas having keywords that were added in Draft-07.
+18. Draft 2019-09 or later, or unspecified, schemas:
     1. `minContains` without a sibling `contains`.
     2. `maxContains` without a sibling `contains`.
     3. `unevaluatedItems` without a sibling array-form `items`.
     4. `$id` values that have an empty fragment.
-17. Draft-07 or later, or unspecified, schemas:
+19. Draft-07 or later, or unspecified, schemas:
     1. `then` without `if`.
     2. `else` without `if`.
-18. Draft-07 or earlier schemas:
+20. Draft-07 or earlier schemas:
     1. `$ref` members with siblings.
 
 ### Doing your own linting

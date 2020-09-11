@@ -37,6 +37,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -399,6 +400,27 @@ public final class Linter {
       context -> {
         context.addIssue(checkImpliedType(context.object(), Default.NAME));
         context.addIssue(checkImpliedType(context.object(), Const.NAME));
+      },
+
+      // Enum non-unique check
+      context -> {
+        JsonElement elem = context.object().get(com.qindesign.json.schema.keywords.Enum.NAME);
+        if (elem != null && elem.isJsonArray()) {
+          Set<JsonElement> set = new HashSet<>();
+          if (!StreamSupport.stream(elem.getAsJsonArray().spliterator(), false)
+              .allMatch(set::add)) {
+            context.addIssue("Non-unique \"enum\"");
+          }
+        }
+      },
+
+      // Empty array checks
+      context -> {
+        context.addIssue(
+            checkNotEmpty(context.object(), com.qindesign.json.schema.keywords.Enum.NAME));
+        context.addIssue(checkNotEmpty(context.object(), AllOf.NAME));
+        context.addIssue(checkNotEmpty(context.object(), AnyOf.NAME));
+        context.addIssue(checkNotEmpty(context.object(), OneOf.NAME));
       }
   );
 
@@ -836,5 +858,20 @@ public final class Linter {
              expected.stream().map(s -> "\"" + s + "\"").collect(Collectors.toList());
     }
     return "\"" + name + "\" type: want " + want + ", got " + got;
+  }
+
+  /**
+   * Checks that the given element, if an array, is not empty.
+   *
+   * @param o the JSON object
+   * @param name the element name
+   * @return an issue message, or {@code null} for no issue.
+   */
+  private static String checkNotEmpty(JsonObject o, String name) {
+    JsonElement e = o.get(name);
+    if (e != null && e.isJsonArray() && e.getAsJsonArray().size() == 0) {
+      return "empty \"" + name + "\"";
+    }
+    return null;
   }
 }

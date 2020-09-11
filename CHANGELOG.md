@@ -18,6 +18,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * New linter rules:
   1. Added a check for case-insensitive matching for unknown keywords.
   2. Added implied type checks for "default" and "const".
+  3. Check for non-unique enums.
+  4. Checks for empty "enum", "allOf", "anyOf", and "oneOf".
 * New `Results` utility class for post-processing annotations and errors into
   useful results.
 
