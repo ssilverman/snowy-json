@@ -462,10 +462,12 @@ public final class ValidatorContext {
   }
 
   /**
-   * Returns the cached pattern for the given regex. This will create one via
-   * {@link java.util.regex.Pattern#compile(String)} if it does not exist in the cache.
+   * Returns the cached compiled pattern for the given regex. This will create
+   * one via {@link java.util.regex.Pattern#compile(String)} if it does not
+   * exist in the cache.
    *
-   * @return the associated cached pattern.
+   * @param s the regex for which to retrieve the compiled pattern
+   * @return the associated cached compiled pattern.
    * @throws PatternSyntaxException for a bad pattern.
    */
   public java.util.regex.Pattern pattern(String s) {
