@@ -24,7 +24,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   useful results.
 
 ### Changed
-* Updated to the latest Draft 2019-09 schemas.
+* Updated to the latest Draft 2019-09 and Draft-06 schemas.
 * Changed the schema resource hierarchy so that it matches the JSON Schema
   upstream hierarchy.
 * Restructured annotations and errors. `Annotation` was split into the
