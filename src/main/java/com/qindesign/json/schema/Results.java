@@ -48,7 +48,7 @@ public final class Results {
    * <ol>
    * <li>Sorts by instance location and then by keyword location</li>
    * <li>Removes all {@link Error#isPruned() pruned} errors</li>
-   * <li>Removes all {@link Error#result failing} errors</li>
+   * <li>Removes all {@link Error#result passing} errors</li>
    * <li>Further removes all parent errors and leaves only the children.
    *     Specifically, for each error, all other errors whose instance and
    *     keyword locations are parents of the error are removed.</li>
