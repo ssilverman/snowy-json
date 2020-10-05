@@ -528,6 +528,10 @@ There are plans to explore supporting more features, including:
 4. Compilation into an internal representation that provides both speed and
    optimizations for non-dynamic validation paths.
 5. A better representation than maps for annotations and errors.
+6. A better way of filtering (i.e. organizing) errors and annotations for human
+   consumption. For example, not needing to manually prune parent errors. A more
+   fleshed-out way to identify terminal and non-terminal errors, and also which
+   are important.
 
 ### Possible future plans
 
