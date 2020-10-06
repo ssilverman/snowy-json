@@ -367,7 +367,7 @@ Currently, there are four predefined execution targets:
 1. `main`: Executes `Main`. Validates an instance against a schema.
 2. `test`: Executes `Test`. Runs the test suite.
 3. `linter`: Executes `Linter`. Checks a schema.
-4. `coverage`: Executed `Coverage`. Does a schema coverage check
+4. `coverage`: Executes `Coverage`. Does a schema coverage check
    after validation.
 
 This section shows some simple execution examples. There's more information
