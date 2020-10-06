@@ -790,15 +790,12 @@ public final class ValidatorContext {
   }
 
   /**
-   * Adds an error annotation to the current instance location. This throws a
-   * {@link MalformedSchemaException} if the value is not unique. This helps
-   * detect infinite loops. This should not be called more than once
+   * Adds an error, a validation result, to the current instance location. This
+   * throws a {@link MalformedSchemaException} if the value is not unique. This
+   * helps detect infinite loops. This should not be called more than once
    * per keyword.
    * <p>
    * The message can be {@code null} to indicate no message.
-   * <p>
-   * The annotation will be named "error" for failed validations and
-   * "annotation" for successful validations.
    *
    * @param <T> the type of the associated value
    * @param result the validation result
