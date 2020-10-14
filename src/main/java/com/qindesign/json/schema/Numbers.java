@@ -65,6 +65,6 @@ public final class Numbers {
    * @return whether the number is an integer.
    */
   public static boolean isInteger(BigDecimal n) {
-    return n.stripTrailingZeros().scale() <= 0;
+    return n.scale() <= 0 || n.stripTrailingZeros().scale() <= 0;
   }
 }
