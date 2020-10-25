@@ -30,6 +30,10 @@ import java.util.stream.IntStream;
  * Translates ECMA-262 patterns into Java patterns. This only performs
  * best-effort attempts using a small number of rules. It should be considered
  * a rudimentary translator.
+ * <p>
+ * This uses the 11th edition (June 2020).
+ *
+ * @see <a href="https://www.ecma-international.org/ecma-262/11.0/index.html#title">ECMA-262 edition 11</a>
  */
 public class Ecma262Pattern {
   // Disallow instantiation
