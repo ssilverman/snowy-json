@@ -22,6 +22,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
   4. Checks for empty "enum", "allOf", "anyOf", and "oneOf".
 * New `Results` utility class for post-processing annotations and errors into
   useful results.
+* A rudimentary way to translate ECMA-262 regexes into Java-compatible regexes
+  so that we can pass the optional ECMA-262 regex tests. This is
+  done internally. 
 
 ### Changed
 * Updated to the latest Draft 2019-09 and Draft-06 schemas.

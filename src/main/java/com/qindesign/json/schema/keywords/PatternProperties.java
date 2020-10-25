@@ -30,6 +30,7 @@ import com.qindesign.json.schema.ValidatorContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
@@ -62,10 +63,12 @@ public class PatternProperties extends Keyword {
     JsonObject object = instance.getAsJsonObject();
 
     // Compile all and check all the schema patterns
-    List<java.util.regex.Pattern> patterns = new ArrayList<>(schemaObject.size());
+    // We need a pair: the regex and its ECMA-262-translated value
+    List<Map.Entry<String, java.util.regex.Pattern>> patterns =
+        new ArrayList<>(schemaObject.size());
     for (var e : schemaObject.entrySet()) {
       try {
-        patterns.add(context.pattern(e.getKey()));
+        patterns.add(Map.entry(e.getKey(), context.pattern(e.getKey())));
       } catch (PatternSyntaxException ex) {
         // Technically, this is a "SHOULD" and not a "MUST"
         context.schemaError("not a valid pattern", e.getKey());
@@ -80,11 +83,11 @@ public class PatternProperties extends Keyword {
     Set<String> validated = new HashSet<>();
     for (var e : object.entrySet()) {
       // For each that matches, check the schema
-      for (java.util.regex.Pattern p : patterns) {
-        if (!p.matcher(e.getKey()).find()) {
+      for (Map.Entry<String, java.util.regex.Pattern> p : patterns) {
+        if (!p.getValue().matcher(e.getKey()).find()) {
           continue;
         }
-        if (!context.apply(schemaObject.get(p.pattern()), p.pattern(), null,
+        if (!context.apply(schemaObject.get(p.getKey()), p.getKey(), null,
                            e.getValue(), e.getKey())) {
           if (context.isFailFast()) {
             return false;
@@ -95,7 +98,7 @@ public class PatternProperties extends Keyword {
             sb.append("invalid properties: \"");
           }
           sb.append(Strings.jsonString(e.getKey())).append("\" matches \"")
-              .append(Strings.jsonString(p.pattern())).append('\"');
+              .append(Strings.jsonString(p.getKey())).append('\"');
           // Don't mark the context as not collecting sub-annotations
         }
         validated.add(e.getKey());

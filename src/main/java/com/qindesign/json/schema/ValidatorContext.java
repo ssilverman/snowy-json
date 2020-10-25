@@ -36,6 +36,7 @@ import com.qindesign.json.schema.keywords.MaxContains;
 import com.qindesign.json.schema.keywords.MinContains;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
+import com.qindesign.json.schema.util.Ecma262Pattern;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
 import io.github.classgraph.ClassGraph;
@@ -465,13 +466,21 @@ public final class ValidatorContext {
    * Returns the cached compiled pattern for the given regex. This will create
    * one via {@link java.util.regex.Pattern#compile(String)} if it does not
    * exist in the cache.
+   * <p>
+   * This first translates the regex from ECMA-262 into Java (a best-effort
+   * attempt) before compiling the pattern. This means that the returned
+   * {@link java.util.regex.Pattern pattern}'s internal
+   * {@link java.util.regex.Pattern#pattern() pattern string} may be different
+   * than the argument.
    *
-   * @param s the regex for which to retrieve the compiled pattern
+   * @param regex the regex for which to retrieve the compiled pattern
    * @return the associated cached compiled pattern.
    * @throws PatternSyntaxException for a bad pattern.
+   * @see Ecma262Pattern#translate(String)
    */
-  public java.util.regex.Pattern pattern(String s) {
-    return patternCache.computeIfAbsent(s, java.util.regex.Pattern::compile);
+  public java.util.regex.Pattern pattern(String regex) {
+    return patternCache.computeIfAbsent(Ecma262Pattern.translate(regex),
+                                        java.util.regex.Pattern::compile);
   }
 
   /**
