@@ -30,6 +30,7 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
+import com.qindesign.json.schema.util.Ecma262Pattern;
 import com.qindesign.net.Hostname;
 import com.qindesign.net.URI;
 import com.qindesign.net.URIParser;
@@ -388,7 +389,7 @@ public class Format extends Keyword {
         break;
       case "regex":
         try {
-          java.util.regex.Pattern.compile(string);
+          java.util.regex.Pattern.compile(Ecma262Pattern.translate(string));
         } catch (PatternSyntaxException ex) {
           return false;
         }
