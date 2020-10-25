@@ -101,7 +101,7 @@ public class Ecma262Pattern {
     for (int i = 0; i < len; i++) {
       char c = regex.charAt(i);
       if (c == '\\') {
-        if (i + i < len) {
+        if (i + 1 < len) {
           i++;
           switch (c = regex.charAt(i)) {
             case 'c':
@@ -169,7 +169,7 @@ public class Ecma262Pattern {
               // Don't prepend a backslash because these are identity escapes
               // and Java says it's an error to escape alphabetic characters
               // that don't denote an escaped construct
-              if ('A' <= c && c <= 'Z' || 'a' <= c && c <= 'z') {
+              if (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z')) {
                 buf.append(c);
               } else {
                 // Otherwise, we can keep the backslash
