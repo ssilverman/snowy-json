@@ -154,7 +154,8 @@ public final class Validator {
    * and catalogued.
    * <p>
    * When searching for resources, {@code knownIDs} is searched first and
-   * {@code knownURLs} is searched second.
+   * {@code knownURLs} is searched second. Any known URLs having an empty path
+   * or a path that ends with a "/" are skipped.
    * <p>
    * The order for determining the specification to use when processing the
    * schema is as follows. Subsequent steps are only followed if a step fails to
@@ -244,7 +245,8 @@ public final class Validator {
           continue;
         }
 
-        if (url.getPath().endsWith("/")) {
+        String path = url.getPath();
+        if (path.isEmpty() || path.endsWith("/")) {
           continue;
         }
 
@@ -304,7 +306,8 @@ public final class Validator {
    * URI is already normalized.
    * <p>
    * If auto-resolution of URLs is desired, set {@code knownURLs} to
-   * non-{@code null}.
+   * non-{@code null}. Any known URLs having an empty path or a path that ends
+   * with a "/" are not accessed.
    * <p>
    * This also validates the schema if it has no root $schema element. During
    * this validation, the vocabularies are optionally collected into

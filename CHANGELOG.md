@@ -37,6 +37,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Changed the library used to find `Keyword` implementation classes. Now using
   [ClassGraph](https://github.com/classgraph/classgraph) instead of Guava. This
   somewhat reduces the dependency size.
+* When examining URLs during auto-resolution, the empty path case is now
+  ignored. Before, just a check for an ending "/" was performed. The goal is not
+  to resolve a non-schema file.
 
 ## [0.14.0]
 
