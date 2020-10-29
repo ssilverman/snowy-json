@@ -458,6 +458,10 @@ public class Test {
               suiteResult.passedOptional++;
             }
           }
+        } catch (IllegalArgumentException ex) {
+          logger.info(new URI(root.toUri()).relativize(uri) + ": Bad result: " +
+                      groupDescription + ": " + description +
+                      ": got=Bad argument: " + ex.getMessage());
         }
         testIndex++;
       }

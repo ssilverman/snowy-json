@@ -187,6 +187,8 @@ public final class Validator {
    * @param options any options
    * @throws MalformedSchemaException if the main schema or any of the other
    *         known schemas is somehow malformed.
+   * @throws IllegalArgumentException if the base URI is not absolute or if it
+   *         has a non-empty fragment, or if there are any duplicate IDs.
    */
   public Validator(JsonElement schema, URI baseURI,
                    Map<URI, JsonElement> knownIDs, Map<URI, URL> knownURLs,
