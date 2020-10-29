@@ -253,6 +253,9 @@ public final class ValidatorContext {
   /** The main schema used for validation. */
   private final JsonElement schema;
 
+  /** Whether the current schema is a meta-schema. */
+  private final boolean isMetaSchema;
+
   /** The current processing state. */
   private State state;
 
@@ -301,6 +304,8 @@ public final class ValidatorContext {
    *
    * @param baseURI the initial base URI
    * @param schema the schema having the base URI
+   * @param isMetaSchema if the schema being validated should be treated as
+   *                     a meta-scehma
    * @param knownIDs known JSON contents, must be modifiable
    * @param knownURLs known resources
    * @param validatedSchemas the set of validated schemas
@@ -309,7 +314,7 @@ public final class ValidatorContext {
    *         has a non-empty fragment.
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
-  public ValidatorContext(URI baseURI, JsonElement schema,
+  public ValidatorContext(URI baseURI, JsonElement schema, boolean isMetaSchema,
                           Map<URI, Id> knownIDs, Map<URI, URL> knownURLs,
                           Set<URI> validatedSchemas, Options options) {
     Objects.requireNonNull(baseURI, "baseURI");
@@ -375,6 +380,7 @@ public final class ValidatorContext {
     this.knownURLs = knownURLs;
     this.validatedSchemas = validatedSchemas;
 
+    this.isMetaSchema = isMetaSchema;
     state = new State();
     state.baseURI = baseURI;
     state.spec = (Specification) options.get(Option.DEFAULT_SPECIFICATION);
@@ -500,6 +506,16 @@ public final class ValidatorContext {
    */
   public Set<URI> validatedSchemas() {
     return Collections.unmodifiableSet(validatedSchemas);
+  }
+
+  /**
+   * Returns whether the current schema being processed is being treated as
+   * a meta-schema.
+   *
+   * @return whether the current schema is a meta-schema.
+   */
+  public boolean isMetaSchema() {
+    return isMetaSchema;
   }
 
   /**

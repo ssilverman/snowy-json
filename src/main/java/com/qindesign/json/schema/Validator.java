@@ -281,7 +281,8 @@ public final class Validator {
     } while (true);
 
     // Assume all the known specs have been validated
-    this.context = new ValidatorContext(baseURI, schema, ids, knownURLs, KNOWN_SCHEMAS, options);
+    this.context = new ValidatorContext(baseURI, schema, false,
+                                        ids, knownURLs, KNOWN_SCHEMAS, options);
 
     // Collect the vocabularies from the default schema if the schema is unknown
     if (!vocabularies.isEmpty()) {
@@ -410,7 +411,7 @@ public final class Validator {
     // Validate the schema if unknown and collect the vocabularies
     if (isDefaultSpec && schema.isJsonObject()) {
       ValidatorContext context =
-          new ValidatorContext(baseURI, schema,
+          new ValidatorContext(baseURI, schema, true,
                                new HashMap<>(), Collections.emptyMap(), KNOWN_SCHEMAS,
                                new Options().set(Option.FORMAT, false));
       if (!new CoreSchema()

@@ -122,7 +122,7 @@ public class CoreSchema extends Keyword {
     opts2.set(Option.FORMAT, false);
     opts2.set(Option.CONTENT, false);
     opts2.set(Option.DEFAULT_SPECIFICATION, spec);
-    ValidatorContext context2 = new ValidatorContext(id, schema,
+    ValidatorContext context2 = new ValidatorContext(id, schema, true,
                                                      ids, context.knownURLs(), validated,
                                                      opts2);
     if (!context2.apply(parent, new HashMap<>(), null)) {

@@ -51,12 +51,17 @@ public class CoreVocabulary extends Keyword {
       return true;
     }
 
-    if (!context.isRootSchema()) {
-      context.schemaError("appearance in subschema");
-      return false;
-    }
     if (!value.isJsonObject()) {
       context.schemaError("not an object");
+      return false;
+    }
+
+    // Ignore if not a meta-schema
+    if (!context.isMetaSchema()) {
+      return true;
+    }
+    if (!context.isRootSchema()) {
+      context.schemaError("appearance in subschema");
       return false;
     }
 
