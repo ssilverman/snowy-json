@@ -686,6 +686,12 @@ public final class ValidatorContext {
     do {
       // Try the resource
       URL url = knownURLs.get(uri);
+      // Note that we don't try the URI itself as a URL here (if AUTO_RESOLVE is
+      // enabled) because that was already examined in the Validator constructor
+      // We also shouldn't do this here because all accessible URLs (at least in
+      // this incarnation of the software) need to be pre-scanned for IDs
+      // See Validator.prepareSchema
+
       if (url != null) {
         try {
           JsonElement data = urlCache.computeIfAbsent(
