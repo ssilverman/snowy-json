@@ -311,7 +311,7 @@ public final class ValidatorContext {
    * @param validatedSchemas the set of validated schemas
    * @param options any options
    * @throws IllegalArgumentException if the base URI is not absolute or if it
-   *         has a non-empty fragment.
+   *         has a non-empty fragment, or if there are any duplicate IDs.
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
   public ValidatorContext(URI baseURI, JsonElement schema, boolean isMetaSchema,
