@@ -280,6 +280,9 @@ public class Test {
         } catch (MalformedSchemaException ex) {
           logger.log(Level.SEVERE, "Malformed schema: " + testSchemaFile, ex);
           return FileVisitResult.CONTINUE;
+        } catch (IllegalArgumentException ex) {
+          logger.log(Level.SEVERE, "Bad validator argument: " + testSchemaFile, ex);
+          return FileVisitResult.CONTINUE;
         }
 
         // Run the suite
