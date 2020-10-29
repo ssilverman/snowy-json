@@ -196,6 +196,13 @@ public final class Validator {
     Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(baseURI, "baseURI");
 
+    if (!baseURI.isAbsolute()) {
+      throw new IllegalArgumentException("baseURI must be absolute");
+    }
+    if (URIs.hasNonEmptyFragment(baseURI)) {
+      throw new IllegalArgumentException("baseURI has a non-empty fragment");
+    }
+
     if (options == null) {
       options = new Options();
     }
