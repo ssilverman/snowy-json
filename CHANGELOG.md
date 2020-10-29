@@ -40,6 +40,24 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * When examining URLs during auto-resolution, the empty path case is now
   ignored. Before, just a check for an ending "/" was performed. The goal is not
   to resolve a non-schema file.
+* README and Javadoc updates.
+* Improved auto-resolution:
+  1. If checking a URI against the base URI yields nothing, an attempt will now
+     be made to try the URI itself as a URL.
+  2. $recursiveRef was added to reference scanning candidates.
+  3. Absolute referenced URI's are now added to the list of known URLs in the
+     scan phase; before, any URI's having a scheme or authority were not added
+     to the list of guessable URLs.
+
+### Fixed
+* The validator context now knows when it's validating a meta-schema.
+  `CoreVocabulary` was fixed to ignore the keyword if the current schema isn't
+  being treated as a meta-schema.
+* A check for validator creations throwing an `IllegalArgumentException` was
+  added to the test suite runner.
+* Because the validator now may add absolute URIs to the list of a schema's
+  known IDs, the context was fixed to first check an ID's base URI, in addition
+  to checking that it has an empty path, before deciding it's the root ID.   
 
 ## [0.14.0]
 
