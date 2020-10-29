@@ -259,21 +259,51 @@ public final class Validator {
           continue;
         }
 
-        try (InputStream in = url.openStream()) {
-          try {
-            Map<URI, Id> ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved, null);
-            ids2.forEach((uri1, id) -> {
-              if (ids.putIfAbsent(uri1, id) != null) {
-                logger.warning("Duplicate URI: " + uri1 + ": from " + id.rootURI);
-              }
-            });
-          } catch (JsonParseException ex) {
-            logger.log(Level.SEVERE, "Error parsing resource: " + uri + ": " + url, ex);
-          }
+        // First try the original URL
+        // Then try the URI itself as a URL, if AUTO_RESOLVE is enabled
+        InputStream urlIn = null;
+        try {
+          urlIn = url.openStream();
+          logger.info("Found resource: " + uri + ": " + url);
         } catch (IOException ex) {
-          logger.log(Level.SEVERE, "Error loading resource: " + uri + ": " + url, ex);
+          logger.log(Level.WARNING, "Error loading resource: " + uri + ": " + url, ex);
+
+          // When auto-resolving, also check the URI itself
+          if (options.is(Option.AUTO_RESOLVE)) {
+            try {
+              url = uri.toURL();
+              urlIn = url.openStream();
+
+              // Replace the URL with the URI-as-URL because it's successful
+              e.setValue(url);
+              logger.info("Found resource: " + uri + ": " + uri);
+            } catch (IllegalArgumentException | MalformedURLException ex2) {
+              logger.log(Level.WARNING, "Not a valid resource: " + uri, ex2);
+            } catch (IOException ex2) {
+              logger.log(Level.WARNING, "Error loading resource: " + uri + ": " + uri, ex2);
+            }
+          }
+        }
+
+        // If there's an input stream, parse the resource
+        if (urlIn != null) {
+          try (InputStream in = urlIn) {
+            try {
+              Map<URI, Id> ids2 = prepareSchema(uri, JSON.parse(in), options, autoResolved, null);
+              ids2.forEach((uri1, id) -> {
+                if (ids.putIfAbsent(uri1, id) != null) {
+                  logger.warning("Duplicate URI: " + uri1 + ": from " + id.rootURI);
+                }
+              });
+            } catch (JsonParseException ex) {
+              logger.log(Level.SEVERE, "Error parsing resource: " + uri + ": " + url, ex);
+            }
+          } catch (IOException ex) {
+            logger.log(Level.SEVERE, "Error closing resource: " + url, ex);
+          }
         }
       }
+
       if (autoResolved != null) {
         autoResolved.values().removeAll(checkedURLs);
         for (var e : autoResolved.entrySet()) {
@@ -377,7 +407,8 @@ public final class Validator {
       URL baseURL = url;  // So that baseURL is effectively final
       if (baseURL != null) {
         JSON.traverseSchema(baseURI, spec, schema, (e, parent, path, state) -> {
-          if (state.isNotKeyword() || !path.endsWith(CoreRef.NAME)) {
+          if (state.isNotKeyword() ||
+              !(path.endsWith(CoreRef.NAME) || path.endsWith(CoreRecursiveRef.NAME))) {
             return;
           }
 
@@ -395,10 +426,12 @@ public final class Validator {
             throw new MalformedSchemaException("not a valid URI", loc.get());
           }
 
-          // Only guess URLs for raw URIs having no scheme and no authority
-          if (ref.scheme() != null || ref.rawAuthority() != null) {
-            return;
-          }
+          // Also guess URLs for raw URIs having a scheme or authority
+          // Don't need the code below anymore:
+//          // Only guess URLs for raw URIs having no scheme and no authority
+//          if (ref.scheme() != null || ref.rawAuthority() != null) {
+//            return;
+//          }
 
           // Don't guess URLs for URIs that are just fragments
           if (!URIs.isNotFragmentOnly(ref)) {
@@ -408,10 +441,15 @@ public final class Validator {
           ref = URIs.stripFragment(ref).normalize();
           URI uri = state.baseURI().resolve(ref);
 
-          try {
-            knownURLs.putIfAbsent(uri, new URL(baseURL, ref.toString()));
-          } catch (MalformedURLException ex) {
-            logger.warning("AUTO_RESOLVE: not a valid URL: " + ref);
+          // Only add if the IDs don't contain this $ref
+          // This check is necessary because we don't want to use a URL for
+          // known IDs
+          if (!ids.containsKey(uri) && !KNOWN_RESOURCES.containsKey(uri)) {
+            try {
+              knownURLs.putIfAbsent(uri, uri.toURL());
+            } catch (MalformedURLException ex) {
+              logger.warning("AUTO_RESOLVE: not a valid URL: " + ref);
+            }
           }
         });
       }
