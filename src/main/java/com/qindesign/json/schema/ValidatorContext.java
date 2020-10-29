@@ -358,7 +358,10 @@ public final class ValidatorContext {
         }
 
         // Note the root ID
-        if (id.path.isEmpty()) {
+        // It's also important to check, in addition to the empty path, that the
+        // ID has the same base URI because the known IDs may contain other
+        // absolute URIs
+        if (id.path.isEmpty() && baseURI.equals(id.base)) {
           if (rootID != null) {
             throw new IllegalArgumentException("Duplicate root ID: " + baseURI + ": " + id.rootURI);
           }
