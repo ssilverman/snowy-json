@@ -21,16 +21,12 @@
  */
 package com.qindesign.json.schema;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import com.google.gson.stream.MalformedJsonException;
 import com.qindesign.json.schema.keywords.CoreAnchor;
 import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
@@ -126,53 +122,14 @@ public final class JSON {
   /**
    * Parses JSON from a {@link Reader}. Note that this does not buffer nor close
    * the input.
-   * <p>
-   * This mimics {@link JsonParser#parseReader(Reader)} and
-   * {@link JsonParser#parseReader(JsonReader)} for behaviour because
-   * {@link JsonParser#parseReader(JsonReader)} forces lenient parsing.
    *
    * @param r the {@link Reader} that reads the JSON content
    * @return the parsed JSON element.
    * @throws JsonParseException if there was an error parsing the document.
    * @see JsonParser#parseReader(Reader)
-   * @see JsonParser#parseReader(JsonReader)
    */
   public static JsonElement parse(Reader r) {
-    JsonReader jsonReader = new JsonReader(r);
-
-    // Wrap the following code block so we can capture a
-    // JsonSyntaxException(MalformedJsonException) and its misleading message
-    try {
-      JsonElement elem = Streams.parse(jsonReader);
-      try {
-        if (jsonReader.peek() != JsonToken.END_DOCUMENT) {
-          throw new JsonSyntaxException("Expected only one value");
-        }
-        return elem;
-      } catch (MalformedJsonException ex) {
-        throw new JsonSyntaxException(ex);
-      } catch (IOException ex) {
-        throw new JsonIOException(ex);
-      } catch (NumberFormatException ex) {
-        throw new JsonSyntaxException(ex);
-      }
-    } catch (JsonSyntaxException ex) {
-      // I apologize to everyone reading this code. Gson has a misleading error
-      // message otherwise. There doesn't seem to be a clean way out of this
-      // "lenient" mire. First, they force lenient mode so I have to call
-      // Streams.parse myself, and then this nonsense. The worst that happens
-      // here is the exception gets rethrown. Ideally, we shouldn't include the
-      // cause because that contains the misleading message, but let's include
-      // it anyway because it contains useful stack information.
-      if (ex.getCause() instanceof MalformedJsonException) {
-        String msg = ex.getCause().getMessage();
-        final String prefix = "Use JsonReader.setLenient(true) to accept malformed JSON ";
-        if (msg != null && msg.startsWith(prefix)) {
-          ex = new JsonSyntaxException(msg.substring(prefix.length()), ex.getCause());
-        }
-      }
-      throw ex;
-    }
+    return JsonParser.parseReader(r);
   }
 
   /**
@@ -220,7 +177,15 @@ public final class JSON {
     if (indent != null) {
       jsonW.setIndent(indent);
     }
-    Streams.write(json, jsonW);
+    try {
+      new Gson().toJson(json, jsonW);
+    } catch (JsonIOException ex) {
+      Throwable th = ex.getCause();
+      if (th instanceof IOException) {
+        throw (IOException) th;
+      }
+      throw ex;
+    }
     jsonW.flush();
   }
 
