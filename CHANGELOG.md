@@ -58,6 +58,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   more specificity.
 * Updated dependency versions:
   1. ICU4J: 67.1 -> 68.1
+* Updated the Javadocs with proper external links.
 
 ### Fixed
 * The validator context now knows when it's validating a meta-schema.
