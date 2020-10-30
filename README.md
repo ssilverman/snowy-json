@@ -26,8 +26,9 @@ See: [JSON Schema](https://json-schema.org)
    5. [FORMAT](#option-format)
    6. [SPECIFICATION](#option-specification)
 7. [Project structure](#project-structure)
-   1. [Complete programs](#complete-programs)
-   2. [API](#api)
+   1. [Module information](#module-information)
+   2. [Complete programs](#complete-programs)
+   3. [API](#api)
       1. [Annotations and errors](#annotations-and-errors)
       2. [Internal APIs](#internal-apis)
 8. [Building and running](#building-and-running)
@@ -226,6 +227,16 @@ in everything themselves. A few rudimentary and runnable test programs are
 provided, however.
 
 The main package is `com.qindesign.json.schema`.
+
+### Module information
+
+This project defines a module and exports these packages:
+1. `com.qindesign.json.schema`: This is the main validation package.
+2. `com.qindesign.json.schema.net`: Provides some URI and hostname
+   processing tools.
+
+It also transitively requires this package:
+1. `com.google.gson`
 
 ### Complete programs
 
