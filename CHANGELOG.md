@@ -25,6 +25,12 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * A rudimentary way to translate ECMA-262 regexes into Java-compatible regexes
   so that we can pass the optional ECMA-262 regex tests. This is
   done internally.
+* Added module information:
+  * Exporting:
+    1. `com.qindesign.json.schema`
+    2. `com.qindesign.json.schema.net`
+  * Requiring transitively:
+    1. `com.google.gson`
 
 ### Changed
 * Updated to the latest Draft 2019-09 and Draft-06 schemas.
@@ -48,6 +54,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   3. Absolute referenced URI's are now added to the list of known URLs in the
      scan phase; before, any URI's having a scheme or authority were not added
      to the list of guessable URLs.
+* Renamed package `com.qindesign.net` to `com.qindesign.json.schema.net` for
+  more specificity.
 * Updated dependency versions:
   1. ICU4J: 67.1 -> 68.1
 
