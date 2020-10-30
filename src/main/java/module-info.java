@@ -30,4 +30,5 @@ module com.qindesign.json.schema {
   requires transitive com.google.gson;
   requires com.ibm.icu;
   requires io.github.classgraph;
+  requires transitive java.logging;
 }
