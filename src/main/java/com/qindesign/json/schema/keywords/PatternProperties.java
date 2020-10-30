@@ -27,6 +27,7 @@ import com.qindesign.json.schema.Keyword;
 import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Strings;
 import com.qindesign.json.schema.ValidatorContext;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

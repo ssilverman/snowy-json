@@ -51,6 +51,7 @@ import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.keywords.WriteOnly;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;

@@ -35,6 +35,7 @@ import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

@@ -22,6 +22,7 @@
 package com.qindesign.json.schema;
 
 import com.qindesign.net.URI;
+
 import java.util.Objects;
 
 /**

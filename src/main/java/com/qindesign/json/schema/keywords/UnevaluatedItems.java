@@ -30,6 +30,7 @@ import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.JSONPath;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
+
 import java.util.Map;
 import java.util.function.Function;
 

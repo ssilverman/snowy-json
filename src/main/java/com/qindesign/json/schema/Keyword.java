@@ -23,6 +23,7 @@ package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import java.util.logging.Logger;
 
 /**

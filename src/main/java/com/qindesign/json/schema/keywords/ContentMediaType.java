@@ -31,6 +31,7 @@ import com.qindesign.json.schema.Option;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.util.Base64InputStream;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;

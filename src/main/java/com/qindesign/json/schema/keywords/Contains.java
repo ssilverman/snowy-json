@@ -29,6 +29,7 @@ import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.Numbers;
 import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
+
 import java.math.BigDecimal;
 
 /**

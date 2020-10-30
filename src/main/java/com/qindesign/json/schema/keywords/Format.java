@@ -35,6 +35,7 @@ import com.qindesign.net.Hostname;
 import com.qindesign.net.URI;
 import com.qindesign.net.URIParser;
 import com.qindesign.net.URISyntaxException;
+
 import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 

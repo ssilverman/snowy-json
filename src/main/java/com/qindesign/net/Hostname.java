@@ -23,6 +23,7 @@ package com.qindesign.net;
 
 import com.ibm.icu.lang.UCharacter;
 import com.ibm.icu.lang.UProperty;
+
 import java.net.IDN;
 import java.util.BitSet;
 

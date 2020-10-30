@@ -38,6 +38,7 @@ import com.qindesign.json.schema.keywords.Definitions;
 import com.qindesign.json.schema.keywords.Properties;
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;

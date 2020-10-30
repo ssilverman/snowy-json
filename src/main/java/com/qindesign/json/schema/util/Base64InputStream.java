@@ -22,6 +22,7 @@
 package com.qindesign.json.schema.util;
 
 import com.qindesign.json.schema.Strings;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;

@@ -23,6 +23,7 @@ package com.qindesign.json.schema;
 
 import com.qindesign.net.URI;
 import com.qindesign.net.URISyntaxException;
+
 import java.util.Arrays;
 import java.util.BitSet;
 
