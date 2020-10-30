@@ -21,8 +21,8 @@
  */
 package com.qindesign.json.schema;
 
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 /**
  * Convenience methods for working with URIs.

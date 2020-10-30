@@ -19,7 +19,7 @@
 /*
  * Created by shawn on 6/12/20 4:23 PM.
  */
-package com.qindesign.net;
+package com.qindesign.json.schema.net;
 
 import com.ibm.icu.lang.UCharacter;
 import com.ibm.icu.lang.UProperty;

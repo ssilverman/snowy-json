@@ -19,7 +19,7 @@
 /*
  * Created by shawn on 6/11/20 10:35 PM.
  */
-package com.qindesign.net;
+package com.qindesign.json.schema.net;
 
 import java.util.Objects;
 

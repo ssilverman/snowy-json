@@ -29,8 +29,8 @@ import com.qindesign.json.schema.MalformedSchemaException;
 import com.qindesign.json.schema.URIs;
 import com.qindesign.json.schema.Validator;
 import com.qindesign.json.schema.ValidatorContext;
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 /**
  * Implements the "$recursiveRef" core applicator.

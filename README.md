@@ -328,13 +328,15 @@ of schema validation. Note that these are subject to change.
 2. `com.qindesign.json.schema.util.LRUCache`: An
    [LRU cache](https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU))
    implementation.
-3. `com.qindesign.net.Hostname`: Parses regular and IDN hostnames.
-4. `com.qindesign.net.URI`: An
+3. `com.qindesign.json.schema.net.Hostname`: Parses regular and IDN hostnames.
+4. `com.qindesign.json.schema.net.URI`: An
    [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html)-compliant URI parser.
    As of this writing, Java's URI API is only RFC 2396-compliant and is not
    sufficient for processing JSON Schemas.
-5. `com.qindesign.net.URIParser.parseIPv6`: Parses IPv6 addresses, per RFC 3986.
-6. `com.qindesign.net.URIParser.parseIPv4`: Parses IPv4 addresses, per RFC 3986.
+5. `com.qindesign.json.schema.net.URIParser.parseIPv6`: Parses IPv6 addresses,
+   per RFC 3986.
+6. `com.qindesign.json.schema.net.URIParser.parseIPv4`: Parses IPv4 addresses,
+   per RFC 3986.
 
 Please consult the Javadocs for those classes and methods for more information.
 

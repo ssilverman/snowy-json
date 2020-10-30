@@ -28,7 +28,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.qindesign.json.schema.util.Logging;
-import com.qindesign.net.URI;
+import com.qindesign.json.schema.net.URI;
 
 import java.io.File;
 import java.io.IOException;

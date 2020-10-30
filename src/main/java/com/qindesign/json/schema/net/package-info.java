@@ -23,4 +23,4 @@
 /**
  * Network-related tools, including URI and hostname processing.
  */
-package com.qindesign.net;
+package com.qindesign.json.schema.net;

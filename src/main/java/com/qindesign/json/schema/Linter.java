@@ -26,8 +26,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.qindesign.json.schema.keywords.*;
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 import java.io.File;
 import java.io.IOException;

@@ -19,7 +19,7 @@
 /*
  * Created by shawn on 5/30/20 10:51 PM.
  */
-package com.qindesign.net;
+package com.qindesign.json.schema.net;
 
 import java.net.MalformedURLException;
 import java.net.URL;

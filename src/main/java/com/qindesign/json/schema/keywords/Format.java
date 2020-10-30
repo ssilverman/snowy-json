@@ -31,10 +31,10 @@ import com.qindesign.json.schema.Specification;
 import com.qindesign.json.schema.ValidatorContext;
 import com.qindesign.json.schema.Vocabulary;
 import com.qindesign.json.schema.util.Ecma262Pattern;
-import com.qindesign.net.Hostname;
-import com.qindesign.net.URI;
-import com.qindesign.net.URIParser;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.Hostname;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URIParser;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;

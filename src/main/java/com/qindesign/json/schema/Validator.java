@@ -49,8 +49,8 @@ import com.qindesign.json.schema.keywords.ReadOnly;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.keywords.WriteOnly;
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -37,8 +37,8 @@ import com.qindesign.json.schema.keywords.MinContains;
 import com.qindesign.json.schema.keywords.UnevaluatedItems;
 import com.qindesign.json.schema.keywords.UnevaluatedProperties;
 import com.qindesign.json.schema.util.Ecma262Pattern;
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 

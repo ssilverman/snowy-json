@@ -32,8 +32,8 @@ import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
 import com.qindesign.json.schema.keywords.Definitions;
 import com.qindesign.json.schema.keywords.Properties;
-import com.qindesign.net.URI;
-import com.qindesign.net.URISyntaxException;
+import com.qindesign.json.schema.net.URI;
+import com.qindesign.json.schema.net.URISyntaxException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;

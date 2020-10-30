@@ -22,7 +22,7 @@
 package com.qindesign.json.schema;
 
 import com.google.gson.JsonElement;
-import com.qindesign.net.URI;
+import com.qindesign.json.schema.net.URI;
 
 import java.util.Objects;
 

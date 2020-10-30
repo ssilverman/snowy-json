@@ -21,7 +21,7 @@
  */
 package com.qindesign.json.schema;
 
-import com.qindesign.net.URI;
+import com.qindesign.json.schema.net.URI;
 
 /**
  * Indicates a malformed schema. The exception contains the absolute location

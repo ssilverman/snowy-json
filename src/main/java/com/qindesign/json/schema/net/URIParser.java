@@ -19,7 +19,7 @@
 /*
  * Created by shawn on 6/3/20 10:07 PM.
  */
-package com.qindesign.net;
+package com.qindesign.json.schema.net;
 
 import java.util.BitSet;
 
