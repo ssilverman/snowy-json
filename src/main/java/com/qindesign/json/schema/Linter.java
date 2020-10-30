@@ -424,6 +424,10 @@ public final class Linter {
       }
   );
 
+  /**
+   * Holds a context while linting. Each rule is given an instance of a context
+   * so it can make a decision.
+   */
   public static final class Context {
     private final Map<JSONPath, List<String>> issues;
 
