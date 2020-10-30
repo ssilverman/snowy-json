@@ -425,7 +425,7 @@ programs, add the following dependency:
 <dependency>
   <groupId>com.qindesign</groupId>
   <artifactId>snowy-json</artifactId>
-  <version>0.14.0</version>
+  <version>0.15.0</version>
 </dependency>
 ```
 
