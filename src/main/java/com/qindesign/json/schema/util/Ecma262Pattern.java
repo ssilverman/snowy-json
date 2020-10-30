@@ -22,6 +22,7 @@
 package com.qindesign.json.schema.util;
 
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -88,8 +89,11 @@ public class Ecma262Pattern {
    * <li>"\S" into the opposite of "\s"</li>
    * <li>"\0" into "\u0000". If the following character is a decimal digit then
    *     this will throw a {@link PatternSyntaxException}.</li>
-   * <li>"$" into "\z" because "$" is only up to EOL in Java, and ECMA-262
-   *     matches EOF, unless Multiline=true</li>
+   * <li>"$" into "\z" because "$" is only up to EOL in Java (when using
+   *     {@link Matcher#find()}, which is what JavaScript regex matching does
+   *     and what we're using here; {@link Matcher#matches()} matches to the end
+   *     unless the {@link java.util.regex.Pattern#MULTILINE} flag is set), and
+   *     ECMA-262 matches EOF, unless Multiline=true</li>
    * <li>All IdentityEscape alphabetic characters ([a-zA-Z]) are unescaped by
    *     removing the preceding backslash</li>
    * </ol>
