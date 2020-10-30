@@ -24,7 +24,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   useful results.
 * A rudimentary way to translate ECMA-262 regexes into Java-compatible regexes
   so that we can pass the optional ECMA-262 regex tests. This is
-  done internally. 
+  done internally.
 
 ### Changed
 * Updated to the latest Draft 2019-09 and Draft-06 schemas.
@@ -37,8 +37,6 @@ See: [Keep a Changelog](https://keepachangelog.com)
 * Changed the library used to find `Keyword` implementation classes. Now using
   [ClassGraph](https://github.com/classgraph/classgraph) instead of Guava. This
   somewhat reduces the dependency size.
-* Patterns are now translated, using a best-effort rudimentary algorithm, into
-  ECMA-262-compatible Java ones. This means that more tests pass.
 * When examining URLs during auto-resolution, the empty path case is now
   ignored. Before, just a check for an ending "/" was performed. The goal is not
   to resolve a non-schema file.
@@ -50,6 +48,8 @@ See: [Keep a Changelog](https://keepachangelog.com)
   3. Absolute referenced URI's are now added to the list of known URLs in the
      scan phase; before, any URI's having a scheme or authority were not added
      to the list of guessable URLs.
+* Updated dependency versions:
+  1. ICU4J: 67.1 -> 68.1
 
 ### Fixed
 * The validator context now knows when it's validating a meta-schema.
@@ -59,7 +59,7 @@ See: [Keep a Changelog](https://keepachangelog.com)
   added to the test suite runner.
 * Because the validator now may add absolute URIs to the list of a schema's
   known IDs, the context was fixed to first check an ID's base URI, in addition
-  to checking that it has an empty path, before deciding it's the root ID.   
+  to checking that it has an empty path, before deciding it's the root ID.
 
 ## [0.14.0]
 
