@@ -21,7 +21,7 @@
  */
 package com.qindesign.json.schema;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
@@ -178,7 +178,7 @@ public final class JSON {
       jsonW.setIndent(indent);
     }
     try {
-      new Gson().toJson(json, jsonW);
+      new GsonBuilder().disableHtmlEscaping().create().toJson(json, jsonW);
     } catch (JsonIOException ex) {
       Throwable th = ex.getCause();
       if (th instanceof IOException) {
