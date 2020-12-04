@@ -26,7 +26,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import com.google.gson.stream.MalformedJsonException;
 import com.qindesign.json.schema.keywords.CoreAnchor;
 import com.qindesign.json.schema.keywords.CoreDefs;
 import com.qindesign.json.schema.keywords.CoreId;
@@ -37,6 +42,7 @@ import com.qindesign.json.schema.net.URISyntaxException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -119,6 +125,9 @@ public final class JSON {
     return parse(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
 
+  private static final TypeAdapter<JsonElement> JSON_ELEMENT_ADAPTER =
+      new GsonBuilder().create().getAdapter(JsonElement.class);
+
   /**
    * Parses JSON from a {@link Reader}. Note that this does not buffer nor close
    * the input.
@@ -129,7 +138,29 @@ public final class JSON {
    * @see JsonParser#parseReader(Reader)
    */
   public static JsonElement parse(Reader r) {
-    return JsonParser.parseReader(r);
+    // See: https://stackoverflow.com/questions/43233898/how-to-check-if-json-is-valid-in-java-using-gson/47890960#47890960
+    // See: https://github.com/google/gson/issues/1208
+    try {
+      JsonReader jsonReader = new JsonReader(r);
+      // <-- Here is where the reader lenient mode would be set
+      // Since the current JSON spec now allows any value, not just an object or
+      // array, as the top-level text, lenient mode must be enabled, even though
+      // it unfortunately allows other non-JSON leniencies (at least according
+      // to the JsonReader.setLenient Javadocs, this may not be true).
+      // The reason all this code is here in the first place is because it's not
+      // straightforward to disable lenient mode if we wish.
+      JsonElement elem = JSON_ELEMENT_ADAPTER.read(jsonReader);
+      if (jsonReader.peek() != JsonToken.END_DOCUMENT) {
+        throw new JsonSyntaxException("Expecting only one value");
+      }
+      return elem;
+    } catch (EOFException | MalformedJsonException | NumberFormatException ex) {
+      throw new JsonSyntaxException(ex);
+    } catch (IOException ex) {
+      throw new JsonIOException(ex);
+    }
+    // Original code:
+    // return JsonParser.parseReader(r);
   }
 
   /**
