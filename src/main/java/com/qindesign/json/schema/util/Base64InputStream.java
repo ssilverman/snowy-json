@@ -48,7 +48,7 @@ public class Base64InputStream extends InputStream {
   private int b3;
 
   /**
-   * Creates a new stream. This lets the {@link #read()} method checks that the
+   * Creates a new stream. This lets the {@link #read()} method check that the
    * length is correct.
    *
    * @param s the Base64 string
