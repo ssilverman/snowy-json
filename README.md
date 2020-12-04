@@ -193,8 +193,8 @@ being collected.
 
 Type: `java.lang.Boolean`
 
-This controls whether to treat the "content" values as assertions. Currently,
-this includes "contentEncoding" and "contentMediaType".
+This controls whether to treat the "content" values as assertions in Draft-07.
+This only includes "contentEncoding" and "contentMediaType".
 
 ### Option: DEFAULT_SPECIFICATION
 

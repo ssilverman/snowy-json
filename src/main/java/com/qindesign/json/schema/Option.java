@@ -53,7 +53,10 @@ public enum Option {
    */
   COLLECT_ANNOTATIONS_FOR_FAILED(Boolean.class),
 
-  /** Whether to validate content, a {@link Boolean}. */
+  /**
+   * Whether to validate "contentEncoding" and "contentMediaType" in Draft-07,
+   * a {@link Boolean}.
+   */
   CONTENT(Boolean.class),
 
   /**

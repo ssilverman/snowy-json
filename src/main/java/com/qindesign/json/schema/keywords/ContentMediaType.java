@@ -76,45 +76,48 @@ public class ContentMediaType extends Keyword {
 
     context.addAnnotation(NAME, value.getAsString());
 
-    if (context.isOption(Option.CONTENT)) {
-      // Next look at the media type
-      Matcher m = CONTENT_TYPE.matcher(value.getAsString());
-      if (m.matches()) {
-        String contentType = m.group("mediaType");
-        if (contentType.equalsIgnoreCase("application/json")) {
-          // Determine if Base64-encoded
-          boolean base64 = false;
-          JsonElement encoding = parent.get(ContentEncoding.NAME);
-          if (encoding != null && JSON.isString(encoding)) {
-            if (encoding.getAsString().equalsIgnoreCase("base64")) {
-              base64 = true;
+    // Only Draft-07 can make this a validation assertion
+    if (context.specification() == Specification.DRAFT_07) {
+      if (context.isOption(Option.CONTENT)) {
+        // Next look at the media type
+        Matcher m = CONTENT_TYPE.matcher(value.getAsString());
+        if (m.matches()) {
+          String contentType = m.group("mediaType");
+          if (contentType.equalsIgnoreCase("application/json")) {
+            // Determine if Base64-encoded
+            boolean base64 = false;
+            JsonElement encoding = parent.get(ContentEncoding.NAME);
+            if (encoding != null && JSON.isString(encoding)) {
+              if (encoding.getAsString().equalsIgnoreCase("base64")) {
+                base64 = true;
+              }
             }
-          }
 
-          Reader content;
-          if (base64) {
-            content = new InputStreamReader(new Base64InputStream(instance.getAsString()),
-                                            StandardCharsets.UTF_8);
-          } else {
-            content = new StringReader(instance.getAsString());
-          }
-
-          try (Reader r = content) {
-            JSON.parse(r);
-          } catch (JsonParseException ex) {
-            if (ex.getCause() instanceof IOException) {
-              context.addError(false, "bad base64 encoding");
+            Reader content;
+            if (base64) {
+              content = new InputStreamReader(new Base64InputStream(instance.getAsString()),
+                                              StandardCharsets.UTF_8);
             } else {
-              context.addError(false, "does not validate against application/json");
+              content = new StringReader(instance.getAsString());
             }
-            return false;
-          } catch (IOException ex) {
-            return false;
+
+            try (Reader r = content) {
+              JSON.parse(r);
+            } catch (JsonParseException ex) {
+              if (ex.getCause() instanceof IOException) {
+                context.addError(false, "bad base64 encoding");
+              } else {
+                context.addError(false, "does not validate against application/json");
+              }
+              return false;
+            } catch (IOException ex) {
+              return false;
+            }
           }
+        } else {
+          context.addError(false, "invalid media type: " + value.getAsString());
+          return false;
         }
-      } else {
-        context.addError(false, "invalid media type: " + value.getAsString());
-        return false;
       }
     }
 

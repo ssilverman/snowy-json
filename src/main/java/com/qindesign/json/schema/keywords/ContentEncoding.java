@@ -61,10 +61,13 @@ public class ContentEncoding extends Keyword {
 
     context.addAnnotation(NAME, value.getAsString());
 
-    if (context.isOption(Option.CONTENT)) {
-      if (value.getAsString().equalsIgnoreCase("base64")) {
-        if (!Strings.isBase64(instance.getAsString())) {
-          return false;
+    // Only Draft-07 can make this a validation assertion
+    if (context.specification() == Specification.DRAFT_07) {
+      if (context.isOption(Option.CONTENT)) {
+        if (value.getAsString().equalsIgnoreCase("base64")) {
+          if (!Strings.isBase64(instance.getAsString())) {
+            return false;
+          }
         }
       }
     }
