@@ -679,8 +679,20 @@ public final class ValidatorContext {
       return theID.element;
     }
 
-    // Strip off the fragment, but after we know we don't know about it
+    // Try again if the fragment is empty
+    boolean hasEmptyFragment = (id.rawFragment() != null) && (id.rawFragment().isEmpty());
+
+    // Strip off the fragment, but only after we know we don't know about it
     id = URIs.stripFragment(id);
+
+    // Try again, but looking up the stripped fragment if it was empty
+    if (hasEmptyFragment) {
+      theID = knownIDs.get(id);
+      if (theID != null) {
+        state.baseURI = theID.id;
+        return theID.element;
+      }
+    }
 
     // Walk backwards until we find a matching resource or we hit the beginning
     StringBuilder sb = new StringBuilder();
