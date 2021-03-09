@@ -291,4 +291,4 @@ See: [Keep a Changelog](https://keepachangelog.com)
 Initial public release.
 
 ---
-Copyright (c) 2020 Shawn Silverman
+Copyright (c) 2020-2021 Shawn Silverman
