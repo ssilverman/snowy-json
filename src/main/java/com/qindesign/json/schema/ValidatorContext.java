@@ -394,17 +394,17 @@ public final class ValidatorContext {
     state.keywordParentLocation = null;
     state.absKeywordParentLocation = null;
 
-    URI absKeywordLocation;
+    URI absSchemaLocation;
     if (rootID == null) {
-      absKeywordLocation = baseURI;
+      absSchemaLocation = baseURI;
     } else {
       if (rootID.rootID == null) {
-        absKeywordLocation = rootID.id;
+        absSchemaLocation = rootID.id;
       } else {
-        absKeywordLocation = rootID.rootID;
+        absSchemaLocation = rootID.rootID;
       }
     }
-    state.loc = new Locator(JSONPath.absolute(), JSONPath.absolute(), absKeywordLocation);
+    state.loc = new Locator(JSONPath.absolute(), JSONPath.absolute(), absSchemaLocation);
 
     state.isCollectAnnotations = true;
     state.isCollectSubAnnotations = true;
@@ -542,7 +542,7 @@ public final class ValidatorContext {
    */
   public void setBaseURI(URI uri) {
     state.baseURI = state.baseURI.resolve(uri);
-    // Note: Don't set the state's absKeywordLocation here
+    // Note: Don't set the state's absSchemaLocation here
   }
 
   /**
@@ -628,17 +628,17 @@ public final class ValidatorContext {
   }
 
   /**
-   * Returns the location of the current keyword. This is the location of the
+   * Returns the current schema location. This is the location of the
    * current object.
    * <p>
    * Note that this returns the dynamic path and not a resolved URI. This is
    * meant for annotations. Callers need to resolve against the base URI if
    * they need an absolute form.
    *
-   * @return the location of the current keyword.
+   * @return the current schema location.
    */
   public JSONPath schemaLocation() {
-    return state.loc.keyword;
+    return state.loc.schema;
   }
 
   /**
@@ -810,10 +810,10 @@ public final class ValidatorContext {
     var oldA = annotations
         .computeIfAbsent(state.loc.instance, k -> new HashMap<>())
         .computeIfAbsent(name, k -> new HashMap<>())
-        .putIfAbsent(state.loc.keyword, a);
+        .putIfAbsent(state.loc.schema, a);
     if (oldA != null) {
       throw new MalformedSchemaException("annotation not unique: possible infinite loop",
-                                         state.loc.absKeyword);
+                                         state.loc.absSchema);
     }
   }
 
@@ -831,7 +831,7 @@ public final class ValidatorContext {
   public void addLocalAnnotation(String name, Object value) throws MalformedSchemaException {
     if (state.localAnnotations.putIfAbsent(name, value) != null) {
       throw new MalformedSchemaException("local annotation not unique: possible infinite loop",
-                                         state.loc.absKeyword);
+                                         state.loc.absSchema);
     }
   }
 
@@ -857,10 +857,10 @@ public final class ValidatorContext {
 
     var oldErr = errors
         .computeIfAbsent(state.loc.instance, k -> new HashMap<>())
-        .putIfAbsent(state.loc.keyword, err);
+        .putIfAbsent(state.loc.schema, err);
     if (oldErr != null) {
       throw new MalformedSchemaException("error not unique: possible infinite loop",
-                                         state.loc.absKeyword);
+                                         state.loc.absSchema);
     }
   }
 
@@ -879,7 +879,7 @@ public final class ValidatorContext {
     return annotations
         .getOrDefault(state.loc.instance, Collections.emptyMap())
         .getOrDefault(name, Collections.emptyMap())
-        .containsKey(state.loc.keyword);
+        .containsKey(state.loc.schema);
   }
 
   /**
@@ -894,7 +894,7 @@ public final class ValidatorContext {
 
     return errors
         .getOrDefault(state.loc.instance, Collections.emptyMap())
-        .containsKey(state.loc.keyword);
+        .containsKey(state.loc.schema);
   }
 
   /**
@@ -996,7 +996,7 @@ public final class ValidatorContext {
   /**
    * Throws a {@link MalformedSchemaException} with the given message for the
    * current state. The error will be tagged with the current absolute
-   * keyword location.
+   * schema location.
    *
    * @param err the error message
    * @param path the relative child element path, {@code null} for the
@@ -1004,7 +1004,7 @@ public final class ValidatorContext {
    * @throws MalformedSchemaException always.
    */
   public void schemaError(String err, JSONPath path) throws MalformedSchemaException {
-    throw new MalformedSchemaException(err, resolveAbsolute(state.loc.absKeyword, path));
+    throw new MalformedSchemaException(err, resolveAbsolute(state.loc.absSchema, path));
   }
 
   /**
@@ -1046,7 +1046,7 @@ public final class ValidatorContext {
   public void checkValidSchema(JsonElement e, String name) throws MalformedSchemaException {
     if (!Validator.isSchema(e)) {
       throw new MalformedSchemaException("not a valid JSON Schema",
-                                         resolveAbsolute(state.loc.absKeyword, name));
+                                         resolveAbsolute(state.loc.absSchema, name));
     }
   }
 
@@ -1117,7 +1117,7 @@ public final class ValidatorContext {
     }
 
     state.baseURI = newBase;
-    // Note: Don't set the state's absKeywordLocation here
+    // Note: Don't set the state's absSchemaLocation here
 
     return e;
   }
@@ -1166,24 +1166,24 @@ public final class ValidatorContext {
   }
 
   /**
-   * Applies a schema to the given instance. The keyword and instance name
-   * parameters are the relative element name, either a name or a number. An
-   * empty string means the current location.
+   * Applies a schema to the given instance. The schema member name and instance
+   * name parameters are the relative element name, either a name or a number.
+   * An empty string means the current location.
    * <p>
    * This first checks that the schema is valid. A valid schema is either an
    * object or a Boolean.
    * <p>
-   * The {@code absSchemaLoc} parameter is used as the new absolute keyword
+   * The {@code absSchemaLoc} parameter is used as the new absolute schema
    * location, unless there's a declared $id, in which case that value is used.
    * If there's no $id and the parameter is {@code null}, then the location will
-   * be assigned the keyword name resolved against the current location,
+   * be assigned the schema member name resolved against the current location,
    * as usual.
    * <p>
    * This does not set the annotations or errors collection vessels, and is only
    * designed to be used from keywords.
    *
    * @param schema the schema, an object or a Boolean
-   * @param name the keyword name, {@code null} for the current element
+   * @param name the schema member name, {@code null} for the current element
    * @param absSchemaLoc the new absolute location, or {@code null}
    * @param instance the instance element
    * @param instanceName the instance element name, {@code null} for the
@@ -1201,29 +1201,29 @@ public final class ValidatorContext {
       return schema.getAsBoolean();
     }
 
-    URI absKeywordLocation = null;
+    URI absSchemaLocation = null;
 
-    // See if the absolute keyword location and base URI needs to change
+    // See if the absolute schema location and base URI needs to change
     // Note: The base URI will change when CoreId is executed
     if (schema.isJsonObject()) {
       Optional<Id> id = idsByElem.computeIfAbsent(schema, elem -> Collections.emptySet()).stream()
           .filter(x -> x.id.rawFragment() == null)
           .findFirst();
       if (id.isPresent()) {
-        absKeywordLocation = id.get().id;
+        absSchemaLocation = id.get().id;
         state.baseURI = id.get().id;
       }
     }
 
-    if (absKeywordLocation == null) {
+    if (absSchemaLocation == null) {
       if (absSchemaLoc == null) {
-        absKeywordLocation = resolveAbsolute(state.loc.absKeyword, name);
+        absSchemaLocation = resolveAbsolute(state.loc.absSchema, name);
       } else {
-        absKeywordLocation = absSchemaLoc;
+        absSchemaLocation = absSchemaLoc;
       }
     }
     if (!schema.isJsonObject()) {
-      throw new MalformedSchemaException("not a valid JSON Schema", absKeywordLocation);
+      throw new MalformedSchemaException("not a valid JSON Schema", absSchemaLocation);
     }
 
     JsonObject schemaObject = schema.getAsJsonObject();
@@ -1231,16 +1231,16 @@ public final class ValidatorContext {
       return true;
     }
 
-    JSONPath keywordLocation = resolvePointer(state.loc.keyword, name);
+    JSONPath schemaLocation = resolvePointer(state.loc.schema, name);
     JSONPath instanceLocation = resolvePointer(state.loc.instance, instanceName);
 
     State parentState = state;
     state = new State(state);
     state.isRoot = (state.schemaObject == null);
     state.schemaObject = schemaObject;
-    state.keywordParentLocation = keywordLocation;
-    state.absKeywordParentLocation = absKeywordLocation;
-    state.loc = new Locator(instanceLocation, state.loc.keyword, absKeywordLocation);
+    state.keywordParentLocation = schemaLocation;
+    state.absKeywordParentLocation = absSchemaLocation;
+    state.loc = new Locator(instanceLocation, state.loc.schema, absSchemaLocation);
     state.isCollectAnnotations = parentState.isCollectSubAnnotations;
     state.isCollectSubAnnotations = state.isCollectAnnotations;
 
@@ -1277,7 +1277,7 @@ public final class ValidatorContext {
       // Note that we're also checking for equality in case the current
       // failing keyword has set some annotations
       Predicate<Map.Entry<JSONPath, Annotation<?>>> pred =
-          e -> e.getKey().startsWith(keywordLocation);
+          e -> e.getKey().startsWith(schemaLocation);
 
       if (!isCollectFailedAnnotations) {
         annotations.getOrDefault(instanceLocation, Collections.emptyMap())
@@ -1301,7 +1301,7 @@ public final class ValidatorContext {
           .forEach(e -> {
             e.getValue().values().stream()
                 .filter(err -> !err.result &&
-                               err.loc.keyword.startsWith(keywordLocation))
+                               err.loc.schema.startsWith(schemaLocation))
                 .forEach(a -> a.setPruned(true));
           });
     }

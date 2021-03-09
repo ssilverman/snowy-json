@@ -67,7 +67,7 @@ public final class Results {
           // Only add failed messages for valid failures
           e.getValue().values().stream()
               .filter(err -> !err.isPruned() && !err.result)
-              .sorted(Comparator.comparing(err -> err.loc.keyword))
+              .sorted(Comparator.comparing(err -> err.loc.schema))
               .forEach(list::add);
         });
 
@@ -80,7 +80,7 @@ public final class Results {
       // need to compare in one direction
       if (list.subList(i + 1, list.size()).stream()
           .anyMatch(err2 -> err2.loc.instance.startsWith(err.loc.instance) &&
-                            err2.loc.keyword.startsWith(err.loc.keyword))) {
+                            err2.loc.schema.startsWith(err.loc.schema))) {
         iter.remove();
       }
     }
@@ -115,7 +115,7 @@ public final class Results {
               .forEach(bySchemaLoc -> {
                 bySchemaLoc.getValue().values().stream()
                     .filter(Annotation::isValid)
-                    .sorted(Comparator.comparing(a -> a.loc.keyword))
+                    .sorted(Comparator.comparing(a -> a.loc.schema))
                     .forEach(list::add);
               });
         });

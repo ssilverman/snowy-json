@@ -390,11 +390,11 @@ public class Test {
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> {
                   e.getValue().values().stream()
-                      .sorted(Comparator.comparing(err -> err.loc.keyword))
+                      .sorted(Comparator.comparing(err -> err.loc.schema))
                       .forEach(err -> {
                         JsonObject error = new JsonObject();
-                        error.addProperty("keywordLocation", err.loc.keyword.toString());
-                        error.addProperty("absoluteKeywordLocation", err.loc.absKeyword.toString());
+                        error.addProperty("schemaLocation", err.loc.schema.toString());
+                        error.addProperty("absSchemaLocation", err.loc.absSchema.toString());
                         error.addProperty("instanceLocation", err.loc.instance.toString());
                         if (err.isPruned()) {
                           error.addProperty("pruned", true);
@@ -413,12 +413,12 @@ public class Test {
                 .forEach(e -> {
                   e.getValue().forEach((name, bySchemaLoc) -> {
                     bySchemaLoc.values().stream()
-                        .sorted(Comparator.comparing(a -> a.loc.keyword))
+                        .sorted(Comparator.comparing(a -> a.loc.schema))
                         .forEach(a -> {
                           JsonObject o = new JsonObject();
                           o.addProperty("instanceLocation", a.loc.instance.toString());
-                          o.addProperty("keywordLocation", a.loc.keyword.toString());
-                          o.addProperty("absoluteKeywordLocation", a.loc.absKeyword.toString());
+                          o.addProperty("schemaLocation", a.loc.schema.toString());
+                          o.addProperty("absSchemaLocation", a.loc.absSchema.toString());
                           JsonObject ao = new JsonObject();
                           o.add("annotation", ao);
                           ao.addProperty("name", a.name);

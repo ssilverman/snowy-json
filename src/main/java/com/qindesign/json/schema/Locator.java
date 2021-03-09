@@ -30,30 +30,30 @@ import java.util.Objects;
  */
 public final class Locator {
   public final JSONPath instance;
-  public final JSONPath keyword;
-  public final URI absKeyword;
+  public final JSONPath schema;
+  public final URI absSchema;
 
   /**
    * Creates a new {@link Locator}.
    *
    * @param instance the instance location
-   * @param keyword the dynamic keyword location
-   * @param absKeyword the absolut keyword location
+   * @param schema the dynamic schema location
+   * @param absSchema the absolute schema location
    * @throws NullPointerException if any of the arguments is {@code null}.
    */
-  public Locator(JSONPath instance, JSONPath keyword, URI absKeyword) {
+  public Locator(JSONPath instance, JSONPath schema, URI absSchema) {
     Objects.requireNonNull(instance, "instance");
-    Objects.requireNonNull(instance, "keyword");
-    Objects.requireNonNull(instance, "absKeyword");
+    Objects.requireNonNull(schema, "schema");
+    Objects.requireNonNull(absSchema, "absSchema");
 
     this.instance = instance;
-    this.keyword = keyword;
-    this.absKeyword = absKeyword;
+    this.schema = schema;
+    this.absSchema = absSchema;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(instance, keyword, absKeyword);
+    return Objects.hash(instance, schema, absSchema);
   }
 
   @Override
@@ -64,15 +64,15 @@ public final class Locator {
 
     Locator loc = (Locator) obj;
     return instance.equals(loc.instance) &&
-           keyword.equals(loc.keyword) &&
-           absKeyword.equals(loc.absKeyword);
+           schema.equals(loc.schema) &&
+           absSchema.equals(loc.absSchema);
   }
 
   @Override
   public String toString() {
     return "Locator[" +
            "instance=" + instance +
-           ", keyword=" + keyword +
-           ", absKeyword=" + absKeyword + "]";
+           ", schema=" + schema +
+           ", absSchema=" + absSchema + "]";
   }
 }
