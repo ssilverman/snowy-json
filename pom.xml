@@ -217,12 +217,12 @@
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.90</version>
+            <version>4.8.102</version>
         </dependency>
         <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
-            <version>68.1</version>
+            <version>68.2</version>
         </dependency>
     </dependencies>
 </project>

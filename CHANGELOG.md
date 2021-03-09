@@ -11,6 +11,9 @@ See: [Keep a Changelog](https://keepachangelog.com)
   escaping was the default.
 * Changed "keywordLocation" and "absoluteKeywordLocation" in the output to
   "schemaLocation" and "absSchemaLocation", respectively.
+* Updated dependency versions:
+  1. ClassGraph: 4.8.90 -> 4.8.102
+  1. ICU4J: 68.1 -> 68.2
 
 ### Fixed
 * Fixed $recursiveRef root lookup. Added additional search for stripped empty
