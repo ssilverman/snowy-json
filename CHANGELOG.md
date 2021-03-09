@@ -4,6 +4,20 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [0.16.0]
+
+### Changed
+* Disabled HTML escaping when printing JSON, in JSON.print. It turned out that
+  escaping was the default.
+* Changed "keywordLocation" and "absoluteKeywordLocation" in the output to
+  "schemaLocation" and "absSchemaLocation", respectively.
+
+### Fixed
+* Fixed $recursiveRef root lookup. Added additional search for stripped empty
+  fragment in known IDs.
+* Fixed `ContentEncoding` and `ContentMediaType` to only assert for Draft-07.
+  It was previously behaving as a validation assertion for Draft 2019-09.
+
 ## [0.15.0]
 
 ### Added
