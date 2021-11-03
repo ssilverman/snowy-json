@@ -4,6 +4,12 @@ This document details changes between each release.
 
 See: [Keep a Changelog](https://keepachangelog.com)
 
+## [unreleased]
+
+### Changed
+* Updated dependency versions:
+  1. Gson: 2.8.6 -> 2.8.9
+
 ## [0.16.0]
 
 ### Changed

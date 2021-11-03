@@ -76,7 +76,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Versions all in one place so we can use the same ones for Javadocs -->
-        <versions.gson>2.8.6</versions.gson>
+        <versions.gson>2.8.9</versions.gson>
     </properties>
 
     <build>
